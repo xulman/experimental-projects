@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.scijava</groupId>
 		<artifactId>pom-scijava</artifactId>
-		<version>37.0.0</version>
+		<version>36.0.0</version>
 	</parent>
 
 	<groupId>org.mastodon</groupId>
@@ -76,9 +76,7 @@
 		<license.organizationName>Mastodon authors</license.organizationName>
 		<license.copyrightOwners>Vladimir Ulman</license.copyrightOwners>
 
-		<mastodon.version>1.0.0-beta-27-SNAPSHOT</mastodon.version>
-
-		<enforcer.skip>false</enforcer.skip>
+		<mastodon.version>1.0.0-beta-26</mastodon.version>
 	</properties>
 
 	<developers>
