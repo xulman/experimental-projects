@@ -17,6 +17,9 @@ import org.scijava.plugin.Plugin;
 @Plugin( type = Command.class, name = "Move spots in space and time" )
 public class ShiftSpots implements Command {
 
+	@Parameter(visibility = ItemVisibility.MESSAGE)
+	private final String selectionInfoMsg = "...also of only selected sub-trees.";
+
 	@Parameter
 	double multiply_x = 1;
 	@Parameter
