@@ -1,10 +1,6 @@
 package org.mastodon.mamut.experimental.spots;
 
-import net.imagej.ImageJ;
-import org.mastodon.mamut.project.MamutProjectIO;
-import org.mastodon.mamut.MainWindow;
 import org.mastodon.mamut.MamutAppModel;
-import org.mastodon.mamut.WindowManager;
 import org.mastodon.mamut.model.ModelGraph;
 import org.mastodon.mamut.model.Spot;
 
@@ -17,8 +13,6 @@ import java.util.function.Function;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
-
-import javax.swing.WindowConstants;
 
 @Plugin( type = Command.class, name = "Move spots in space and time" )
 public class ShiftSpots implements Command {
@@ -136,34 +130,5 @@ public class ShiftSpots implements Command {
 		graph.remove(s);
 
 		return newSpot;
-	}
-
-
-	public static void main(String[] args) {
-		//start M. on a hard-coded path
-
-		String projectPath = "/home/ulman/Downloads/Johannes/HACKBRNO/E2/2019-10_29_Pc_NLSH2B-GFP_2023-06-23__DUMMY.mastodon";
-
-		try {
-			ImageJ ij = new ImageJ();
-			ij.ui().showUI();
-
-			final WindowManager windowManager = new WindowManager( ij.getContext() );
-			//a GUI element wrapping around the hub
-			final MainWindow win = new MainWindow(windowManager);
-			//
-			//this makes the true Mastodon window visible
-			//note: you can open project that restores/reopen e.g. TrackScheme window,
-			//      yet the main Mastodon window is not shown... but this then runs non-stop
-			win.setVisible(true);
-			//
-			//this makes the whole thing (incl. the central hub) go down when the GUI is closed
-			win.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-			//
-			windowManager.getProjectManager().open(new MamutProjectIO().load(projectPath));
-		} catch (Exception e) {
-			System.out.println("SOME ERROR: " + e.getMessage());
-			e.printStackTrace();
-		}
 	}
 }
