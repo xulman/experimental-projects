@@ -46,8 +46,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.mastodon.mamut.tomancak.lineage_registration.TagSetUtils.addNewTagSetToModel;
-import static org.mastodon.mamut.tomancak.lineage_registration.TagSetUtils.rgbToValidColor;
+import static org.mastodon.util.TagSetUtils.addNewTagSetToModel;
+import static org.mastodon.util.TagSetUtils.rgbToValidColor;
 
 @Plugin( type = Command.class, name = "Random colorize lineages" )
 public class LineageRandomColorizer extends DynamicCommand  {

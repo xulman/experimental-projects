@@ -37,6 +37,7 @@ import java.util.HashSet;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
 
+import org.scijava.ItemVisibility;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
