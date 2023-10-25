@@ -77,12 +77,22 @@ class Agent:
 
         done_attempts = 0
         too_close = True
+        disp_x = 0
+        disp_y = 0
         while done_attempts < 5 and too_close:
             done_attempts += 1
 
+            # try this displacement:
+            isOdd = (done_attempts & 1) == 1
+            if isOdd:
+                disp_x = random.gauss(0, self.usual_step_size/2.0)
+                disp_y = random.gauss(0, self.usual_step_size/2.0)
+            else:
+                disp_x /= 2.0
+                disp_y /= 2.0
             # new potential position of this spot
-            new_x = old_x + random.gauss(0, self.usual_step_size/2.0)
-            new_y = old_y + random.gauss(0, self.usual_step_size/2.0)
+            new_x = old_x + disp_x
+            new_y = old_y + disp_y
             new_z = old_z
 
             # check if not close to any neighbor
