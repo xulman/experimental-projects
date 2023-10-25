@@ -30,6 +30,8 @@ class Agent:
         self.report_log = []
         self.report_status()
 
+        print(f"NEW AGENT {ID} ({label}), parent {parentID} @ [{x},{y},{z}] tp={time}, divTime={self.dontDivideBefore}, dieTime={self.dontLiveBeyond}")
+
 
     def report_status(self):
         # TIME	X	Y	Z	TRACK_ID	PARENT_TRACK_ID	SPOT LABEL	SPOT RADIUS
@@ -44,6 +46,7 @@ class Agent:
 
     def do_one_time(self):
         neighbors = self.simulator_frame.get_list_of_occupied_coords( self )
+        print(f"advancing agent id {self.id} ({self.name}):")
 
         remaining_attempts = 5
         too_close = True
@@ -74,6 +77,9 @@ class Agent:
         # else we stay where we are (which should not break things, provided other agents follow the same protocol)
         self.t += 1 
 
+        print(f"  established coords [{self.x},{self.y},{self.z}] ({remaining_attempts} tries left)")
+        print(f"  when {len(neighbors)} neighbors around, too_close={too_close}")
+
         # soo, we might have moved somewhere,
         # but isn't it a time to divide or die?
         if self.t > self.dontDivideBefore:
@@ -81,9 +87,11 @@ class Agent:
             no_of_neighbors = len(neighbors)
             if no_of_neighbors <= self.max_neighbors:
                 # time to divide!
+                print("  dividing!")
                 self.divide_me()
 
         elif self.t > self.dontLiveBeyond:
+            print("  dying!")
             self.simulator_frame.deregister_agent(self)
 
 

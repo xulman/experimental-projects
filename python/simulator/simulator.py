@@ -17,14 +17,16 @@ class Simulator:
 
     def register_agent(self, spot:Agent):
         if spot.id in self.agents_container.keys():
-            print("ERROR with registering")
+            print("========== SIM: ERROR with registering")
             pass
+        print(f"========== SIM: registering agent {spot.id}")
         self.agents_container[spot.id] = spot
 
     def deregister_agent(self, spot:Agent):
         if not spot.id in self.agents_container.keys():
-            print("ERROR with deregistering")
+            print("========== SIM: ERROR with deregistering")
             pass
+        print(f"========== SIM: DEregistering agent {spot.id}")
         self.agents_container.remove(spot.id)
         self.report_agent_log(spot)
 
@@ -57,6 +59,7 @@ class Simulator:
 
     def do_one_time(self):
         self.time += 1
+        print(f"========== SIM: creating time point {self.time} from {len(self.agents_container)} agents")
         for spot in self.agents_container.values():
             spot.progress(self.time)
 
