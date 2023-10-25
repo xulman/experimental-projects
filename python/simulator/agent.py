@@ -75,10 +75,10 @@ class Agent:
         neighbors = self.simulator_frame.get_list_of_occupied_coords( self )
         print(f"  neighs: {neighbors}")
 
-        remaining_attempts = 5
+        done_attempts = 0
         too_close = True
-        while remaining_attempts > 0 and too_close:
-            remaining_attempts -= 1
+        while done_attempts < 5 and too_close:
+            done_attempts += 1
 
             # new potential position of this spot
             new_x = old_x + random.gauss(0, self.usual_step_size/2.0)
@@ -104,7 +104,7 @@ class Agent:
         # else we stay where we are (which should not break things, provided other agents follow the same protocol)
         self.t += 1 
 
-        print(f"  established coords [{self.next_x},{self.next_y},{self.next_z}] ({remaining_attempts} tries left)")
+        print(f"  established coords [{self.next_x},{self.next_y},{self.next_z}] (required {done_attempts} attempts)")
         print(f"  when {len(neighbors)} neighbors around, too_close={too_close}")
 
         # soo, we might have moved somewhere,
