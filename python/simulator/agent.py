@@ -123,17 +123,19 @@ class Agent:
 
         # soo, we might have moved somewhere,
         # but isn't it a time to divide or die?
-        if self.t > self.dontDivideBefore:
+        if self.t > self.dontLiveBeyond:
+            print("  dying now!")
+            self.simulator_frame.deregister_agent(self)
+
+        elif self.t > self.dontDivideBefore:
             # time to divide if it is not too crowded around
             no_of_neighbors = len(neighbors)
             if no_of_neighbors <= self.max_neighbors_for_divide:
                 # time to divide!
                 print("  dividing!")
                 self.divide_me()
-
-        elif self.t > self.dontLiveBeyond:
-            print("  dying!")
-            self.simulator_frame.deregister_agent(self)
+            else:
+                print(f"  should divide but space seems to be full... ({no_of_neighbors} neighbors, too_close={too_close})")
 
 
     def divide_me(self):
