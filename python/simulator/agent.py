@@ -56,12 +56,15 @@ class Agent:
 
 
     def do_one_time(self, from_current_pos = True):
-        neighbors = self.simulator_frame.get_list_of_occupied_coords( self )
         print(f"advancing agent id {self.id} ({self.name}):")
 
         old_x = self.x if from_current_pos else self.next_x
         old_y = self.y if from_current_pos else self.next_y
         old_z = self.z if from_current_pos else self.next_z
+        print(f"  from pos [{old_x},{old_y},{old_z}] (from_current_pos={from_current_pos})")
+
+        neighbors = self.simulator_frame.get_list_of_occupied_coords( self )
+        print(f"  neighs: {neighbors}")
 
         remaining_attempts = 5
         too_close = True
@@ -83,6 +86,7 @@ class Agent:
                 dist = dx*dx + dy*dy + dz*dz
                 if dist < self.min_distance_squared:
                     too_close = True
+            print(f"  trying pos [{new_x},{new_y},{new_z}], too_close={too_close}")
 
         if not too_close:
             # great, found new acceptable position, let's use it
