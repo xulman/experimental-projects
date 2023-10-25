@@ -1,3 +1,6 @@
+import random
+import math
+
 class Agent:
     def __init__(self, simulator, ID:int, parentID:int, label:str, x:float, y:float, z:float, time:int):
         self.simulator_frame = simulator
@@ -19,16 +22,21 @@ class Agent:
         self.interest_radius = 5.0
 
         # don't get closer to any neighbor than this distance
-        self.min_distance_to_neighbor = 3.0
+        self.usual_step_size = 1.0
+        self.min_distance_to_neighbor = 3.0 * self.usual_step_size
         self.min_distance_squared = self.min_distance_to_neighbor * self.min_distance_to_neighbor
 
-        # how much is a dense environment; doesn't divide if there are
-        # more neighbors than 'max_neighbors' in the 'interest_radius'
-        self.max_neighbors = 6
+        # randomized life span...
+        meanLifePeriod = 7
+        sigma = (0.6*meanLifePeriod)/3.0; # variations up 60% of mean life
+        thisCellLifePeriod = random.gauss(meanLifePeriod, sigma)
 
-        # TODO randomize!
-        self.dontDivideBefore = time + 10
-        self.dontLiveBeyond = time+50
+        self.dontDivideBefore = time + thisCellLifePeriod
+        self.dontLiveBeyond = time + 5*thisCellLifePeriod
+
+        # how much is a dense environment; doesn't divide if there are
+        # more neighbors than 'max_neighbors_for_divide' in the 'interest_radius'
+        self.max_neighbors_for_divide = 6
 
         # for creating the outcome plain text file
         self.report_log = []
@@ -73,9 +81,8 @@ class Agent:
             remaining_attempts -= 1
 
             # new potential position of this spot
-            #TODO randomize
-            new_x = old_x + 5
-            new_y = old_y + 4
+            new_x = old_x + random.gauss(0, self.usual_step_size/2.0)
+            new_y = old_y + random.gauss(0, self.usual_step_size/2.0)
             new_z = old_z
 
             # check if not close to any neighbor
@@ -105,7 +112,7 @@ class Agent:
         if self.t > self.dontDivideBefore:
             # time to divide if it is not too crowded around
             no_of_neighbors = len(neighbors)
-            if no_of_neighbors <= self.max_neighbors:
+            if no_of_neighbors <= self.max_neighbors_for_divide:
                 # time to divide!
                 print("  dividing!")
                 self.divide_me()
@@ -122,9 +129,12 @@ class Agent:
         d1_name = self.name+"a"
         d2_name = self.name+"b"
 
-        # TODO randomize
-        d1 = Agent(self.simulator_frame, d1_id,self.id, d1_name, self.next_x-0.5,self.next_y,self.next_z, self.t+1)
-        d2 = Agent(self.simulator_frame, d2_id,self.id, d2_name, self.next_x+0.5,self.next_y,self.next_z, self.t+1)
+        # randomize division direction
+        alfa = random.uniform(0,6.28)
+        dx = 0.5 * self.min_distance_to_neighbor * math.cos(alfa)
+        dy = 0.5 * self.min_distance_to_neighbor * math.sin(alfa)
+        d1 = Agent(self.simulator_frame, d1_id,self.id, d1_name, self.next_x-dx,self.next_y-dy,self.next_z, self.t+1)
+        d2 = Agent(self.simulator_frame, d2_id,self.id, d2_name, self.next_x+dx,self.next_y+dy,self.next_z, self.t+1)
 
         self.simulator_frame.deregister_agent(self)
         self.simulator_frame.register_agent(d1)
