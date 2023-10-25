@@ -51,7 +51,7 @@ class Simulator:
         for spot in self.agents_container.values():
             if spot.id == from_this_spot.id:
                 continue
-            if min.x < spot.x < max.x and min.y < spot.y < max.y and min.z < spot.z < max.z:
+            if min_x < spot.x < max_x and min_y < spot.y < max_y and min_z < spot.z < max_z:
                 ret_coords.append([spot.x,spot.y,spot.z])
 
         return ret_coords
