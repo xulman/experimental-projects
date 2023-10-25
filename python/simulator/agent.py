@@ -73,7 +73,7 @@ class Agent:
         print(f"  from pos [{old_x},{old_y},{old_z}] (from_current_pos={from_current_pos})")
 
         neighbors = self.simulator_frame.get_list_of_occupied_coords( self )
-        print(f"  neighs: {neighbors}")
+        print(f"    neighs: {neighbors}")
 
         done_attempts = 0
         too_close = True
@@ -90,6 +90,8 @@ class Agent:
             else:
                 disp_x /= 2.0
                 disp_y /= 2.0
+            print(f"    displacement = ({disp_x},{disp_y}), isOdd={isOdd}")
+
             # new potential position of this spot
             new_x = old_x + disp_x
             new_y = old_y + disp_y
@@ -104,14 +106,16 @@ class Agent:
                 dist = dx*dx + dy*dy + dz*dz
                 if dist < self.min_distance_squared:
                     too_close = True
-            print(f"  trying pos [{new_x},{new_y},{new_z}], too_close={too_close}")
+            print(f"    trying pos [{new_x},{new_y},{new_z}], too_close={too_close}")
 
         if not too_close:
             # great, found new acceptable position, let's use it
             self.next_x = new_x
             self.next_y = new_y
             self.next_z = new_z
-        # else we stay where we are (which should not break things, provided other agents follow the same protocol)
+        else:
+            # else we stay where we are (which should not break things, provided other agents follow the same protocol)
+            print(f"    couldn't move when {len(neighbors)} neighbors are around")
         self.t += 1 
 
         print(f"  established coords [{self.next_x},{self.next_y},{self.next_z}] (required {done_attempts} attempts)")
