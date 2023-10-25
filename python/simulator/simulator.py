@@ -8,6 +8,10 @@ class Simulator:
         # for now: a naive simple version with one map
         self.agents_container = dict()
 
+        # temporary buffers for adding and removing agents
+        self.new_agents_container = []
+        self.dead_agents_container = []
+
         self.report_file = open(log_file_path,"w")
 
     def get_new_id(self):
@@ -20,15 +24,22 @@ class Simulator:
             print("========== SIM: ERROR with registering")
             pass
         print(f"========== SIM: registering agent {spot.id}")
-        self.agents_container[spot.id] = spot
+        self.new_agents_container.append(spot)
 
     def deregister_agent(self, spot:Agent):
         if not spot.id in self.agents_container.keys():
             print("========== SIM: ERROR with deregistering")
             pass
         print(f"========== SIM: DEregistering agent {spot.id}")
-        self.agents_container.remove(spot.id)
-        self.report_agent_log(spot)
+        self.dead_agents_container.append(spot)
+
+    def commit_new_and_dead_agents(self):
+        for spot in self.dead_agents_container:
+            self.agents_container.pop(spot.id)
+            self.report_agent_log(spot)
+
+        for spot in self.new_agents_container:
+            self.agents_container[spot.id] = spot
 
 
     def report_agent_log(self, spot:Agent):
@@ -58,6 +69,9 @@ class Simulator:
 
 
     def do_one_time(self):
+        self.new_agents_container.clear()
+        self.dead_agents_container.clear()
+
         self.time += 1
         print(f"========== SIM: creating time point {self.time} from {len(self.agents_container)} agents")
         for spot in self.agents_container.values():
@@ -66,11 +80,14 @@ class Simulator:
         for spot in self.agents_container.values():
             spot.progress_finish()
 
+        self.commit_new_and_dead_agents()
+
 
     def populate(self, number_of_cells:int):
         for i in range(number_of_cells):
             spot = Agent(self, self.get_new_id(),0, f"{i+1}", i*3,0,0,self.time)
             self.register_agent(spot)
+        self.commit_new_and_dead_agents()
 
 
     def close(self):

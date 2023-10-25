@@ -32,7 +32,8 @@ class Agent:
 
         # for creating the outcome plain text file
         self.report_log = []
-        self.report_status()
+        if parentID == 0:
+            self.report_status()
 
         print(f"NEW AGENT {ID} ({label}), parent {parentID} @ [{x},{y},{z}] tp={time}, divTime={self.dontDivideBefore}, dieTime={self.dontLiveBeyond}")
 
@@ -122,8 +123,8 @@ class Agent:
         d2_name = self.name+"b"
 
         # TODO randomize
-        d1 = Agent(self.simulator_frame, d1_id,self.id, d1_name, self.x-0.5,self.y,self.z, self.t+1)
-        d2 = Agent(self.simulator_frame, d2_id,self.id, d2_name, self.x+0.5,self.y,self.z, self.t+1)
+        d1 = Agent(self.simulator_frame, d1_id,self.id, d1_name, self.next_x-0.5,self.next_y,self.next_z, self.t+1)
+        d2 = Agent(self.simulator_frame, d2_id,self.id, d2_name, self.next_x+0.5,self.next_y,self.next_z, self.t+1)
 
         self.simulator_frame.deregister_agent(self)
         self.simulator_frame.register_agent(d1)
