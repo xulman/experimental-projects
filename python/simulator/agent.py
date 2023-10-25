@@ -6,6 +6,10 @@ class Agent:
         self.simulator_frame = simulator
 
         self.name = label
+        self.name_clean = label
+        self.name_blocked = "B"+label
+        self.name_wantdivide = "W"+label
+        self.name_blocked_wantdivide = "BW"+label
         self.id = ID
         self.parent_id = parentID
 
@@ -113,9 +117,11 @@ class Agent:
             self.next_x = new_x
             self.next_y = new_y
             self.next_z = new_z
+            self.name = self.name_clean
         else:
             # else we stay where we are (which should not break things, provided other agents follow the same protocol)
             print(f"    couldn't move when {len(neighbors)} neighbors are around")
+            self.name = self.name_blocked
         self.t += 1 
 
         print(f"  established coords [{self.next_x},{self.next_y},{self.next_z}] (required {done_attempts} attempts)")
@@ -136,6 +142,8 @@ class Agent:
                 self.divide_me()
             else:
                 print(f"  should divide but space seems to be full... ({no_of_neighbors} neighbors, too_close={too_close})")
+                self.name = self.name_blocked_wantdivide if too_close else self.name_wantdivide
+
 
 
     def divide_me(self):
