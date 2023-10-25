@@ -36,7 +36,7 @@ class Agent:
 
         # how much is a dense environment; doesn't divide if there are
         # more neighbors than 'max_neighbors_for_divide' in the 'interest_radius'
-        self.max_neighbors_for_divide = 6
+        self.max_neighbors_for_divide = 4
 
         # for creating the outcome plain text file
         self.report_log = []
@@ -130,7 +130,7 @@ class Agent:
         elif self.t > self.dontDivideBefore:
             # time to divide if it is not too crowded around
             no_of_neighbors = len(neighbors)
-            if no_of_neighbors <= self.max_neighbors_for_divide:
+            if no_of_neighbors <= self.max_neighbors_for_divide and not too_close:
                 # time to divide!
                 print("  dividing!")
                 self.divide_me()
