@@ -6,6 +6,10 @@ class Agent:
         self.simulator_frame = simulator
 
         self.name = label
+        self.name_clean = label
+        self.name_blocked = "B"+label
+        self.name_wantdivide = "W"+label
+        self.name_blocked_wantdivide = "BW"+label
         self.id = ID
         self.parent_id = parentID
 
@@ -36,7 +40,7 @@ class Agent:
 
         # how much is a dense environment; doesn't divide if there are
         # more neighbors than 'max_neighbors_for_divide' in the 'interest_radius'
-        self.max_neighbors_for_divide = 6
+        self.max_neighbors_for_divide = 4
 
         # for creating the outcome plain text file
         self.report_log = []
@@ -73,16 +77,28 @@ class Agent:
         print(f"  from pos [{old_x},{old_y},{old_z}] (from_current_pos={from_current_pos})")
 
         neighbors = self.simulator_frame.get_list_of_occupied_coords( self )
-        print(f"  neighs: {neighbors}")
+        print(f"    neighs: {neighbors}")
 
-        remaining_attempts = 5
+        done_attempts = 0
         too_close = True
-        while remaining_attempts > 0 and too_close:
-            remaining_attempts -= 1
+        disp_x = 0
+        disp_y = 0
+        while done_attempts < 5 and too_close:
+            done_attempts += 1
+
+            # try this displacement:
+            isOdd = (done_attempts & 1) == 1
+            if isOdd:
+                disp_x = random.gauss(0, self.usual_step_size/2.0)
+                disp_y = random.gauss(0, self.usual_step_size/2.0)
+            else:
+                disp_x /= 2.0
+                disp_y /= 2.0
+            print(f"    displacement = ({disp_x},{disp_y}), isOdd={isOdd}")
 
             # new potential position of this spot
-            new_x = old_x + random.gauss(0, self.usual_step_size/2.0)
-            new_y = old_y + random.gauss(0, self.usual_step_size/2.0)
+            new_x = old_x + disp_x
+            new_y = old_y + disp_y
             new_z = old_z
 
             # check if not close to any neighbor
@@ -94,32 +110,40 @@ class Agent:
                 dist = dx*dx + dy*dy + dz*dz
                 if dist < self.min_distance_squared:
                     too_close = True
-            print(f"  trying pos [{new_x},{new_y},{new_z}], too_close={too_close}")
+            print(f"    trying pos [{new_x},{new_y},{new_z}], too_close={too_close}")
 
         if not too_close:
             # great, found new acceptable position, let's use it
             self.next_x = new_x
             self.next_y = new_y
             self.next_z = new_z
-        # else we stay where we are (which should not break things, provided other agents follow the same protocol)
+            self.name = self.name_clean
+        else:
+            # else we stay where we are (which should not break things, provided other agents follow the same protocol)
+            print(f"    couldn't move when {len(neighbors)} neighbors are around")
+            self.name = self.name_blocked
         self.t += 1 
 
-        print(f"  established coords [{self.next_x},{self.next_y},{self.next_z}] ({remaining_attempts} tries left)")
+        print(f"  established coords [{self.next_x},{self.next_y},{self.next_z}] (required {done_attempts} attempts)")
         print(f"  when {len(neighbors)} neighbors around, too_close={too_close}")
 
         # soo, we might have moved somewhere,
         # but isn't it a time to divide or die?
-        if self.t > self.dontDivideBefore:
+        if self.t > self.dontLiveBeyond:
+            print("  dying now!")
+            self.simulator_frame.deregister_agent(self)
+
+        elif self.t > self.dontDivideBefore:
             # time to divide if it is not too crowded around
             no_of_neighbors = len(neighbors)
-            if no_of_neighbors <= self.max_neighbors_for_divide:
+            if no_of_neighbors <= self.max_neighbors_for_divide and not too_close:
                 # time to divide!
                 print("  dividing!")
                 self.divide_me()
+            else:
+                print(f"  should divide but space seems to be full... ({no_of_neighbors} neighbors, too_close={too_close})")
+                self.name = self.name_blocked_wantdivide if too_close else self.name_wantdivide
 
-        elif self.t > self.dontLiveBeyond:
-            print("  dying!")
-            self.simulator_frame.deregister_agent(self)
 
 
     def divide_me(self):
