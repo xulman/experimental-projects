@@ -63,6 +63,9 @@ class Simulator:
         for spot in self.agents_container.values():
             spot.progress(self.time)
 
+        for spot in self.agents_container.values():
+            spot.progress_finish()
+
 
     def populate(self, number_of_cells:int):
         for i in range(number_of_cells):

@@ -11,11 +11,15 @@ class Agent:
         self.z = z
         self.t = time
 
+        self.next_x = x
+        self.next_y = y
+        self.next_z = z
+
         # scan around up to this range
-        self.interest_radius = 5
+        self.interest_radius = 5.0
 
         # don't get closer to any neighbor than this distance
-        self.min_distance_to_neighbor = 3
+        self.min_distance_to_neighbor = 3.0
         self.min_distance_squared = self.min_distance_to_neighbor * self.min_distance_to_neighbor
 
         # how much is a dense environment; doesn't divide if there are
@@ -39,14 +43,25 @@ class Agent:
 
 
     def progress(self, till_this_time:int):
+        first_go = True
         while self.t < till_this_time:
-            self.do_one_time()
-            self.report_status()
+            self.do_one_time(first_go)
+            first_go = False
+
+    def progress_finish(self):
+        self.x = self.next_x
+        self.y = self.next_y
+        self.z = self.next_z
+        self.report_status()
 
 
-    def do_one_time(self):
+    def do_one_time(self, from_current_pos = True):
         neighbors = self.simulator_frame.get_list_of_occupied_coords( self )
         print(f"advancing agent id {self.id} ({self.name}):")
+
+        old_x = self.x if from_current_pos else self.next_x
+        old_y = self.y if from_current_pos else self.next_y
+        old_z = self.z if from_current_pos else self.next_z
 
         remaining_attempts = 5
         too_close = True
@@ -55,9 +70,9 @@ class Agent:
 
             # new potential position of this spot
             #TODO randomize
-            new_x = self.x + 5
-            new_y = self.y + 4
-            new_z = self.z
+            new_x = old_x + 5
+            new_y = old_y + 4
+            new_z = old_z
 
             # check if not close to any neighbor
             too_close = False
@@ -71,13 +86,13 @@ class Agent:
 
         if not too_close:
             # great, found new acceptable position, let's use it
-            self.x = new_x
-            self.y = new_y
-            self.z = new_z
+            self.next_x = new_x
+            self.next_y = new_y
+            self.next_z = new_z
         # else we stay where we are (which should not break things, provided other agents follow the same protocol)
         self.t += 1 
 
-        print(f"  established coords [{self.x},{self.y},{self.z}] ({remaining_attempts} tries left)")
+        print(f"  established coords [{self.next_x},{self.next_y},{self.next_z}] ({remaining_attempts} tries left)")
         print(f"  when {len(neighbors)} neighbors around, too_close={too_close}")
 
         # soo, we might have moved somewhere,
