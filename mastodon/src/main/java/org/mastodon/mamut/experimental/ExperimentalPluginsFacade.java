@@ -37,6 +37,7 @@ import java.util.HashMap;
 
 import org.mastodon.app.ui.ViewMenuBuilder;
 import org.mastodon.mamut.experimental.spots.ShiftSpots;
+import org.mastodon.mamut.experimental.spots.RotateSpots;
 import org.mastodon.mamut.experimental.trees.LineageRandomColorizer;
 import org.mastodon.mamut.plugin.MamutPlugin;
 import org.mastodon.mamut.plugin.MamutPluginAppModel;
@@ -63,9 +64,11 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 {
 	//"IDs" of all plug-ins wrapped in this class
 	private static final String EXP_SHIFTSPOTS = "[vexp] shift spots";
+	private static final String EXP_ROTATESPOTS = "[vexp] rotate spots";
 	private static final String EXP_LINEAGECOLORIZER = "[vexp] random color tags";
 
 	private static final String[] EXP_SHIFTSPOTS_KEYS = { "not mapped" };
+	private static final String[] EXP_ROTATESPOTS_KEYS = { "not mapped" };
 	private static final String[] EXP_LINEAGECOLORIZER_KEYS = { "not mapped" };
 	//------------------------------------------------------------------------
 
@@ -74,6 +77,7 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 	static
 	{
 		menuTexts.put( EXP_SHIFTSPOTS, "Shift Spots" );
+		menuTexts.put( EXP_ROTATESPOTS, "Rotate Spots" );
 		menuTexts.put( EXP_LINEAGECOLORIZER, "Random Color Lineages" );
 	}
 	@Override
@@ -87,7 +91,8 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 				menu( "Trees Management",
 					item( EXP_LINEAGECOLORIZER )
 				),
-				item( EXP_SHIFTSPOTS )
+				item( EXP_SHIFTSPOTS ),
+				item( EXP_ROTATESPOTS )
 			)
 		);
 	}
@@ -105,6 +110,7 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 		public void getCommandDescriptions( final CommandDescriptions descriptions )
 		{
 			descriptions.add(EXP_SHIFTSPOTS, EXP_SHIFTSPOTS_KEYS, "Scale and translate spots coordinates in both spatial and temporal domains.");
+			descriptions.add(EXP_ROTATESPOTS, EXP_ROTATESPOTS_KEYS, "Rotate spots in spatial domain.");
 			descriptions.add(EXP_LINEAGECOLORIZER, EXP_LINEAGECOLORIZER_KEYS, "Assign to every lineage tree a randomly chosen color from the selected tag set.");
 		}
 	}
@@ -112,6 +118,7 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 
 
 	private final AbstractNamedAction actionShiftSpots;
+	private final AbstractNamedAction actionRotateSpots;
 	private final AbstractNamedAction actionLineageColorizer;
 
 	/** reference to the currently available project in Mastodon */
@@ -121,6 +128,7 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 	public ExperimentalPluginsFacade()
 	{
 		actionShiftSpots = new RunnableAction(EXP_SHIFTSPOTS, this::shiftSpots);
+		actionRotateSpots = new RunnableAction(EXP_ROTATESPOTS, this::rotateSpots);
 		actionLineageColorizer = new RunnableAction(EXP_LINEAGECOLORIZER, this::lineageColorizer);
 		updateEnabledActions();
 	}
@@ -130,6 +138,7 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 	public void installGlobalActions( final Actions actions )
 	{
 		actions.namedAction(actionShiftSpots, EXP_SHIFTSPOTS_KEYS);
+		actions.namedAction(actionRotateSpots, EXP_ROTATESPOTS_KEYS);
 		actions.namedAction(actionLineageColorizer , EXP_LINEAGECOLORIZER_KEYS);
 	}
 
@@ -147,6 +156,7 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 	{
 		final MamutAppModel appModel = ( pluginAppModel == null ) ? null : pluginAppModel.getAppModel();
 		actionShiftSpots.setEnabled( appModel != null );
+		actionRotateSpots.setEnabled( appModel != null );
 		actionLineageColorizer.setEnabled( appModel != null );
 	}
 	//------------------------------------------------------------------------
@@ -156,6 +166,14 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 	{
 		this.getContext().getService(CommandService.class).run(
 			ShiftSpots.class, true,
+			"appModel", pluginAppModel.getAppModel()
+		);
+	}
+
+	private void rotateSpots()
+	{
+		this.getContext().getService(CommandService.class).run(
+			RotateSpots.class, true,
 			"appModel", pluginAppModel.getAppModel()
 		);
 	}
@@ -174,7 +192,7 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 	public static void main(String[] args) {
 		//start M. on a hard-coded path
 
-		String projectPath = "/home/ulman/Downloads/Johannes/HACKBRNO/E2/2019-10_29_Pc_NLSH2B-GFP_2023-06-23__DUMMY.mastodon";
+		String projectPath = "/home/ulman/Downloads/Johannes/HACKBRNO/rotationTest__DUMMY.mastodon";
 
 		try {
 			ImageJ ij = new ImageJ();
