@@ -39,6 +39,8 @@ import java.util.function.Function;
 
 import org.scijava.ItemVisibility;
 import org.scijava.command.Command;
+import org.scijava.log.LogService;
+import org.scijava.log.Logger;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
@@ -46,7 +48,7 @@ import org.scijava.plugin.Plugin;
 public class ShiftSpots implements Command {
 
 	@Parameter(visibility = ItemVisibility.MESSAGE)
-	private final String selectionInfoMsg = "...also of only selected sub-trees.";
+	private final String selectionInfoMsg = "...also only selected ones.";
 
 	@Parameter
 	double multiply_x = 1;
@@ -70,8 +72,13 @@ public class ShiftSpots implements Command {
 	@Parameter(persist = false)
 	MamutAppModel appModel;
 
+	@Parameter
+	LogService logService;
+
 	@Override
 	public void run() {
+		final Logger log = logService.subLogger("ShiftAndRotateMastodonPoints");
+
 		graph = appModel.getModel().getGraph();
 		curSpot = graph.vertexRef();
 		newSpot = graph.vertexRef();
@@ -80,9 +87,9 @@ public class ShiftSpots implements Command {
 		lock.writeLock().lock();
 		try {
 			if (appModel.getSelectionModel().isEmpty()) {
-				processSpots((o) -> appModel.getModel().getSpatioTemporalIndex().iterator());
+				processSpots((o) -> appModel.getModel().getSpatioTemporalIndex().iterator(), log);
 			} else {
-				processSpots((o) -> appModel.getSelectionModel().getSelectedVertices().iterator());
+				processSpots((o) -> appModel.getSelectionModel().getSelectedVertices().iterator(), log);
 			}
 		} finally {
 			lock.writeLock().unlock();
@@ -91,7 +98,7 @@ public class ShiftSpots implements Command {
 		graph.releaseRef(curSpot);
 		graph.releaseRef(newSpot);
 
-		System.out.println("Shifting done.");
+		log.info("Shifting done.");
 		appModel.getModel().getGraph().notifyGraphChanged();
 	}
 
@@ -101,12 +108,12 @@ public class ShiftSpots implements Command {
 	final double[][] cov = new double[3][3];
 
 	/* int counter = 0; */
-	public void processSpots(final Function<?,Iterator<Spot>> iterFactory) {
+	public void processSpots(final Function<?,Iterator<Spot>> iterFactory, final Logger log) {
 		final Set<Integer> toBeProcessedIDs = new HashSet<>(100000);
 		iterFactory.apply(null).forEachRemaining( s -> toBeProcessedIDs.add(s.getInternalPoolIndex()) );
 
 		while (!toBeProcessedIDs.isEmpty()) {
-			System.out.println("There are "+toBeProcessedIDs.size()+" spots to be moved...");
+			log.info("There are "+toBeProcessedIDs.size()+" spots to be moved...");
 			Iterator<Spot> iter = iterFactory.apply(null);
 			while (iter.hasNext()) {
 				Spot s = iter.next();
@@ -129,7 +136,7 @@ public class ShiftSpots implements Command {
 
 				toBeProcessedIDs.remove( sId );
 			}
-			System.out.println("There are "+toBeProcessedIDs.size()+" spots left untouched...");
+			log.info("There are "+toBeProcessedIDs.size()+" spots left untouched...");
 		}
 	}
 
