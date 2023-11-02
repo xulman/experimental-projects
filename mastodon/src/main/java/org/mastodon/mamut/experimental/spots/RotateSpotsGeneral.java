@@ -48,8 +48,8 @@ import java.text.ParseException;
 import org.ulman.util.NumberSequenceHandler;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-@Plugin( type = Command.class, name = "Rotate spots in space" )
-public class RotateSpots implements Command {
+@Plugin( type = Command.class, name = "General-rotate spots in space" )
+public class RotateSpotsGeneral implements Command {
 
 	@Parameter(visibility = ItemVisibility.MESSAGE)
 	private final String selectionInfoMsg = "...also only selected ones.";
