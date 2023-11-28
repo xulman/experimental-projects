@@ -29,6 +29,7 @@ package org.mastodon.mamut.experimental.spots;
 
 import net.imglib2.RealLocalizable;
 import net.imglib2.RealPoint;
+import org.joml.Vector3f;
 import org.mastodon.collection.RefCollections;
 import org.mastodon.collection.RefSet;
 import org.mastodon.mamut.MamutAppModel;
@@ -84,6 +85,9 @@ public class RotateSpotsGeneral implements Command {
 	@Parameter(label = "Label of the vertical spot: ")
 	String targetUp;
 
+	@Parameter(label = "Rectify the \"Up\" orientation to avoid deformations: ")
+	boolean rigidTransform = false;
+
 	@Parameter(label = "If no spots are selected, which time points to process:",
 			description = "Accepted format is comma-separated number or interval: A-B,C,D,E-F,G",
 			required = false)
@@ -110,10 +114,74 @@ public class RotateSpotsGeneral implements Command {
 			setting.tU = getCoordinateFromMastodonSpot(appModel, targetUp, targetTime);
 			log.info("Found all six spots, good.");
 
+			if (rigidTransform) {
+				//modify sU and tU to make them, individually,
+				//perpendicular to their xC->xR and the third implied axes
+				setting.sU = rectifyLocationU(setting.sC, setting.sR, setting.sU);
+				setting.tU = rectifyLocationU(setting.tC, setting.tR, setting.tU);
+			}
+
 			execute(setting, chosenTimepoints, log);
 		} catch (IllegalArgumentException e) {
 			log.error("Error running the plugin: " + e.getMessage());
 		}
+	}
+
+	/**
+	 * Computes a normalized vector that is a normal vector to the plane
+	 * given by the three points. It is computed using a vector product
+	 * of vectors C->A x C->B.
+	 * @param C "centre" point of the plane
+	 * @param A a point on the plane
+	 * @param B another point on the same plane
+	 * @return normal vector of the plane
+	 */
+	public static Vector3f getPlaneNormal(
+			final RealLocalizable C,
+			final RealLocalizable A,
+			final RealLocalizable B)
+	{
+		final Vector3f centre = new Vector3f(
+				C.getFloatPosition(0), C.getFloatPosition(1), C.getFloatPosition(2) );
+
+		final float[] coord = new float[3];
+		A.localize(coord);
+		final Vector3f CA = new Vector3f(coord).sub(centre).normalize();
+
+		B.localize(coord);
+		final Vector3f CB = new Vector3f(coord).sub(centre).normalize();
+
+		final Vector3f normalV = new Vector3f();
+		CA.cross(CB, normalV); //normalV = CA x CB
+		normalV.normalize();
+
+		return normalV;
+	}
+
+	/**
+	 * Given the three points and considering the two vectors C->R and C->U,
+	 * a new position of (new)U is returned (not altering the original U) such
+	 * that the newU is in the plane CRU and vectors C->R and C->newU are perpendicular.
+	 * @param C "centre" point of the plane
+	 * @param R a point on the plane
+	 * @param U another point on the plane
+	 * @return new point on the plane that is perpendicular to the C->R
+	 */
+	public static RealLocalizable rectifyLocationU(
+			final RealLocalizable C,
+			final RealLocalizable R,
+			final RealLocalizable U)
+	{
+		Vector3f axis = getPlaneNormal(C, R, U);
+		RealPoint Front = new RealPoint(
+				C.getFloatPosition(0) + 100.f*axis.x,
+				C.getFloatPosition(1) + 100.f*axis.y,
+				C.getFloatPosition(2) + 100.f*axis.z );
+		axis = getPlaneNormal(C, Front, R);
+		return new RealPoint(
+				C.getFloatPosition(0) + 100.f*axis.x,
+				C.getFloatPosition(1) + 100.f*axis.y,
+				C.getFloatPosition(2) + 100.f*axis.z );
 	}
 
 	static public void execute(
