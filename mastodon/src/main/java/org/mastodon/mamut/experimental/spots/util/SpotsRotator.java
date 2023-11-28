@@ -28,7 +28,6 @@
 package org.mastodon.mamut.experimental.spots.util;
 
 import net.imglib2.RealLocalizable;
-import net.imglib2.realtransform.AffineTransform3D;
 import org.joml.Vector3f;
 import org.mastodon.mamut.MamutAppModel;
 import org.mastodon.mamut.model.Spot;
@@ -47,19 +46,47 @@ public class SpotsRotator {
 		public MamutAppModel appModel;
 	}
 
+	final double[][] sBaseMatrix;
+	final double[] b = new double[3];
+	final Vector3f tx,ty,tz;
+	final Vector3f sx,sy,sz;
+
 	public void rotateSpot(final Spot s) {
-		s.localize(coord);
-		coord[0] -= sourceCentreCoord[0];
-		coord[1] -= sourceCentreCoord[1];
-		coord[2] -= sourceCentreCoord[2];
-		transform.apply(coord,coord);
+		s.localize(b);
+		b[0] -= sourceCentreCoord[0];
+		b[1] -= sourceCentreCoord[1];
+		b[2] -= sourceCentreCoord[2];
+
+		GaussianElimination gaussian = new GaussianElimination(sBaseMatrix, b);
+		if (gaussian.isFeasible()) {
+			final double[] x = gaussian.primal();
+			coord[0] = (float)(x[0]*sx.x + x[2]*sy.x + x[1]*sz.x);
+			coord[1] = (float)(x[0]*sx.y + x[2]*sy.y + x[1]*sz.y);
+			coord[2] = (float)(x[0]*sx.z + x[2]*sy.z + x[1]*sz.z);
+
+			System.out.println("Spot "+s.getLabel()+" at absolute position ["
+					+s.getFloatPosition(0)+","+s.getFloatPosition(1)+","+s.getFloatPosition(2)
+					+"] is at coords "+x[0]+","+x[1]+","+x[2]);
+			System.out.println("Spot "+s.getLabel()+" at relative position ["+b[0]+","+b[1]+","+b[2]
+					+"] is at coords "+x[0]+","+x[1]+","+x[2]);
+			System.out.println("Spot "+s.getLabel()+", rel. pos. from coords ["+coord[0]+","+coord[1]+","+coord[2]+"]");
+
+			coord[0] = (float)(x[0]*tx.x + x[2]*ty.x + x[1]*tz.x);
+			coord[1] = (float)(x[0]*tx.y + x[2]*ty.y + x[1]*tz.y);
+			coord[2] = (float)(x[0]*tx.z + x[2]*ty.z + x[1]*tz.z);
+		} else {
+			//just keep the original relative coordinate...
+			coord[0] = (float)b[0];
+			coord[1] = (float)b[1];
+			coord[2] = (float)b[2];
+		}
+
 		coord[0] += targetCentreCoord[0];
 		coord[1] += targetCentreCoord[1];
 		coord[2] += targetCentreCoord[2];
 		s.setPosition(coord);
 	}
 
-	private final AffineTransform3D transform;
 	private final double[] sourceCentreCoord = new double[3];
 	private final double[] targetCentreCoord = new double[3];
 	private final float[] coord = new float[3];
@@ -74,14 +101,23 @@ public class SpotsRotator {
 				(float)sourceCentreCoord[2] );
 		//
 		setting.sR.localize(coord);
-		final Vector3f sx = (new Vector3f(coord)).sub(centre).normalize();
+		sx = (new Vector3f(coord)).sub(centre); //.normalize();
 		//
 		setting.sU.localize(coord);
-		final Vector3f sz = (new Vector3f(coord)).sub(centre).normalize();
+		sz = (new Vector3f(coord)).sub(centre); //.normalize();
 		//
-		final Vector3f sy = new Vector3f();
+		sy = new Vector3f();
 		sx.cross(sz, sy); //sy = sx x sz
 		sy.normalize();
+
+		System.out.println("Right vec (x): ("+sx.x+","+sx.y+","+sx.z+")");
+		System.out.println("Up vec    (y): ("+sz.x+","+sz.y+","+sz.z+")");
+		System.out.println("3rd vec   (z): ("+sy.x+","+sy.y+","+sy.z+")");
+
+		sBaseMatrix = new double[][] {
+				{sx.x, sz.x, sy.x},
+				{sx.y, sz.y, sy.y},
+				{sx.z, sz.z, sy.z} };
 
 		setting.tC.localize(targetCentreCoord);
 		centre.set(
@@ -90,24 +126,13 @@ public class SpotsRotator {
 				(float)targetCentreCoord[2] );
 		//
 		setting.tR.localize(coord);
-		final Vector3f tx = (new Vector3f(coord)).sub(centre).normalize();
+		tx = (new Vector3f(coord)).sub(centre); //.normalize();
 		//
 		setting.tU.localize(coord);
-		final Vector3f tz = (new Vector3f(coord)).sub(centre).normalize();
+		tz = (new Vector3f(coord)).sub(centre); //.normalize();
 		//
-		final Vector3f ty = new Vector3f();
+		ty = new Vector3f();
 		tx.cross(tz, ty); //ty = tx x tz
 		ty.normalize();
-
-		AffineTransform3D sourceCoord = new AffineTransform3D();
-		sourceCoord.set(sx.x,sx.y,sx.z,0, sy.x,sy.y,sy.z,0, sz.x,sz.y,sz.z,0, 0,0,0,1);
-		transform = new AffineTransform3D();
-		transform.set(tx.x,ty.x,tz.x,0, tx.y,ty.y,tz.y,0, tx.z,ty.z,tz.z,0, 0,0,0,1);
-		transform.concatenate(sourceCoord);
-	}
-
-	@Override
-	public String toString() {
-		return transform.toString();
 	}
 }
