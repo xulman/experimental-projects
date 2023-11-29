@@ -60,6 +60,7 @@ public class SpotsRotator {
 		GaussianElimination gaussian = new GaussianElimination(sBaseMatrix, b);
 		if (gaussian.isFeasible()) {
 			final double[] x = gaussian.primal();
+			/*
 			coord[0] = (float)(x[0]*sx.x + x[2]*sy.x + x[1]*sz.x);
 			coord[1] = (float)(x[0]*sx.y + x[2]*sy.y + x[1]*sz.y);
 			coord[2] = (float)(x[0]*sx.z + x[2]*sy.z + x[1]*sz.z);
@@ -70,6 +71,7 @@ public class SpotsRotator {
 			System.out.println("Spot "+s.getLabel()+" at relative position ["+b[0]+","+b[1]+","+b[2]
 					+"] is at coords "+x[0]+","+x[1]+","+x[2]);
 			System.out.println("Spot "+s.getLabel()+", rel. pos. from coords ["+coord[0]+","+coord[1]+","+coord[2]+"]");
+			*/
 
 			coord[0] = (float)(x[0]*tx.x + x[2]*ty.x + x[1]*tz.x);
 			coord[1] = (float)(x[0]*tx.y + x[2]*ty.y + x[1]*tz.y);
