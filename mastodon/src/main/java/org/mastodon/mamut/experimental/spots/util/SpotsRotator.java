@@ -65,15 +65,15 @@ public class SpotsRotator {
 					+"] is at coords "+x[0]+","+x[1]+","+x[2]);
 			System.out.println("Spot "+s.getLabel()+" at relative position ["+coord[0]+","+coord[1]+","+coord[2]
 					+"] is at coords "+x[0]+","+x[1]+","+x[2]);
-			coord[0] = x[0]*sx.x + x[2]*sy.x + x[1]*sz.x;
-			coord[1] = x[0]*sx.y + x[2]*sy.y + x[1]*sz.y;
-			coord[2] = x[0]*sx.z + x[2]*sy.z + x[1]*sz.z;
+			coord[0] = x[0]*sx.x + x[1]*sy.x + x[2]*sz.x;
+			coord[1] = x[0]*sx.y + x[1]*sy.y + x[2]*sz.y;
+			coord[2] = x[0]*sx.z + x[1]*sy.z + x[2]*sz.z;
 			System.out.println("Spot "+s.getLabel()+", rel. pos. from coords ["+coord[0]+","+coord[1]+","+coord[2]+"]");
 			*/
 
-			coord[0] = x[0]*tx.x + x[2]*ty.x + x[1]*tz.x;
-			coord[1] = x[0]*tx.y + x[2]*ty.y + x[1]*tz.y;
-			coord[2] = x[0]*tx.z + x[2]*ty.z + x[1]*tz.z;
+			coord[0] = x[0]*tx.x + x[1]*ty.x + x[2]*tz.x;
+			coord[1] = x[0]*tx.y + x[1]*ty.y + x[2]*tz.y;
+			coord[2] = x[0]*tx.z + x[1]*ty.z + x[2]*tz.z;
 		}
 		//else: just keep the original relative coordinate...
 
@@ -109,14 +109,14 @@ public class SpotsRotator {
 		sx.cross(sz, sy); //sy = sx x sz
 		sy.normalize();
 
-		System.out.println("Right vec (x): ("+sx.x+","+sx.y+","+sx.z+")");
-		System.out.println("Up vec    (y): ("+sz.x+","+sz.y+","+sz.z+")");
-		System.out.println("3rd vec   (z): ("+sy.x+","+sy.y+","+sy.z+")");
+		System.out.println("Hrzntl vec (x): ("+sx.x+","+sx.y+","+sx.z+")");
+		System.out.println("Side vec   (y): ("+sy.x+","+sy.y+","+sy.z+")");
+		System.out.println("Up vec     (z): ("+sz.x+","+sz.y+","+sz.z+")");
 
 		sBaseMatrix = new double[][] {
-				{sx.x, sz.x, sy.x},
-				{sx.y, sz.y, sy.y},
-				{sx.z, sz.z, sy.z} };
+				{sx.x, sy.x, sz.x},
+				{sx.y, sy.y, sz.y},
+				{sx.z, sy.z, sz.z} };
 
 		setting.tC.localize(targetCentreCoord);
 		centre.set(targetCentreCoord);
