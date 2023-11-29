@@ -85,7 +85,10 @@ public class RotateSpotsGeneral implements Command {
 	@Parameter(label = "Label of the vertical spot: ")
 	String targetUp;
 
-	@Parameter(label = "Rectify the \"Up\" orientation to avoid deformations: ")
+	@Parameter(label = "Normalize the coordinate system base to avoid scaling: ")
+	boolean normalizeAxes = true;
+
+	@Parameter(label = "Rectify the \"Up\" orientation to avoid shearing: ")
 	boolean rigidTransform = false;
 
 	@Parameter(label = "If no spots are selected, which time points to process:",
@@ -113,6 +116,8 @@ public class RotateSpotsGeneral implements Command {
 			setting.tR = getCoordinateFromMastodonSpot(appModel, targetRight, targetTime);
 			setting.tU = getCoordinateFromMastodonSpot(appModel, targetUp, targetTime);
 			log.info("Found all six spots, good.");
+
+			setting.normalizeBase = normalizeAxes;
 
 			if (rigidTransform) {
 				//modify sU and tU to make them, individually,

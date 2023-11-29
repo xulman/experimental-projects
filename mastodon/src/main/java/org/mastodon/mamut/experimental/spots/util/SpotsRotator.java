@@ -44,6 +44,7 @@ public class SpotsRotator {
 		//public String targetUp;
 		public RealLocalizable sC,sR,sU, tC,tR,tU;
 		public MamutAppModel appModel;
+		public boolean normalizeBase = true;
 	}
 
 	final double[][] sBaseMatrix;
@@ -99,6 +100,11 @@ public class SpotsRotator {
 		setting.sU.localize(coord_ft);
 		sz = (new Vector3f(coord_ft)).sub(centre); //.normalize();
 		//
+		if (setting.normalizeBase) {
+			sx.normalize();
+			sz.normalize();
+		}
+		//
 		sy = new Vector3f();
 		sx.cross(sz, sy); //sy = sx x sz
 		sy.normalize();
@@ -120,6 +126,11 @@ public class SpotsRotator {
 		//
 		setting.tU.localize(coord_ft);
 		tz = (new Vector3f(coord_ft)).sub(centre); //.normalize();
+		//
+		if (setting.normalizeBase) {
+			tx.normalize();
+			tz.normalize();
+		}
 		//
 		ty = new Vector3f();
 		tx.cross(tz, ty); //ty = tx x tz
