@@ -44,42 +44,38 @@ public class SpotsRotator {
 		//public String targetUp;
 		public RealLocalizable sC,sR,sU, tC,tR,tU;
 		public MamutAppModel appModel;
+		public boolean normalizeBase = true;
 	}
 
 	final double[][] sBaseMatrix;
-	final double[] b = new double[3];
 	final Vector3f tx,ty,tz;
 	final Vector3f sx,sy,sz;
 
 	public void rotateSpot(final Spot s) {
-		s.localize(b);
-		b[0] -= sourceCentreCoord[0];
-		b[1] -= sourceCentreCoord[1];
-		b[2] -= sourceCentreCoord[2];
+		s.localize(coord);
+		coord[0] -= sourceCentreCoord[0];
+		coord[1] -= sourceCentreCoord[1];
+		coord[2] -= sourceCentreCoord[2];
 
-		GaussianElimination gaussian = new GaussianElimination(sBaseMatrix, b);
-		if (gaussian.isFeasible()) {
-			final double[] x = gaussian.primal();
-			coord[0] = (float)(x[0]*sx.x + x[2]*sy.x + x[1]*sz.x);
-			coord[1] = (float)(x[0]*sx.y + x[2]*sy.y + x[1]*sz.y);
-			coord[2] = (float)(x[0]*sx.z + x[2]*sy.z + x[1]*sz.z);
-
+		final double[] x = new GaussianElimination(sBaseMatrix, coord).primal();
+		if (x != null) {
+			/*
 			System.out.println("Spot "+s.getLabel()+" at absolute position ["
 					+s.getFloatPosition(0)+","+s.getFloatPosition(1)+","+s.getFloatPosition(2)
 					+"] is at coords "+x[0]+","+x[1]+","+x[2]);
-			System.out.println("Spot "+s.getLabel()+" at relative position ["+b[0]+","+b[1]+","+b[2]
+			System.out.println("Spot "+s.getLabel()+" at relative position ["+coord[0]+","+coord[1]+","+coord[2]
 					+"] is at coords "+x[0]+","+x[1]+","+x[2]);
+			coord[0] = x[0]*sx.x + x[1]*sy.x + x[2]*sz.x;
+			coord[1] = x[0]*sx.y + x[1]*sy.y + x[2]*sz.y;
+			coord[2] = x[0]*sx.z + x[1]*sy.z + x[2]*sz.z;
 			System.out.println("Spot "+s.getLabel()+", rel. pos. from coords ["+coord[0]+","+coord[1]+","+coord[2]+"]");
+			*/
 
-			coord[0] = (float)(x[0]*tx.x + x[2]*ty.x + x[1]*tz.x);
-			coord[1] = (float)(x[0]*tx.y + x[2]*ty.y + x[1]*tz.y);
-			coord[2] = (float)(x[0]*tx.z + x[2]*ty.z + x[1]*tz.z);
-		} else {
-			//just keep the original relative coordinate...
-			coord[0] = (float)b[0];
-			coord[1] = (float)b[1];
-			coord[2] = (float)b[2];
+			coord[0] = x[0]*tx.x + x[1]*ty.x + x[2]*tz.x;
+			coord[1] = x[0]*tx.y + x[1]*ty.y + x[2]*tz.y;
+			coord[2] = x[0]*tx.z + x[1]*ty.z + x[2]*tz.z;
 		}
+		//else: just keep the original relative coordinate...
 
 		coord[0] += targetCentreCoord[0];
 		coord[1] += targetCentreCoord[1];
@@ -87,49 +83,54 @@ public class SpotsRotator {
 		s.setPosition(coord);
 	}
 
-	private final double[] sourceCentreCoord = new double[3];
-	private final double[] targetCentreCoord = new double[3];
-	private final float[] coord = new float[3];
+	private final float[] sourceCentreCoord = new float[3];
+	private final float[] targetCentreCoord = new float[3];
+	private final double[] coord = new double[3];
 
 	public SpotsRotator(final InitialSetting setting)
 	throws IllegalArgumentException {
 
 		setting.sC.localize(sourceCentreCoord);
-		final Vector3f centre = new Vector3f(
-				(float)sourceCentreCoord[0],
-				(float)sourceCentreCoord[1],
-				(float)sourceCentreCoord[2] );
+		final Vector3f centre = new Vector3f(sourceCentreCoord);
 		//
-		setting.sR.localize(coord);
-		sx = (new Vector3f(coord)).sub(centre); //.normalize();
+		final float[] coord_ft = new float[3];
+		setting.sR.localize(coord_ft);
+		sx = (new Vector3f(coord_ft)).sub(centre); //.normalize();
 		//
-		setting.sU.localize(coord);
-		sz = (new Vector3f(coord)).sub(centre); //.normalize();
+		setting.sU.localize(coord_ft);
+		sz = (new Vector3f(coord_ft)).sub(centre); //.normalize();
+		//
+		if (setting.normalizeBase) {
+			sx.normalize();
+			sz.normalize();
+		}
 		//
 		sy = new Vector3f();
 		sx.cross(sz, sy); //sy = sx x sz
 		sy.normalize();
 
-		System.out.println("Right vec (x): ("+sx.x+","+sx.y+","+sx.z+")");
-		System.out.println("Up vec    (y): ("+sz.x+","+sz.y+","+sz.z+")");
-		System.out.println("3rd vec   (z): ("+sy.x+","+sy.y+","+sy.z+")");
+		System.out.println("Hrzntl vec (x): ("+sx.x+","+sx.y+","+sx.z+")");
+		System.out.println("Side vec   (y): ("+sy.x+","+sy.y+","+sy.z+")");
+		System.out.println("Up vec     (z): ("+sz.x+","+sz.y+","+sz.z+")");
 
 		sBaseMatrix = new double[][] {
-				{sx.x, sz.x, sy.x},
-				{sx.y, sz.y, sy.y},
-				{sx.z, sz.z, sy.z} };
+				{sx.x, sy.x, sz.x},
+				{sx.y, sy.y, sz.y},
+				{sx.z, sy.z, sz.z} };
 
 		setting.tC.localize(targetCentreCoord);
-		centre.set(
-				(float)targetCentreCoord[0],
-				(float)targetCentreCoord[1],
-				(float)targetCentreCoord[2] );
+		centre.set(targetCentreCoord);
 		//
-		setting.tR.localize(coord);
-		tx = (new Vector3f(coord)).sub(centre); //.normalize();
+		setting.tR.localize(coord_ft);
+		tx = (new Vector3f(coord_ft)).sub(centre); //.normalize();
 		//
-		setting.tU.localize(coord);
-		tz = (new Vector3f(coord)).sub(centre); //.normalize();
+		setting.tU.localize(coord_ft);
+		tz = (new Vector3f(coord_ft)).sub(centre); //.normalize();
+		//
+		if (setting.normalizeBase) {
+			tx.normalize();
+			tz.normalize();
+		}
 		//
 		ty = new Vector3f();
 		tx.cross(tz, ty); //ty = tx x tz
