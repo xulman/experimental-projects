@@ -82,18 +82,15 @@ public class SpotsRotator {
 		s.setPosition(coord);
 	}
 
-	private final double[] sourceCentreCoord = new double[3];
-	private final double[] targetCentreCoord = new double[3];
+	private final float[] sourceCentreCoord = new float[3];
+	private final float[] targetCentreCoord = new float[3];
 	private final double[] coord = new double[3];
 
 	public SpotsRotator(final InitialSetting setting)
 	throws IllegalArgumentException {
 
 		setting.sC.localize(sourceCentreCoord);
-		final Vector3f centre = new Vector3f(
-				(float)sourceCentreCoord[0],
-				(float)sourceCentreCoord[1],
-				(float)sourceCentreCoord[2] );
+		final Vector3f centre = new Vector3f(sourceCentreCoord);
 		//
 		final float[] coord_ft = new float[3];
 		setting.sR.localize(coord_ft);
@@ -116,10 +113,7 @@ public class SpotsRotator {
 				{sx.z, sz.z, sy.z} };
 
 		setting.tC.localize(targetCentreCoord);
-		centre.set(
-				(float)targetCentreCoord[0],
-				(float)targetCentreCoord[1],
-				(float)targetCentreCoord[2] );
+		centre.set(targetCentreCoord);
 		//
 		setting.tR.localize(coord_ft);
 		tx = (new Vector3f(coord_ft)).sub(centre); //.normalize();
