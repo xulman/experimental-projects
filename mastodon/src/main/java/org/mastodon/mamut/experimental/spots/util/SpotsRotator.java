@@ -47,41 +47,34 @@ public class SpotsRotator {
 	}
 
 	final double[][] sBaseMatrix;
-	final double[] b = new double[3];
 	final Vector3f tx,ty,tz;
 	final Vector3f sx,sy,sz;
 
 	public void rotateSpot(final Spot s) {
-		s.localize(b);
-		b[0] -= sourceCentreCoord[0];
-		b[1] -= sourceCentreCoord[1];
-		b[2] -= sourceCentreCoord[2];
+		s.localize(coord);
+		coord[0] -= sourceCentreCoord[0];
+		coord[1] -= sourceCentreCoord[1];
+		coord[2] -= sourceCentreCoord[2];
 
-		GaussianElimination gaussian = new GaussianElimination(sBaseMatrix, b);
-		if (gaussian.isFeasible()) {
-			final double[] x = gaussian.primal();
+		final double[] x = new GaussianElimination(sBaseMatrix, coord).primal();
+		if (x != null) {
 			/*
-			coord[0] = (float)(x[0]*sx.x + x[2]*sy.x + x[1]*sz.x);
-			coord[1] = (float)(x[0]*sx.y + x[2]*sy.y + x[1]*sz.y);
-			coord[2] = (float)(x[0]*sx.z + x[2]*sy.z + x[1]*sz.z);
-
 			System.out.println("Spot "+s.getLabel()+" at absolute position ["
 					+s.getFloatPosition(0)+","+s.getFloatPosition(1)+","+s.getFloatPosition(2)
 					+"] is at coords "+x[0]+","+x[1]+","+x[2]);
-			System.out.println("Spot "+s.getLabel()+" at relative position ["+b[0]+","+b[1]+","+b[2]
+			System.out.println("Spot "+s.getLabel()+" at relative position ["+coord[0]+","+coord[1]+","+coord[2]
 					+"] is at coords "+x[0]+","+x[1]+","+x[2]);
+			coord[0] = x[0]*sx.x + x[2]*sy.x + x[1]*sz.x;
+			coord[1] = x[0]*sx.y + x[2]*sy.y + x[1]*sz.y;
+			coord[2] = x[0]*sx.z + x[2]*sy.z + x[1]*sz.z;
 			System.out.println("Spot "+s.getLabel()+", rel. pos. from coords ["+coord[0]+","+coord[1]+","+coord[2]+"]");
 			*/
 
-			coord[0] = (float)(x[0]*tx.x + x[2]*ty.x + x[1]*tz.x);
-			coord[1] = (float)(x[0]*tx.y + x[2]*ty.y + x[1]*tz.y);
-			coord[2] = (float)(x[0]*tx.z + x[2]*ty.z + x[1]*tz.z);
-		} else {
-			//just keep the original relative coordinate...
-			coord[0] = (float)b[0];
-			coord[1] = (float)b[1];
-			coord[2] = (float)b[2];
+			coord[0] = x[0]*tx.x + x[2]*ty.x + x[1]*tz.x;
+			coord[1] = x[0]*tx.y + x[2]*ty.y + x[1]*tz.y;
+			coord[2] = x[0]*tx.z + x[2]*ty.z + x[1]*tz.z;
 		}
+		//else: just keep the original relative coordinate...
 
 		coord[0] += targetCentreCoord[0];
 		coord[1] += targetCentreCoord[1];
@@ -91,7 +84,7 @@ public class SpotsRotator {
 
 	private final double[] sourceCentreCoord = new double[3];
 	private final double[] targetCentreCoord = new double[3];
-	private final float[] coord = new float[3];
+	private final double[] coord = new double[3];
 
 	public SpotsRotator(final InitialSetting setting)
 	throws IllegalArgumentException {
@@ -102,11 +95,12 @@ public class SpotsRotator {
 				(float)sourceCentreCoord[1],
 				(float)sourceCentreCoord[2] );
 		//
-		setting.sR.localize(coord);
-		sx = (new Vector3f(coord)).sub(centre); //.normalize();
+		final float[] coord_ft = new float[3];
+		setting.sR.localize(coord_ft);
+		sx = (new Vector3f(coord_ft)).sub(centre); //.normalize();
 		//
-		setting.sU.localize(coord);
-		sz = (new Vector3f(coord)).sub(centre); //.normalize();
+		setting.sU.localize(coord_ft);
+		sz = (new Vector3f(coord_ft)).sub(centre); //.normalize();
 		//
 		sy = new Vector3f();
 		sx.cross(sz, sy); //sy = sx x sz
@@ -127,11 +121,11 @@ public class SpotsRotator {
 				(float)targetCentreCoord[1],
 				(float)targetCentreCoord[2] );
 		//
-		setting.tR.localize(coord);
-		tx = (new Vector3f(coord)).sub(centre); //.normalize();
+		setting.tR.localize(coord_ft);
+		tx = (new Vector3f(coord_ft)).sub(centre); //.normalize();
 		//
-		setting.tU.localize(coord);
-		tz = (new Vector3f(coord)).sub(centre); //.normalize();
+		setting.tU.localize(coord_ft);
+		tz = (new Vector3f(coord_ft)).sub(centre); //.normalize();
 		//
 		ty = new Vector3f();
 		tx.cross(tz, ty); //ty = tx x tz
