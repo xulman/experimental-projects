@@ -109,6 +109,8 @@ public class SpotsRotator {
 		sx.cross(sz, sy); //sy = sx x sz
 		sy.normalize();
 
+		//TODO: AffineTransformation
+
 		System.out.println("Hrzntl vec (x): ("+sx.x+","+sx.y+","+sx.z+")");
 		System.out.println("Side vec   (y): ("+sy.x+","+sy.y+","+sy.z+")");
 		System.out.println("Up vec     (z): ("+sz.x+","+sz.y+","+sz.z+")");
