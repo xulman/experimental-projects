@@ -201,35 +201,4 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 			"pluginAppModel", pluginAppModel
 		);
 	}
-
-
-	//------------------------------------------------------------------------
-
-	public static void main(String[] args) {
-		//start M. on a hard-coded path
-
-		String projectPath = "/home/ulman/Downloads/Johannes/HACKBRNO/rotationTest__DUMMY.mastodon";
-
-		try {
-			ImageJ ij = new ImageJ();
-			ij.ui().showUI();
-
-			final WindowManager windowManager = new WindowManager( ij.getContext() );
-			//a GUI element wrapping around the hub
-			final MainWindow win = new MainWindow(windowManager);
-			//
-			//this makes the true Mastodon window visible
-			//note: you can open project that restores/reopen e.g. TrackScheme window,
-			//      yet the main Mastodon window is not shown... but this then runs non-stop
-			win.setVisible(true);
-			//
-			//this makes the whole thing (incl. the central hub) go down when the GUI is closed
-			win.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-			//
-			windowManager.getProjectManager().open(new MamutProjectIO().load(projectPath));
-		} catch (Exception e) {
-			System.out.println("SOME ERROR: " + e.getMessage());
-			e.printStackTrace();
-		}
-	}
 }
