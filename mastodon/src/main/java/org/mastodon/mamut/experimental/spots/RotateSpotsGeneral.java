@@ -32,7 +32,7 @@ import net.imglib2.RealPoint;
 import org.joml.Vector3f;
 import org.mastodon.collection.RefCollections;
 import org.mastodon.collection.RefSet;
-import org.mastodon.mamut.MamutAppModel;
+import org.mastodon.mamut.ProjectModel;
 import org.mastodon.mamut.experimental.spots.util.SpotsRotator;
 import org.mastodon.mamut.model.Spot;
 import org.scijava.ItemVisibility;
@@ -97,7 +97,7 @@ public class RotateSpotsGeneral implements Command {
 	String chosenTimepoints = "0,1-5,6,7-9";
 
 	@Parameter(persist = false)
-	MamutAppModel appModel;
+	ProjectModel appModel;
 
 	@Parameter
 	LogService logService;
@@ -225,7 +225,7 @@ public class RotateSpotsGeneral implements Command {
 	}
 
 	static public RealLocalizable getCoordinateFromMastodonSpot(
-			final MamutAppModel mastodonAppModel,
+			final ProjectModel mastodonAppModel,
 			final String spotLabel,
 			final int spotTimepoint)
 	throws IllegalArgumentException {

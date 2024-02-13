@@ -29,7 +29,7 @@ package org.mastodon.mamut.experimental.spots.util;
 
 import net.imglib2.RealLocalizable;
 import org.joml.Vector3f;
-import org.mastodon.mamut.MamutAppModel;
+import org.mastodon.mamut.ProjectModel;
 import org.mastodon.mamut.model.Spot;
 
 public class SpotsRotator {
@@ -43,7 +43,7 @@ public class SpotsRotator {
 		//public String targetRight;
 		//public String targetUp;
 		public RealLocalizable sC,sR,sU, tC,tR,tU;
-		public MamutAppModel appModel;
+		public ProjectModel appModel;
 		public boolean normalizeBase = true;
 	}
 

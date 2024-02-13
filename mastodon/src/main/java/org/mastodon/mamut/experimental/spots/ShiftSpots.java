@@ -27,7 +27,7 @@
  */
 package org.mastodon.mamut.experimental.spots;
 
-import org.mastodon.mamut.MamutAppModel;
+import org.mastodon.mamut.ProjectModel;
 import org.mastodon.mamut.model.ModelGraph;
 import org.mastodon.mamut.model.Spot;
 
@@ -70,7 +70,7 @@ public class ShiftSpots implements Command {
 	int delta_t = 0;
 
 	@Parameter(persist = false)
-	MamutAppModel appModel;
+	ProjectModel appModel;
 
 	@Parameter
 	LogService logService;

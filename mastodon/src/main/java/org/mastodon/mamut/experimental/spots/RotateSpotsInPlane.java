@@ -29,7 +29,7 @@ package org.mastodon.mamut.experimental.spots;
 
 import net.imglib2.RealPoint;
 import org.joml.Vector3f;
-import org.mastodon.mamut.MamutAppModel;
+import org.mastodon.mamut.ProjectModel;
 import org.mastodon.mamut.experimental.spots.util.SpotsRotator;
 import org.scijava.ItemVisibility;
 import org.scijava.command.Command;
@@ -67,7 +67,7 @@ public class RotateSpotsInPlane implements Command {
 	String chosenTimepoints = "0,1-5,6,7-9";
 
 	@Parameter(persist = false)
-	MamutAppModel appModel;
+	ProjectModel appModel;
 
 	@Parameter
 	LogService logService;

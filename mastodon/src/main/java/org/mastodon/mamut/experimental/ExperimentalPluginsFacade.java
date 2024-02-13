@@ -36,15 +36,15 @@ import java.util.Map;
 import java.util.HashMap;
 
 import org.mastodon.app.ui.ViewMenuBuilder;
+import org.mastodon.mamut.KeyConfigScopes;
 import org.mastodon.mamut.experimental.spots.RotateSpotsGeneral;
 import org.mastodon.mamut.experimental.spots.RotateSpotsInPlane;
 import org.mastodon.mamut.experimental.spots.ShiftSpots;
 import org.mastodon.mamut.experimental.trees.LineageRandomColorizer;
 import org.mastodon.mamut.plugin.MamutPlugin;
-import org.mastodon.mamut.plugin.MamutPluginAppModel;
-import org.mastodon.mamut.MamutAppModel;
-import org.mastodon.ui.keymap.CommandDescriptionProvider;
-import org.mastodon.ui.keymap.CommandDescriptions;
+import org.mastodon.mamut.ProjectModel;
+import org.scijava.ui.behaviour.io.gui.CommandDescriptionProvider;
+import org.scijava.ui.behaviour.io.gui.CommandDescriptions;
 import org.mastodon.ui.keymap.KeyConfigContexts;
 
 import org.scijava.AbstractContextual;
@@ -55,7 +55,6 @@ import org.scijava.ui.behaviour.util.AbstractNamedAction;
 import org.scijava.ui.behaviour.util.RunnableAction;
 
 import net.imagej.ImageJ;
-import org.mastodon.mamut.project.MamutProjectIO;
 import org.mastodon.mamut.MainWindow;
 import org.mastodon.mamut.WindowManager;
 import javax.swing.WindowConstants;
@@ -108,7 +107,7 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 	{
 		public Descriptions()
 		{
-			super( KeyConfigContexts.TRACKSCHEME, KeyConfigContexts.BIGDATAVIEWER );
+			super( KeyConfigScopes.MAMUT, KeyConfigContexts.TRACKSCHEME, KeyConfigContexts.BIGDATAVIEWER );
 		}
 
 		@Override
@@ -129,7 +128,7 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 	private final AbstractNamedAction actionLineageColorizer;
 
 	/** reference to the currently available project in Mastodon */
-	private MamutPluginAppModel pluginAppModel;
+	private ProjectModel pluginAppModel;
 
 	/** default c'tor: creates Actions available from this plug-in */
 	public ExperimentalPluginsFacade()
@@ -153,7 +152,7 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 
 	/** learn about the current project's params */
 	@Override
-	public void setAppPluginModel( final MamutPluginAppModel model )
+	public void setAppPluginModel( final ProjectModel model )
 	{
 		//the application reports back to us if some project is available
 		this.pluginAppModel = model;
@@ -163,11 +162,10 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 	/** enables/disables menu items based on the availability of some project */
 	private void updateEnabledActions()
 	{
-		final MamutAppModel appModel = ( pluginAppModel == null ) ? null : pluginAppModel.getAppModel();
-		actionShiftSpots.setEnabled( appModel != null );
-		actionPlaneRotateSpots.setEnabled( appModel != null );
-		actionGenRotateSpots.setEnabled( appModel != null );
-		actionLineageColorizer.setEnabled( appModel != null );
+		actionShiftSpots.setEnabled( pluginAppModel != null );
+		actionPlaneRotateSpots.setEnabled( pluginAppModel != null );
+		actionGenRotateSpots.setEnabled( pluginAppModel != null );
+		actionLineageColorizer.setEnabled( pluginAppModel != null );
 	}
 	//------------------------------------------------------------------------
 	//------------------------------------------------------------------------
@@ -176,7 +174,7 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 	{
 		this.getContext().getService(CommandService.class).run(
 			ShiftSpots.class, true,
-			"appModel", pluginAppModel.getAppModel()
+			"appModel", pluginAppModel
 		);
 	}
 
@@ -184,7 +182,7 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 	{
 		this.getContext().getService(CommandService.class).run(
 			RotateSpotsInPlane.class, true,
-			"appModel", pluginAppModel.getAppModel()
+			"appModel", pluginAppModel
 		);
 	}
 
@@ -192,7 +190,7 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 	{
 		this.getContext().getService(CommandService.class).run(
 			RotateSpotsGeneral.class, true,
-			"appModel", pluginAppModel.getAppModel()
+			"appModel", pluginAppModel
 		);
 	}
 

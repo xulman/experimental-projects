@@ -27,8 +27,8 @@
  */
 package org.mastodon.mamut.experimental.trees;
 
+import org.mastodon.mamut.ProjectModel;
 import org.mastodon.mamut.model.Spot;
-import org.mastodon.mamut.plugin.MamutPluginAppModel;
 import org.mastodon.mamut.tomancak.util.SpotsIterator;
 import org.mastodon.model.tag.ObjTags;
 import org.mastodon.model.tag.TagSetStructure;
@@ -52,7 +52,7 @@ import static org.mastodon.util.TagSetUtils.rgbToValidColor;
 @Plugin( type = Command.class, name = "Random colorize lineages" )
 public class LineageRandomColorizer extends DynamicCommand  {
 	@Parameter(persist = false)
-	private MamutPluginAppModel pluginAppModel;
+	private ProjectModel pluginAppModel;
 
 	@Parameter
 	private LogService logService;
@@ -68,7 +68,7 @@ public class LineageRandomColorizer extends DynamicCommand  {
 	private void readAvailColors() {
 		List<String> choices = new ArrayList<>(50);
 
-		pluginAppModel.getAppModel().getModel()
+		pluginAppModel.getModel()
 				.getTagSetModel()
 				.getTagSetStructure()
 				.getTagSets()
@@ -104,7 +104,7 @@ public class LineageRandomColorizer extends DynamicCommand  {
 	}
 
 	private TagSetStructure.TagSet createCoolSmallTagSet() {
-		return addNewTagSetToModel( pluginAppModel.getAppModel().getModel(),
+		return addNewTagSetToModel( pluginAppModel.getModel(),
 				"Palette of 16 colors", mokolePaletteOf16Colors.entrySet() );
 	}
 
@@ -126,7 +126,7 @@ public class LineageRandomColorizer extends DynamicCommand  {
 					palette.put("RGB "+(rColor*rStep)+","
 							+(gColor*gStep)+","+(bColor*bStep), rgbToValidColor(color) );
 				}
-		return addNewTagSetToModel( pluginAppModel.getAppModel().getModel(),
+		return addNewTagSetToModel( pluginAppModel.getModel(),
 				"Palette of "+colorsInTotal+" colors", palette.entrySet() );
 	}
 
@@ -137,7 +137,7 @@ public class LineageRandomColorizer extends DynamicCommand  {
 		if (colorScheme.equals(COLORS_16)) chosenTagSet = createCoolSmallTagSet();
 		else if (colorScheme.equals(COLORS_64)) chosenTagSet = createNewTagSet(4,4,4);
 		else {
-			Optional<TagSetStructure.TagSet> ts = pluginAppModel.getAppModel().getModel()
+			Optional<TagSetStructure.TagSet> ts = pluginAppModel.getModel()
 					.getTagSetModel()
 					.getTagSetStructure()
 					.getTagSets()
@@ -155,15 +155,15 @@ public class LineageRandomColorizer extends DynamicCommand  {
 
 	public void run()
 	{
-		pluginAppModel.getAppModel().getModel().getTagSetModel().pauseListeners();
+		pluginAppModel.getModel().getTagSetModel().pauseListeners();
 
 		final TagSetStructure.TagSet chosenTagSet = getChosenTagSet();
 		AtomicInteger currentColorIdx = new AtomicInteger( 0 );
 
-		final ObjTags<Spot> colorizer = pluginAppModel.getAppModel().getModel().getTagSetModel().getVertexTags();
+		final ObjTags<Spot> colorizer = pluginAppModel.getModel().getTagSetModel().getVertexTags();
 		final Logger dedicatedLog = logService.subLogger( "Coloring of lineage trees" );
 
-		final SpotsIterator visitor = new SpotsIterator( pluginAppModel.getAppModel(), dedicatedLog );
+		final SpotsIterator visitor = new SpotsIterator( pluginAppModel, dedicatedLog );
 		visitor.visitRootsFromEntireGraph( root -> {
 			TagSetStructure.Tag color = chosenTagSet.getTags().get( currentColorIdx.get() );
 			currentColorIdx.set( (currentColorIdx.get()+1) % chosenTagSet.getTags().size() );
@@ -172,6 +172,6 @@ public class LineageRandomColorizer extends DynamicCommand  {
 		} );
 		dedicatedLog.info("Done with the random coloring.");
 
-		pluginAppModel.getAppModel().getModel().getTagSetModel().resumeListeners();
+		pluginAppModel.getModel().getTagSetModel().resumeListeners();
 	}
 }
