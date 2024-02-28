@@ -1,5 +1,7 @@
 package org.ulman.simulator;
 
+import org.mastodon.mamut.model.Spot;
+
 import java.util.*;
 
 public class Agent {
@@ -43,6 +45,13 @@ public class Agent {
 		return reportLog;
 	}
 
+	private Spot previousSpot = null;
+	public Spot getPreviousSpot() {
+		return previousSpot;
+	}
+	public void setPreviousSpot(final Spot spot) {
+		previousSpot = spot;
+	}
 
 	public Agent(Simulator simulator, int ID, int parentID, String label, double x, double y, double z, int time) {
 		this.simulatorFrame = simulator;
@@ -187,6 +196,9 @@ public class Agent {
 		double dy = 0.5 * this.minDistanceToNeighbor * Math.sin(alfa);
 		Agent d1 = new Agent(this.simulatorFrame, d1Id, this.id, d1Name, this.nextX - dx, this.nextY - dy, this.nextZ, this.t + 1);
 		Agent d2 = new Agent(this.simulatorFrame, d2Id, this.id, d2Name, this.nextX + dx, this.nextY + dy, this.nextZ, this.t + 1);
+
+		d1.setPreviousSpot( this.getPreviousSpot() );
+		d2.setPreviousSpot( this.getPreviousSpot() );
 
 		this.simulatorFrame.deregisterAgent(this);
 		this.simulatorFrame.registerAgent(d1);

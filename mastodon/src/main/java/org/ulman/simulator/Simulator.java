@@ -1,5 +1,9 @@
 package org.ulman.simulator;
 
+import net.imglib2.RandomAccessibleInterval;
+import org.mastodon.mamut.ProjectModel;
+import org.mastodon.mamut.model.Spot;
+
 import java.io.*;
 import java.util.*;
 
@@ -87,6 +91,19 @@ public class Simulator {
 		agentsContainer.forEach( (id,spot) -> spot.progress(time) );
 		agentsContainer.forEach( (id,spot) -> spot.progressFinish() );
 		commitNewAndDeadAgents();
+
+		final double SPOT_RADIUS = 1.0;
+		agentsContainer.forEach( (id,spot) -> {
+			Spot targetSpot = projectModel.getModel().getGraph().addVertex().init(time,
+					new double[] {spot.getX(),spot.getY(), spot.getZ()}, SPOT_RADIUS);
+			targetSpot.setLabel(spot.getName());
+
+			Spot sourceSpot = spot.getPreviousSpot();
+			if (sourceSpot != null) {
+				projectModel.getModel().getGraph().addEdge(sourceSpot, targetSpot);
+			}
+			spot.setPreviousSpot(targetSpot);
+		});
 	}
 
 	public void populate(int numberOfCells) {
