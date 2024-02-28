@@ -23,12 +23,16 @@ public class SimulatorIJ2UI implements Command {
 	@Parameter(label = "Number of cells initially:", min="1")
 	int numCells = 2;
 
+	@Parameter(label = "Number of time points to be created:", min="1")
+	int maxTimePoint = 10;
+
 	@Override
 	public void run() {
 		try {
-			Simulator s = new Simulator("/temp/mastodon_plain_text_log1.txt");
+			System.out.println("Running within a project: "+projectModel.getProjectName());
+			Simulator s = new Simulator(projectModel);
 			s.populate(numCells);
-			for (int time = 0; time < 10; ++time) s.doOneTime();
+			for (int time = 0; time < maxTimePoint; ++time) s.doOneTime();
 			s.close();
 		} catch (Exception e) {
 			System.out.println("SOME ERROR: "+e.getMessage());
