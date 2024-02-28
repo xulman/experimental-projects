@@ -5,11 +5,14 @@ import java.util.*;
 public class Agent {
 	private final Simulator simulatorFrame;
 
-	private String name;
 	private final String nameClean;
 	private final String nameBlocked;
 	private final String nameWantDivide;
 	private final String nameBlockedWantDivide;
+	private String name;
+	public String getName() {
+		return name;
+	}
 
 	private final int id;
 	public int getId() {
