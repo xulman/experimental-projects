@@ -4,6 +4,7 @@ import net.imglib2.RandomAccessibleInterval;
 import org.mastodon.mamut.ProjectModel;
 import org.mastodon.mamut.model.Spot;
 import java.util.*;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 
 public class Simulator {
@@ -14,9 +15,11 @@ public class Simulator {
 	private final List<Agent> deadAgentsContainer = new ArrayList<>(100);
 
 	private final ProjectModel projectModel;
+	private final ReentrantReadWriteLock lock;
 
 	public Simulator(final ProjectModel projectModel) {
 		this.projectModel = projectModel;
+		this.lock = projectModel.getModel().getGraph().getLock();
 	}
 
 	synchronized
@@ -117,6 +120,10 @@ public class Simulator {
 		this.commitNewAndDeadAgents();
 	}
 
+	public void open() {
+		lock.writeLock().lock();
+	}
 	public void close() {
+		lock.writeLock().unlock();
 	}
 }

@@ -26,14 +26,17 @@ public class SimulatorIJ2UI implements Command {
 
 	@Override
 	public void run() {
+		Simulator s = new Simulator(projectModel);
 		try {
-			System.out.println("Running within a project: "+projectModel.getProjectName());
-			Simulator s = new Simulator(projectModel);
+			System.out.println("SIMULATOR STARTED on "+java.time.LocalTime.now());
+			s.open();
 			s.populate(numCells);
 			for (int time = 0; time < maxTimePoint; ++time) s.doOneTime();
-			s.close();
 		} catch (Exception e) {
 			System.out.println("SOME ERROR: "+e.getMessage());
+		} finally {
+			s.close();
+			System.out.println("SIMULATOR FINISHED on "+java.time.LocalTime.now());
 		}
 	}
 
