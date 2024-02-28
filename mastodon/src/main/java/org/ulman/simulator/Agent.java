@@ -117,15 +117,17 @@ public class Agent {
 			if (isOdd) {
 				dispX = new Random().nextGaussian() * (this.usualStepSize / 2.0);
 				dispY = new Random().nextGaussian() * (this.usualStepSize / 2.0);
+				dispZ = new Random().nextGaussian() * (this.usualStepSize / 2.0);
 			} else {
 				dispX /= 2.0;
 				dispY /= 2.0;
+				dispZ /= 2.0;
 			}
 			System.out.printf("  displacement = (%f,%f), isOdd=%b%n", dispX, dispY, isOdd);
 
 			newX = oldX + dispX;
 			newY = oldY + dispY;
-			newZ = oldZ;
+			newZ = oldZ + dispZ;
 
 			tooClose = false;
 			for (double[] n : neighbors) {
