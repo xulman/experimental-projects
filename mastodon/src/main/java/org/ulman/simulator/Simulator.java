@@ -107,8 +107,13 @@ public class Simulator {
 	}
 
 	public void populate(int numberOfCells) {
+		RandomAccessibleInterval<?> pixelSource = projectModel.getSharedBdvData().getSources().get(0).getSpimSource().getSource(0, 0);
+		final double dx = 0.5 * (pixelSource.min(0) + pixelSource.max(0));
+		final double dy = 0.5 * (pixelSource.min(1) + pixelSource.max(1));
+		final double dz = 0.5 * (pixelSource.min(2) + pixelSource.max(2));
 		for (int i = 0; i < numberOfCells; i++) {
-			Agent spot = new Agent(this, this.getNewId(), 0, String.valueOf(i + 1), i * 3, 0, 0, this.time);
+			Agent spot = new Agent(this, this.getNewId(), 0, String.valueOf(i + 1),
+					dx+ i * 3, dy, dz, this.time);
 			this.registerAgent(spot);
 		}
 		this.commitNewAndDeadAgents();
