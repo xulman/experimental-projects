@@ -125,5 +125,11 @@ public class Simulator {
 	}
 	public void close() {
 		lock.writeLock().unlock();
+		addThisMomentAsUndoPoint();
+	}
+
+	void addThisMomentAsUndoPoint() {
+		projectModel.getModel().setUndoPoint();
+		projectModel.getModel().getGraph().notifyGraphChanged();
 	}
 }
