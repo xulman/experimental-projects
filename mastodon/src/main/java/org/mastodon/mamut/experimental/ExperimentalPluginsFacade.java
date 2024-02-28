@@ -53,11 +53,7 @@ import org.scijava.plugin.Plugin;
 import org.scijava.ui.behaviour.util.Actions;
 import org.scijava.ui.behaviour.util.AbstractNamedAction;
 import org.scijava.ui.behaviour.util.RunnableAction;
-
-import net.imagej.ImageJ;
-import org.mastodon.mamut.MainWindow;
-import org.mastodon.mamut.WindowManager;
-import javax.swing.WindowConstants;
+import org.ulman.simulator.ui.SimulatorIJ2UI;
 
 @Plugin( type = MamutPlugin.class )
 public class ExperimentalPluginsFacade extends AbstractContextual implements MamutPlugin
@@ -67,11 +63,13 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 	private static final String EXP_PLANEROTATESPOTS = "[vexp] in plane rotate spots";
 	private static final String EXP_GENROTATESPOTS = "[vexp] general rotate spots";
 	private static final String EXP_LINEAGECOLORIZER = "[vexp] random color tags";
+	private static final String EXP_SIMULATOR = "[vexp] CLsimulator";
 
 	private static final String[] EXP_SHIFTSPOTS_KEYS = { "not mapped" };
 	private static final String[] EXP_PLANEROTATESPOTS_KEYS = { "not mapped" };
 	private static final String[] EXP_GENROTATESPOTS_KEYS = { "not mapped" };
 	private static final String[] EXP_LINEAGECOLORIZER_KEYS = { "not mapped" };
+	private static final String[] EXP_SIMULATOR_KEYS = { "not mapped" };
 	//------------------------------------------------------------------------
 
 	/** titles of this plug-in's menu items */
@@ -82,6 +80,7 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 		menuTexts.put( EXP_PLANEROTATESPOTS, "Rotate Spots (In Plane)" );
 		menuTexts.put( EXP_GENROTATESPOTS, "Rotate Spots (General)" );
 		menuTexts.put( EXP_LINEAGECOLORIZER, "Random Color Lineages" );
+		menuTexts.put( EXP_SIMULATOR, "CLsim" );
 	}
 	@Override
 	public Map< String, String > getMenuTexts() { return menuTexts; }
@@ -94,6 +93,7 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 				menu( "Trees Management",
 					item( EXP_LINEAGECOLORIZER )
 				),
+				item( EXP_SIMULATOR ),
 				item( EXP_SHIFTSPOTS ),
 				item( EXP_PLANEROTATESPOTS ),
 				item( EXP_GENROTATESPOTS )
@@ -117,6 +117,7 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 			descriptions.add(EXP_PLANEROTATESPOTS, EXP_PLANEROTATESPOTS_KEYS, "Rotate spots in spatial domain, in a simply-given plane.");
 			descriptions.add(EXP_GENROTATESPOTS, EXP_GENROTATESPOTS_KEYS, "Rotate spots in spatial domain, in a very general way.");
 			descriptions.add(EXP_LINEAGECOLORIZER, EXP_LINEAGECOLORIZER_KEYS, "Assign to every lineage tree a randomly chosen color from the selected tag set.");
+			descriptions.add(EXP_SIMULATOR, EXP_SIMULATOR_KEYS, "Creates a new random cell lineage.");
 		}
 	}
 	//------------------------------------------------------------------------
@@ -126,6 +127,7 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 	private final AbstractNamedAction actionPlaneRotateSpots;
 	private final AbstractNamedAction actionGenRotateSpots;
 	private final AbstractNamedAction actionLineageColorizer;
+	private final AbstractNamedAction actionSimulator;
 
 	/** reference to the currently available project in Mastodon */
 	private ProjectModel pluginAppModel;
@@ -137,6 +139,7 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 		actionPlaneRotateSpots = new RunnableAction(EXP_PLANEROTATESPOTS, this::rotateSpotsInPlane);
 		actionGenRotateSpots = new RunnableAction(EXP_GENROTATESPOTS, this::rotateSpotsGeneral);
 		actionLineageColorizer = new RunnableAction(EXP_LINEAGECOLORIZER, this::lineageColorizer);
+		actionSimulator = new RunnableAction(EXP_SIMULATOR, this::simulator);
 		updateEnabledActions();
 	}
 
@@ -147,7 +150,8 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 		actions.namedAction(actionShiftSpots, EXP_SHIFTSPOTS_KEYS);
 		actions.namedAction(actionPlaneRotateSpots, EXP_PLANEROTATESPOTS_KEYS);
 		actions.namedAction(actionGenRotateSpots, EXP_GENROTATESPOTS_KEYS);
-		actions.namedAction(actionLineageColorizer , EXP_LINEAGECOLORIZER_KEYS);
+		actions.namedAction(actionLineageColorizer, EXP_LINEAGECOLORIZER_KEYS);
+		actions.namedAction(actionSimulator, EXP_SHIFTSPOTS_KEYS);
 	}
 
 	/** learn about the current project's params */
@@ -166,6 +170,7 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 		actionPlaneRotateSpots.setEnabled( pluginAppModel != null );
 		actionGenRotateSpots.setEnabled( pluginAppModel != null );
 		actionLineageColorizer.setEnabled( pluginAppModel != null );
+		actionSimulator.setEnabled( pluginAppModel != null );
 	}
 	//------------------------------------------------------------------------
 	//------------------------------------------------------------------------
@@ -199,6 +204,14 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 		this.getContext().getService(CommandService.class).run(
 			LineageRandomColorizer.class, true,
 			"pluginAppModel", pluginAppModel
+		);
+	}
+
+	private void simulator()
+	{
+		this.getContext().getService(CommandService.class).run(
+			SimulatorIJ2UI.class, true,
+			"projectModel", pluginAppModel
 		);
 	}
 }

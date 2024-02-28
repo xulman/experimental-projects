@@ -1,7 +1,10 @@
 package org.ulman.simulator;
 
-import java.io.*;
+import net.imglib2.RandomAccessibleInterval;
+import org.mastodon.mamut.ProjectModel;
+import org.mastodon.mamut.model.Spot;
 import java.util.*;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 
 public class Simulator {
@@ -10,10 +13,13 @@ public class Simulator {
 	private final Map<Integer, Agent> agentsContainer = new HashMap<>(10000);
 	private final List<Agent> newAgentsContainer = new ArrayList<>(100);
 	private final List<Agent> deadAgentsContainer = new ArrayList<>(100);
-	private final PrintWriter reportFile;
 
-	public Simulator(String logFilePath) throws FileNotFoundException {
-		this.reportFile = new PrintWriter(logFilePath);
+	private final ProjectModel projectModel;
+	private final ReentrantReadWriteLock lock;
+
+	public Simulator(final ProjectModel projectModel) {
+		this.projectModel = projectModel;
+		this.lock = projectModel.getModel().getGraph().getLock();
 	}
 
 	synchronized
@@ -45,20 +51,11 @@ public class Simulator {
 	public void commitNewAndDeadAgents() {
 		for (Agent spot : this.deadAgentsContainer) {
 			this.agentsContainer.remove(spot.getId());
-			this.reportAgentLog(spot);
 		}
 
 		for (Agent spot : this.newAgentsContainer) {
 			this.agentsContainer.put(spot.getId(), spot);
 		}
-	}
-
-	public void reportAgentLog(Agent spot) {
-		for (String line : spot.getReportLog()) {
-			reportFile.println(line);
-		}
-		reportFile.println();
-		reportFile.println();
 	}
 
 	public List<double[]> getListOfOccupiedCoords(Agent fromThisSpot) {
@@ -95,30 +92,44 @@ public class Simulator {
 		agentsContainer.forEach( (id,spot) -> spot.progress(time) );
 		agentsContainer.forEach( (id,spot) -> spot.progressFinish() );
 		commitNewAndDeadAgents();
+
+		final double SPOT_RADIUS = 1.0;
+		agentsContainer.forEach( (id,spot) -> {
+			Spot targetSpot = projectModel.getModel().getGraph().addVertex().init(time,
+					new double[] {spot.getX(),spot.getY(), spot.getZ()}, SPOT_RADIUS);
+			targetSpot.setLabel(spot.getName());
+
+			Spot sourceSpot = spot.getPreviousSpot();
+			if (sourceSpot != null) {
+				projectModel.getModel().getGraph().addEdge(sourceSpot, targetSpot);
+			}
+			spot.setPreviousSpot(targetSpot);
+		});
 	}
 
 	public void populate(int numberOfCells) {
+		RandomAccessibleInterval<?> pixelSource = projectModel.getSharedBdvData().getSources().get(0).getSpimSource().getSource(0, 0);
+		final double dx = 0.5 * (pixelSource.min(0) + pixelSource.max(0));
+		final double dy = 0.5 * (pixelSource.min(1) + pixelSource.max(1));
+		final double dz = 0.5 * (pixelSource.min(2) + pixelSource.max(2));
 		for (int i = 0; i < numberOfCells; i++) {
-			Agent spot = new Agent(this, this.getNewId(), 0, String.valueOf(i + 1), i * 3, 0, 0, this.time);
+			Agent spot = new Agent(this, this.getNewId(), 0, String.valueOf(i + 1),
+					dx+ i * 3, dy, dz, this.time);
 			this.registerAgent(spot);
 		}
 		this.commitNewAndDeadAgents();
 	}
 
+	public void open() {
+		lock.writeLock().lock();
+	}
 	public void close() {
-		agentsContainer.forEach( (id,spot) -> reportAgentLog(spot) );
-		reportFile.close();
+		lock.writeLock().unlock();
+		addThisMomentAsUndoPoint();
 	}
 
-
-	public static void main(String[] args) {
-		try {
-			Simulator s = new Simulator("/temp/mastodon_plain_text_log1.txt");
-			s.populate(2);
-			for (int time = 0; time < 10; ++time) s.doOneTime();
-			s.close();
-		} catch (Exception e) {
-			System.out.println("SOME ERROR: "+e.getMessage());
-		}
+	void addThisMomentAsUndoPoint() {
+		projectModel.getModel().setUndoPoint();
+		projectModel.getModel().getGraph().notifyGraphChanged();
 	}
 }
