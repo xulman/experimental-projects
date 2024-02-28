@@ -109,4 +109,16 @@ public class Simulator {
 		agentsContainer.forEach( (id,spot) -> reportAgentLog(spot) );
 		reportFile.close();
 	}
+
+
+	public static void main(String[] args) {
+		try {
+			Simulator s = new Simulator("/temp/mastodon_plain_text_log1.txt");
+			s.populate(2);
+			for (int time = 0; time < 10; ++time) s.doOneTime();
+			s.close();
+		} catch (Exception e) {
+			System.out.println("SOME ERROR: "+e.getMessage());
+		}
+	}
 }
