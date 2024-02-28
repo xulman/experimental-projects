@@ -95,7 +95,9 @@ public class Simulator {
 		agentsContainer.forEach( (id,spot) -> spot.progress(time) );
 		agentsContainer.forEach( (id,spot) -> spot.progressFinish() );
 		commitNewAndDeadAgents();
+	}
 
+	public void pushToMastodonGraph() {
 		final double SPOT_RADIUS = 1.0;
 		agentsContainer.forEach( (id,spot) -> {
 			Spot targetSpot = projectModel.getModel().getGraph().addVertex().init(time,

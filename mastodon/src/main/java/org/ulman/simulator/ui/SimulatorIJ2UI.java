@@ -31,7 +31,11 @@ public class SimulatorIJ2UI implements Command {
 			System.out.println("SIMULATOR STARTED on "+java.time.LocalTime.now());
 			s.open();
 			s.populate(numCells);
-			for (int time = 0; time < maxTimePoint; ++time) s.doOneTime();
+			s.pushToMastodonGraph();
+			for (int time = 0; time < maxTimePoint; ++time) {
+				s.doOneTime();
+				s.pushToMastodonGraph();
+			}
 		} catch (Exception e) {
 			System.out.println("SOME ERROR: "+e.getMessage());
 		} finally {
