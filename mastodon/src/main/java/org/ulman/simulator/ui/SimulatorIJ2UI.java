@@ -5,14 +5,12 @@ import org.mastodon.mamut.MainWindow;
 import org.mastodon.mamut.ProjectModel;
 import org.mastodon.mamut.io.project.MamutProject;
 import org.mastodon.mamut.model.Model;
-import org.mastodon.util.DummySpimData;
 import org.mastodon.views.bdv.SharedBigDataViewerData;
-import org.scijava.Context;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.ulman.simulator.Simulator;
-import javax.swing.*;
+import javax.swing.WindowConstants;
 
 
 @Plugin(type = Command.class)

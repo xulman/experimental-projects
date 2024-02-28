@@ -3,8 +3,6 @@ package org.ulman.simulator;
 import net.imglib2.RandomAccessibleInterval;
 import org.mastodon.mamut.ProjectModel;
 import org.mastodon.mamut.model.Spot;
-
-import java.io.*;
 import java.util.*;
 
 
@@ -17,7 +15,7 @@ public class Simulator {
 
 	private final ProjectModel projectModel;
 
-	public Simulator(final ProjectModel projectModel) throws FileNotFoundException {
+	public Simulator(final ProjectModel projectModel) {
 		this.projectModel = projectModel;
 	}
 
