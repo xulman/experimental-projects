@@ -21,6 +21,8 @@ public class Simulator {
 	public static boolean COLLECT_INTERNAL_DATA = false;
 	/** Prints a lot of data to understand decisions making of the agents. */
 	public static boolean VERBOSE_AGENT_DEBUG = false;
+	/** Prints relative little reports about what the simulation framework was asked to do. */
+	public static boolean VERBOSE_SIMULATOR_DEBUG = false;
 
 	/** How far around shall an agent look for "nearby" agents to consider them for overlaps. */
 	public static double AGENT_SEARCH_RADIUS = 5.0;
@@ -76,7 +78,9 @@ public class Simulator {
 			System.out.println("========== SIM: ERROR with registering");
 			return;
 		}
-		System.out.println("========== SIM: registering agent " + spot.getId());
+		if (VERBOSE_SIMULATOR_DEBUG) {
+			System.out.println("========== SIM: registering agent " + spot.getId());
+		}
 		this.newAgentsContainer.add(spot);
 	}
 
@@ -86,7 +90,9 @@ public class Simulator {
 			System.out.println("========== SIM: ERROR with deregistering");
 			return;
 		}
-		System.out.println("========== SIM: DEregistering agent " + spot.getId());
+		if (VERBOSE_SIMULATOR_DEBUG) {
+			System.out.println("========== SIM: DEregistering agent " + spot.getId());
+		}
 		this.deadAgentsContainer.add(spot);
 	}
 
