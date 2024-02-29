@@ -18,11 +18,13 @@ public class SimulatorMainDlg implements Command {
 	@Parameter
 	ProjectModel projectModel;
 
-	@Parameter(label = "Number of cells initially:", min="1")
+	@Parameter(label = "Number of seeds:", min="1")
 	int numCells = 2;
+	@Parameter(label = "OR, Use the last non-empty time point instead:")
+	boolean continueWithExisting = false;
 
 	@Parameter(label = "Number of time points to be created:", min="1")
-	int maxTimePoint = 10;
+	int numTimepoints = 10;
 
 	@Parameter(label = "Show the advanced dialog:")
 	boolean showAdvancedDlg = false;
