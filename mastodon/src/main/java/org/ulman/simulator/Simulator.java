@@ -38,6 +38,7 @@ public class Simulator {
 	 *  line in the xy-plane. A division line in the xy-plane is randomly picked such that it does not coincide
 	 *  by larger angle with that perpendicular line, and this random line would be a "division" orientation
 	 *  for the x,y coords, the z-coord is randomized. */
+	public static double AGENT_MAX_VARIABLITY_FROM_A_PERPENDICULAR_DIVISION_PLANE = 3.14;
 
 
 	private int assignedIds = 0;

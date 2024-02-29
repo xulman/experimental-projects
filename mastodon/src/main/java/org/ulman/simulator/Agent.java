@@ -190,23 +190,26 @@ public class Agent {
 	}
 
 	public void divideMe() {
-		int d1Id = this.simulatorFrame.getNewId();
-		int d2Id = this.simulatorFrame.getNewId();
+		final int d1Id = simulatorFrame.getNewId();
+		final int d2Id = simulatorFrame.getNewId();
+		final String d1Name = name + "a";
+		final String d2Name = name + "b";
 
-		String d1Name = this.name + "a";
-		String d2Name = this.name + "b";
+		double azimuth = Math.atan2(nextY-y, nextX-x);
+		azimuth += new Random().nextGaussian() * Simulator.AGENT_MAX_VARIABLITY_FROM_A_PERPENDICULAR_DIVISION_PLANE / 3.0;
+		double dx = 0.5 * minDistanceToNeighbor * Math.cos(azimuth);
+		double dy = 0.5 * minDistanceToNeighbor * Math.sin(azimuth);
+		double dz_a = 0.5 * minDistanceToNeighbor * new Random().nextDouble();
+		double dz_b = 1.0 - dz_a;
 
-		double alfa = new Random().nextDouble() * 6.28;
-		double dx = 0.5 * this.minDistanceToNeighbor * Math.cos(alfa);
-		double dy = 0.5 * this.minDistanceToNeighbor * Math.sin(alfa);
-		Agent d1 = new Agent(this.simulatorFrame, d1Id, this.id, d1Name, this.nextX - dx, this.nextY - dy, this.nextZ, this.t + 1);
-		Agent d2 = new Agent(this.simulatorFrame, d2Id, this.id, d2Name, this.nextX + dx, this.nextY + dy, this.nextZ, this.t + 1);
+		Agent d1 = new Agent(simulatorFrame, d1Id, id, d1Name, nextX-dx, nextY-dy, nextZ-dz_a, t + 1);
+		Agent d2 = new Agent(simulatorFrame, d2Id, id, d2Name, nextX+dx, nextY+dy, nextZ+dz_b, t + 1);
 
-		d1.setPreviousSpot( this.getPreviousSpot() );
-		d2.setPreviousSpot( this.getPreviousSpot() );
+		d1.previousSpot = this.previousSpot;
+		d2.previousSpot = this.previousSpot;
 
-		this.simulatorFrame.deregisterAgent(this);
-		this.simulatorFrame.registerAgent(d1);
-		this.simulatorFrame.registerAgent(d2);
+		simulatorFrame.deregisterAgent(this);
+		simulatorFrame.registerAgent(d1);
+		simulatorFrame.registerAgent(d2);
 	}
 }
