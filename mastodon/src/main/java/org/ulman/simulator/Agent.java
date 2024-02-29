@@ -32,8 +32,8 @@ public class Agent {
 	public double getY() { return y; }
 	public double getZ() { return z; }
 
-	private final double usualStepSize = 1.0;
-	private final double minDistanceToNeighbor = 3.0 * usualStepSize;
+	private final double usualStepSize = Simulator.AGENT_USUAL_STEP_SIZE;
+	private final double minDistanceToNeighbor = Simulator.AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT;
 
 	private final int dontDivideBefore;
 	private final int dontLiveBeyond;

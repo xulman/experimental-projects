@@ -18,6 +18,10 @@ public class Simulator {
 
 	/** How far around shall an agent look for "nearby" agents to consider them for overlaps. */
 	public static double AGENT_SEARCH_RADIUS = 5.0;
+	/** How close two agents can come before they are considered overlapping. */
+	public static double AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT = 3.0;
+	/** How far an agent can move between time points. */
+	public static double AGENT_USUAL_STEP_SIZE = 1.0;
 
 
 	private int assignedIds = 0;
