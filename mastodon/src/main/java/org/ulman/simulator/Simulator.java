@@ -25,6 +25,20 @@ public class Simulator {
 	/** How many attempts is an agent (cell) allowed to try to move randomly until it finds an non-colliding position. */
 	public static int AGENT_NUMBER_OF_ATTEMPTS_TO_MAKE_A_MOVE = 6;
 
+	/** The mean life span of an agent (cell). Shorted means dividions occurs more often. */
+	public static int AGENT_AVERAGE_LIFESPAN_BEFORE_DIVISION = 7;
+	/** Hard limit on the life span of an agent (cell). The cell dies, is removed from the simulation,
+	 *  whenever it's life exceeded this value. */
+	public static int AGENT_MAX_LIFESPAN_AND_DIES_AFTER = 30;
+	/** The maximum number of neighbors (within the {@link Simulator#AGENT_SEARCH_RADIUS} distance)
+	 *  tolerated for a division to occur; if more neighbors are around, the system believes the space
+	 *  is too condensed and doesn't permint agents (cells) to divide. */
+	public static int AGENT_MAX_DENSITY_TO_ENABLE_DIVISION = 4;
+	/** Given the last move of a mother cell, project it onto an xy-plane, one can then imagine a perpendicular
+	 *  line in the xy-plane. A division line in the xy-plane is randomly picked such that it does not coincide
+	 *  by larger angle with that perpendicular line, and this random line would be a "division" orientation
+	 *  for the x,y coords, the z-coord is randomized. */
+
 
 	private int assignedIds = 0;
 	private int time = 0;

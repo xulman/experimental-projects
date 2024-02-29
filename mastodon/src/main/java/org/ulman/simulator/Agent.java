@@ -37,7 +37,7 @@ public class Agent {
 
 	private final int dontDivideBefore;
 	private final int dontLiveBeyond;
-	private final int maxNeighborsForDivide = 4;
+	private final int maxNeighborsForDivide = Simulator.AGENT_MAX_DENSITY_TO_ENABLE_DIVISION;
 
 	private final List<String> reportLog = new ArrayList<>(100);
 	public List<String> getReportLog() {
@@ -79,12 +79,10 @@ public class Agent {
 		this.nextY = y;
 		this.nextZ = z;
 
-		double meanLifePeriod = 7;
+		double meanLifePeriod = Simulator.AGENT_AVERAGE_LIFESPAN_BEFORE_DIVISION;
 		double sigma = (0.6 * meanLifePeriod) / 3.0;
-		double thisCellLifePeriod = new Random().nextGaussian() * sigma + meanLifePeriod;
-
-		this.dontDivideBefore = time + (int) thisCellLifePeriod;
-		this.dontLiveBeyond = time + 5 * (int) thisCellLifePeriod;
+		this.dontDivideBefore = time + (int)(new Random().nextGaussian() * sigma + meanLifePeriod);
+		this.dontLiveBeyond = time + Simulator.AGENT_MAX_LIFESPAN_AND_DIES_AFTER;
 
 		if (parentID == 0) {
 			this.reportStatus();
