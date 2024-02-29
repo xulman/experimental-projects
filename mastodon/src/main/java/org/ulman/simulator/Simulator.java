@@ -146,15 +146,27 @@ public class Simulator {
 		});
 	}
 
-	public void populate(int numberOfCells) {
+	public void populate(int numberOfCells, final int timePoint) {
+		this.time = timePoint;
 		RandomAccessibleInterval<?> pixelSource = projectModel.getSharedBdvData().getSources().get(0).getSpimSource().getSource(0, 0);
 		final double dx = 0.5 * (pixelSource.min(0) + pixelSource.max(0));
 		final double dy = 0.5 * (pixelSource.min(1) + pixelSource.max(1));
 		final double dz = 0.5 * (pixelSource.min(2) + pixelSource.max(2));
 		for (int i = 0; i < numberOfCells; i++) {
-			Agent spot = new Agent(this, this.getNewId(), 0, String.valueOf(i + 1),
+			Agent agent = new Agent(this, this.getNewId(), 0, String.valueOf(i + 1),
 					dx+ i * 3, dy, dz, this.time);
-			this.registerAgent(spot);
+			this.registerAgent(agent);
+		}
+		this.commitNewAndDeadAgents();
+	}
+
+	public void populate(final ProjectModel projectModel, final int timePoint) {
+		this.time = timePoint;
+		for (Spot s : projectModel.getModel().getSpatioTemporalIndex().getSpatialIndex(timePoint-1)) {
+			Agent agent = new Agent(this, this.getNewId(), 0, s.getLabel()+"_",
+					s.getDoublePosition(0), s.getDoublePosition(1), s.getDoublePosition(2), this.time);
+			agent.setPreviousSpot( projectModel.getModel().getGraph().vertexRef().refTo(s) );
+			this.registerAgent(agent);
 		}
 		this.commitNewAndDeadAgents();
 	}
