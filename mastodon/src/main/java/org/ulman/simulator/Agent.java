@@ -26,12 +26,11 @@ public class Agent {
 	private int t;
 	private double x,y,z;
 	private double nextX,nextY,nextZ;
-	private final double interestRadius = 5.0;
+	private final double interestRadius = Simulator.AGENT_SEARCH_RADIUS;
 
 	public double getX() { return x; }
 	public double getY() { return y; }
 	public double getZ() { return z; }
-	public double getInterestRadius() { return interestRadius; }
 
 	private final double usualStepSize = 1.0;
 	private final double minDistanceToNeighbor = 3.0 * usualStepSize;
@@ -121,7 +120,7 @@ public class Agent {
 		final double oldZ = fromCurrentPos ? this.z : this.nextZ;
 		System.out.printf("  from pos [%f,%f,%f] (from_current_pos=%b)%n", oldX, oldY, oldZ, fromCurrentPos);
 
-		final List<double[]> neighbors = simulatorFrame.getListOfOccupiedCoords(this);
+		final List<double[]> neighbors = simulatorFrame.getListOfOccupiedCoords(this, interestRadius);
 		System.out.println("  neighs: " + neighbors);
 
 		final double minDistanceSquared = minDistanceToNeighbor * minDistanceToNeighbor;

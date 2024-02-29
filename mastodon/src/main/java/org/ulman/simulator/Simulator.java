@@ -14,6 +14,9 @@ public class Simulator {
 	/** If the _B,_W,_BW indicators should be prepended or appended to the spot label */
 	public static boolean PREPEND_HINT_LABELS = true;
 
+	/** How far around shall an agent look for "nearby" agents to consider them for overlaps. */
+	public static double AGENT_SEARCH_RADIUS = 5.0;
+
 
 	private int assignedIds = 0;
 	private int time = 0;
@@ -65,15 +68,14 @@ public class Simulator {
 		}
 	}
 
-	public List<double[]> getListOfOccupiedCoords(Agent fromThisSpot) {
-		final double interestRadius = fromThisSpot.getInterestRadius();
-		final double minX = fromThisSpot.getX() - interestRadius;
-		final double minY = fromThisSpot.getY() - interestRadius;
-		final double minZ = fromThisSpot.getZ() - interestRadius;
+	public List<double[]> getListOfOccupiedCoords(Agent fromThisSpot, final double searchDistance) {
+		final double minX = fromThisSpot.getX() - searchDistance;
+		final double minY = fromThisSpot.getY() - searchDistance;
+		final double minZ = fromThisSpot.getZ() - searchDistance;
 
-		final double maxX = fromThisSpot.getX() + interestRadius;
-		final double maxY = fromThisSpot.getY() + interestRadius;
-		final double maxZ = fromThisSpot.getZ() + interestRadius;
+		final double maxX = fromThisSpot.getX() + searchDistance;
+		final double maxY = fromThisSpot.getY() + searchDistance;
+		final double maxZ = fromThisSpot.getZ() + searchDistance;
 
 		final List<double[]> retCoords = new ArrayList<>(100);
 		for (Agent spot : agentsContainer.values()) {
