@@ -8,6 +8,7 @@ import org.mastodon.mamut.io.project.MamutProject;
 import org.mastodon.mamut.model.Model;
 import org.mastodon.views.bdv.SharedBigDataViewerData;
 import org.scijava.command.Command;
+import org.scijava.command.CommandService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.ulman.simulator.Simulator;
@@ -27,8 +28,20 @@ public class SimulatorMainDlg implements Command {
 	@Parameter(label = "Number of time points to be created:", min="1")
 	int maxTimePoint = 10;
 
+	@Parameter(label = "Show the advanced dialog:")
+	boolean showAdvancedDlg = false;
+
+	@Parameter
+	CommandService commandService;
+
 	@Override
 	public void run() {
+		if (showAdvancedDlg) {
+			commandService.run(SimulatorAdvancedDlg.class,true,
+					"basicDialog",this);
+			return;
+		}
+
 		Simulator s = new Simulator(projectModel);
 		try {
 			System.out.println("SIMULATOR STARTED on "+java.time.LocalTime.now());
