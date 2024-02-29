@@ -53,7 +53,7 @@ import org.scijava.plugin.Plugin;
 import org.scijava.ui.behaviour.util.Actions;
 import org.scijava.ui.behaviour.util.AbstractNamedAction;
 import org.scijava.ui.behaviour.util.RunnableAction;
-import org.ulman.simulator.ui.SimulatorIJ2UI;
+import org.ulman.simulator.ui.SimulatorMainDlg;
 
 @Plugin( type = MamutPlugin.class )
 public class ExperimentalPluginsFacade extends AbstractContextual implements MamutPlugin
@@ -210,7 +210,7 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 	private void simulator()
 	{
 		this.getContext().getService(CommandService.class).run(
-			SimulatorIJ2UI.class, true,
+			SimulatorMainDlg.class, true,
 			"projectModel", pluginAppModel
 		);
 	}

@@ -3,6 +3,8 @@ package org.ulman.simulator;
 import net.imglib2.RandomAccessibleInterval;
 import org.mastodon.mamut.ProjectModel;
 import org.mastodon.mamut.model.Spot;
+
+import java.util.Collections;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
@@ -11,6 +13,36 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 
 public class Simulator {
+	/** If the _B,_W,_BW indicators should be prepended or appended to the spot label. */
+	public static boolean PREPEND_HINT_LABELS = true;
+	/** Collect internal status info per every Agent. If not, may speed up the simulation as no extra data will be stored. */
+	public static boolean COLLECT_INTERNAL_DATA = false;
+
+	/** How far around shall an agent look for "nearby" agents to consider them for overlaps. */
+	public static double AGENT_SEARCH_RADIUS = 5.0;
+	/** How close two agents can come before they are considered overlapping. */
+	public static double AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT = 3.0;
+	/** How far an agent can move between time points. */
+	public static double AGENT_USUAL_STEP_SIZE = 1.0;
+	/** How many attempts is an agent (cell) allowed to try to move randomly until it finds an non-colliding position. */
+	public static int AGENT_NUMBER_OF_ATTEMPTS_TO_MAKE_A_MOVE = 6;
+
+	/** The mean life span of an agent (cell). Shorted means dividions occurs more often. */
+	public static int AGENT_AVERAGE_LIFESPAN_BEFORE_DIVISION = 7;
+	/** Hard limit on the life span of an agent (cell). The cell dies, is removed from the simulation,
+	 *  whenever it's life exceeded this value. */
+	public static int AGENT_MAX_LIFESPAN_AND_DIES_AFTER = 30;
+	/** The maximum number of neighbors (within the {@link Simulator#AGENT_SEARCH_RADIUS} distance)
+	 *  tolerated for a division to occur; if more neighbors are around, the system believes the space
+	 *  is too condensed and doesn't permint agents (cells) to divide. */
+	public static int AGENT_MAX_DENSITY_TO_ENABLE_DIVISION = 4;
+	/** Given the last move of a mother cell, project it onto an xy-plane, one can then imagine a perpendicular
+	 *  line in the xy-plane. A division line in the xy-plane is randomly picked such that it does not coincide
+	 *  by larger angle with that perpendicular line, and this random line would be a "division" orientation
+	 *  for the x,y coords, the z-coord is randomized. */
+	public static double AGENT_MAX_VARIABLITY_FROM_A_PERPENDICULAR_DIVISION_PLANE = 3.14;
+
+
 	private int assignedIds = 0;
 	private int time = 0;
 	private final Map<Integer, Agent> agentsContainer = new HashMap<>(10000);
@@ -61,15 +93,17 @@ public class Simulator {
 		}
 	}
 
-	public List<double[]> getListOfOccupiedCoords(Agent fromThisSpot) {
-		final double interestRadius = fromThisSpot.getInterestRadius();
-		final double minX = fromThisSpot.getX() - interestRadius;
-		final double minY = fromThisSpot.getY() - interestRadius;
-		final double minZ = fromThisSpot.getZ() - interestRadius;
+	public List<double[]> getListOfOccupiedCoords(Agent fromThisSpot, final double searchDistance) {
+		//do no searching if the agent actually doesn't care...
+		if (searchDistance == 0) return Collections.emptyList();
 
-		final double maxX = fromThisSpot.getX() + interestRadius;
-		final double maxY = fromThisSpot.getY() + interestRadius;
-		final double maxZ = fromThisSpot.getZ() + interestRadius;
+		final double minX = fromThisSpot.getX() - searchDistance;
+		final double minY = fromThisSpot.getY() - searchDistance;
+		final double minZ = fromThisSpot.getZ() - searchDistance;
+
+		final double maxX = fromThisSpot.getX() + searchDistance;
+		final double maxY = fromThisSpot.getY() + searchDistance;
+		final double maxZ = fromThisSpot.getZ() + searchDistance;
 
 		final List<double[]> retCoords = new ArrayList<>(100);
 		for (Agent spot : agentsContainer.values()) {
@@ -112,15 +146,27 @@ public class Simulator {
 		});
 	}
 
-	public void populate(int numberOfCells) {
+	public void populate(int numberOfCells, final int timePoint) {
+		this.time = timePoint;
 		RandomAccessibleInterval<?> pixelSource = projectModel.getSharedBdvData().getSources().get(0).getSpimSource().getSource(0, 0);
 		final double dx = 0.5 * (pixelSource.min(0) + pixelSource.max(0));
 		final double dy = 0.5 * (pixelSource.min(1) + pixelSource.max(1));
 		final double dz = 0.5 * (pixelSource.min(2) + pixelSource.max(2));
 		for (int i = 0; i < numberOfCells; i++) {
-			Agent spot = new Agent(this, this.getNewId(), 0, String.valueOf(i + 1),
+			Agent agent = new Agent(this, this.getNewId(), 0, String.valueOf(i + 1),
 					dx+ i * 3, dy, dz, this.time);
-			this.registerAgent(spot);
+			this.registerAgent(agent);
+		}
+		this.commitNewAndDeadAgents();
+	}
+
+	public void populate(final ProjectModel projectModel, final int timePoint) {
+		this.time = timePoint;
+		for (Spot s : projectModel.getModel().getSpatioTemporalIndex().getSpatialIndex(timePoint-1)) {
+			Agent agent = new Agent(this, this.getNewId(), 0, s.getLabel()+"_",
+					s.getDoublePosition(0), s.getDoublePosition(1), s.getDoublePosition(2), this.time);
+			agent.setPreviousSpot( projectModel.getModel().getGraph().vertexRef().refTo(s) );
+			this.registerAgent(agent);
 		}
 		this.commitNewAndDeadAgents();
 	}

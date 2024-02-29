@@ -26,23 +26,25 @@ public class Agent {
 	private int t;
 	private double x,y,z;
 	private double nextX,nextY,nextZ;
-	private final double interestRadius = 5.0;
+	private final double interestRadius = Simulator.AGENT_SEARCH_RADIUS;
 
 	public double getX() { return x; }
 	public double getY() { return y; }
 	public double getZ() { return z; }
-	public double getInterestRadius() { return interestRadius; }
 
-	private final double usualStepSize = 1.0;
-	private final double minDistanceToNeighbor = 3.0 * usualStepSize;
+	private final double usualStepSize = Simulator.AGENT_USUAL_STEP_SIZE;
+	private final double minDistanceToNeighbor = Simulator.AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT;
 
 	private final int dontDivideBefore;
 	private final int dontLiveBeyond;
-	private final int maxNeighborsForDivide = 4;
+	private final int maxNeighborsForDivide = Simulator.AGENT_MAX_DENSITY_TO_ENABLE_DIVISION;
 
 	private final List<String> reportLog = new ArrayList<>(100);
 	public List<String> getReportLog() {
 		return reportLog;
+	}
+	public void reportStatus() {
+		reportLog.add(String.format("%d\t%f\t%f\t%f\t%d\t%d\t%s", this.t, this.x, this.y, this.z, this.id, this.parentId, this.name));
 	}
 
 	private Spot previousSpot = null;
@@ -53,14 +55,22 @@ public class Agent {
 		previousSpot = spot;
 	}
 
-	public Agent(Simulator simulator, int ID, int parentID, String label, double x, double y, double z, int time) {
+	public Agent(Simulator simulator,
+	             int ID, int parentID, String label,
+	             double x, double y, double z, int time) {
 		this.simulatorFrame = simulator;
 
 		this.name = label;
 		this.nameClean = label;
-		this.nameBlocked = "B" + label;
-		this.nameWantDivide = "W" + label;
-		this.nameBlockedWantDivide = "BW" + label;
+		if (Simulator.PREPEND_HINT_LABELS) {
+			this.nameBlocked = "B_" + label;
+			this.nameWantDivide = "W_" + label;
+			this.nameBlockedWantDivide = "BW_" + label;
+		} else {
+			this.nameBlocked = label + "_B";
+			this.nameWantDivide = label + "_W";
+			this.nameBlockedWantDivide = label + "_BW";
+		}
 
 		this.id = ID;
 		this.parentId = parentID;
@@ -72,22 +82,16 @@ public class Agent {
 		this.nextY = y;
 		this.nextZ = z;
 
-		double meanLifePeriod = 7;
+		double meanLifePeriod = Simulator.AGENT_AVERAGE_LIFESPAN_BEFORE_DIVISION;
 		double sigma = (0.6 * meanLifePeriod) / 3.0;
-		double thisCellLifePeriod = new Random().nextGaussian() * sigma + meanLifePeriod;
+		this.dontDivideBefore = time + (int)(new Random().nextGaussian() * sigma + meanLifePeriod);
+		this.dontLiveBeyond = time + Simulator.AGENT_MAX_LIFESPAN_AND_DIES_AFTER;
 
-		this.dontDivideBefore = time + (int) thisCellLifePeriod;
-		this.dontLiveBeyond = time + 5 * (int) thisCellLifePeriod;
-
-		if (parentID == 0) {
+		if (parentID == 0 && Simulator.COLLECT_INTERNAL_DATA) {
 			this.reportStatus();
 		}
 
 		System.out.printf("NEW AGENT %d (%s), parent %d @ [%f,%f,%f] tp=%d, divTime=%d, dieTime=%d%n", ID, label, parentID, x, y, z, time, this.dontDivideBefore, this.dontLiveBeyond);
-	}
-
-	public void reportStatus() {
-		this.reportLog.add(String.format("%d\t%f\t%f\t%f\t%d\t%d\t%s", this.t, this.x, this.y, this.z, this.id, this.parentId, this.name));
 	}
 
 	public void progress(int tillThisTime) {
@@ -102,7 +106,7 @@ public class Agent {
 		this.x = this.nextX;
 		this.y = this.nextY;
 		this.z = this.nextZ;
-		this.reportStatus();
+		if (Simulator.COLLECT_INTERNAL_DATA) this.reportStatus();
 	}
 
 	public void doOneTime(boolean fromCurrentPos) {
@@ -113,7 +117,7 @@ public class Agent {
 		final double oldZ = fromCurrentPos ? this.z : this.nextZ;
 		System.out.printf("  from pos [%f,%f,%f] (from_current_pos=%b)%n", oldX, oldY, oldZ, fromCurrentPos);
 
-		final List<double[]> neighbors = simulatorFrame.getListOfOccupiedCoords(this);
+		final List<double[]> neighbors = simulatorFrame.getListOfOccupiedCoords(this, interestRadius);
 		System.out.println("  neighs: " + neighbors);
 
 		final double minDistanceSquared = minDistanceToNeighbor * minDistanceToNeighbor;
@@ -122,7 +126,7 @@ public class Agent {
 
 		int doneAttempts = 0;
 		boolean tooClose = true;
-		while (doneAttempts < 5 && tooClose) {
+		while (doneAttempts < Simulator.AGENT_NUMBER_OF_ATTEMPTS_TO_MAKE_A_MOVE && tooClose) {
 			doneAttempts += 1;
 
 			boolean isOdd = (doneAttempts & 1) == 1;
@@ -185,23 +189,26 @@ public class Agent {
 	}
 
 	public void divideMe() {
-		int d1Id = this.simulatorFrame.getNewId();
-		int d2Id = this.simulatorFrame.getNewId();
+		final int d1Id = simulatorFrame.getNewId();
+		final int d2Id = simulatorFrame.getNewId();
+		final String d1Name = name + "a";
+		final String d2Name = name + "b";
 
-		String d1Name = this.name + "a";
-		String d2Name = this.name + "b";
+		double azimuth = Math.atan2(nextY-y, nextX-x);
+		azimuth += new Random().nextGaussian() * Simulator.AGENT_MAX_VARIABLITY_FROM_A_PERPENDICULAR_DIVISION_PLANE / 3.0;
+		double dx = 0.5 * minDistanceToNeighbor * Math.cos(azimuth);
+		double dy = 0.5 * minDistanceToNeighbor * Math.sin(azimuth);
+		double dz_a = 0.5 * minDistanceToNeighbor * new Random().nextDouble();
+		double dz_b = 1.0 - dz_a;
 
-		double alfa = new Random().nextDouble() * 6.28;
-		double dx = 0.5 * this.minDistanceToNeighbor * Math.cos(alfa);
-		double dy = 0.5 * this.minDistanceToNeighbor * Math.sin(alfa);
-		Agent d1 = new Agent(this.simulatorFrame, d1Id, this.id, d1Name, this.nextX - dx, this.nextY - dy, this.nextZ, this.t + 1);
-		Agent d2 = new Agent(this.simulatorFrame, d2Id, this.id, d2Name, this.nextX + dx, this.nextY + dy, this.nextZ, this.t + 1);
+		Agent d1 = new Agent(simulatorFrame, d1Id, id, d1Name, nextX-dx, nextY-dy, nextZ-dz_a, t + 1);
+		Agent d2 = new Agent(simulatorFrame, d2Id, id, d2Name, nextX+dx, nextY+dy, nextZ+dz_b, t + 1);
 
-		d1.setPreviousSpot( this.getPreviousSpot() );
-		d2.setPreviousSpot( this.getPreviousSpot() );
+		d1.previousSpot = this.previousSpot;
+		d2.previousSpot = this.previousSpot;
 
-		this.simulatorFrame.deregisterAgent(this);
-		this.simulatorFrame.registerAgent(d1);
-		this.simulatorFrame.registerAgent(d2);
+		simulatorFrame.deregisterAgent(this);
+		simulatorFrame.registerAgent(d1);
+		simulatorFrame.registerAgent(d2);
 	}
 }
