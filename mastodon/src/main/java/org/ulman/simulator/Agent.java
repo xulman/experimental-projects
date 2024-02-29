@@ -53,7 +53,9 @@ public class Agent {
 		previousSpot = spot;
 	}
 
-	public Agent(Simulator simulator, int ID, int parentID, String label, double x, double y, double z, int time) {
+	public Agent(Simulator simulator,
+	             int ID, int parentID, String label,
+	             double x, double y, double z, int time) {
 		this.simulatorFrame = simulator;
 
 		this.name = label;
