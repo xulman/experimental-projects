@@ -65,7 +65,7 @@ public class SimulatorMainDlg implements Command {
 
 		final ProjectModel projectModel = ProjectModel.create(ij.getContext(),
 				new Model(),
-				SharedBigDataViewerData.fromDummyFilename("DUMMY x=100 y=100 z=100 t=100.dummy"),
+				SharedBigDataViewerData.fromDummyFilename("DUMMY x=100 y=100 z=100 t=1000.dummy"),
 				new MamutProject("/temp/CLsim.mastodon"));
 		final MainWindow win = new MainWindow( projectModel );
 		win.setVisible( true );
