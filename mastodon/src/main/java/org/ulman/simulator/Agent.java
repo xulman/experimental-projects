@@ -55,6 +55,11 @@ public class Agent {
 		previousSpot = spot;
 	}
 
+	//one generator for all agents
+	static private final Random lifeSpanRndGenerator = new Random();
+	//per-agent generator of its own movements
+	private final Random moveRndGenerator = new Random();
+
 	public Agent(Simulator simulator,
 	             int ID, int parentID, String label,
 	             double x, double y, double z, int time) {
@@ -84,7 +89,7 @@ public class Agent {
 
 		double meanLifePeriod = Simulator.AGENT_AVERAGE_LIFESPAN_BEFORE_DIVISION;
 		double sigma = (0.6 * meanLifePeriod) / 3.0;
-		this.dontDivideBefore = time + (int)(new Random().nextGaussian() * sigma + meanLifePeriod);
+		this.dontDivideBefore = time + (int)(lifeSpanRndGenerator.nextGaussian() * sigma + meanLifePeriod);
 		this.dontLiveBeyond = time + Simulator.AGENT_MAX_LIFESPAN_AND_DIES_AFTER;
 
 		if (parentID == 0 && Simulator.COLLECT_INTERNAL_DATA) {
@@ -136,9 +141,9 @@ public class Agent {
 
 			boolean isOdd = (doneAttempts & 1) == 1;
 			if (isOdd) {
-				dispX = new Random().nextGaussian() * (this.usualStepSize / 2.0);
-				dispY = new Random().nextGaussian() * (this.usualStepSize / 2.0);
-				dispZ = new Random().nextGaussian() * (this.usualStepSize / 2.0);
+				dispX = moveRndGenerator.nextGaussian() * (this.usualStepSize / 2.0);
+				dispY = moveRndGenerator.nextGaussian() * (this.usualStepSize / 2.0);
+				dispZ = moveRndGenerator.nextGaussian() * (this.usualStepSize / 2.0);
 			} else {
 				dispX /= 2.0;
 				dispY /= 2.0;
@@ -213,10 +218,10 @@ public class Agent {
 
 		double azimuth = Math.atan2(nextY-y, nextX-x);
 		azimuth += Math.PI / 2.0;
-		azimuth += new Random().nextGaussian() * Simulator.AGENT_MAX_VARIABLITY_FROM_A_PERPENDICULAR_DIVISION_PLANE / 3.0;
+		azimuth += moveRndGenerator.nextGaussian() * Simulator.AGENT_MAX_VARIABLITY_FROM_A_PERPENDICULAR_DIVISION_PLANE / 3.0;
 		double dx = 0.5 * minDistanceToNeighbor * Math.cos(azimuth);
 		double dy = 0.5 * minDistanceToNeighbor * Math.sin(azimuth);
-		double dz_a = 0.5 * minDistanceToNeighbor * new Random().nextDouble();
+		double dz_a = 0.5 * minDistanceToNeighbor * moveRndGenerator.nextDouble();
 		double dz_b = 1.0 - dz_a;
 
 		Agent d1 = new Agent(simulatorFrame, d1Id, id, d1Name, nextX-dx, nextY-dy, nextZ-dz_a, t + 1);
