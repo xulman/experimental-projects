@@ -54,9 +54,9 @@ public class Simulator {
 
 	private int assignedIds = 0;
 	private int time = 0;
-	private final Map<Integer, Agent> agentsContainer = new HashMap<>(10000);
-	private final List<Agent> newAgentsContainer = new ArrayList<>(100);
-	private final List<Agent> deadAgentsContainer = new ArrayList<>(100);
+	private final Map<Integer, Agent> agentsContainer = new HashMap<>(500000);
+	private final List<Agent> newAgentsContainer = new ArrayList<>(100000);
+	private final List<Agent> deadAgentsContainer = new ArrayList<>(100000);
 
 	private final ProjectModel projectModel;
 	private final ReentrantReadWriteLock lock;
