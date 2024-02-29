@@ -91,7 +91,9 @@ public class Agent {
 			this.reportStatus();
 		}
 
-		System.out.printf("NEW AGENT %d (%s), parent %d @ [%f,%f,%f] tp=%d, divTime=%d, dieTime=%d%n", ID, label, parentID, x, y, z, time, this.dontDivideBefore, this.dontLiveBeyond);
+		if (Simulator.VERBOSE_AGENT_DEBUG) {
+			System.out.printf("NEW AGENT %d (%s), parent %d @ [%f,%f,%f] tp=%d, divTime=%d, dieTime=%d%n", ID, label, parentID, x, y, z, time, this.dontDivideBefore, this.dontLiveBeyond);
+		}
 	}
 
 	public void progress(int tillThisTime) {
