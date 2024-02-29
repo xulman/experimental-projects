@@ -17,7 +17,7 @@ import java.io.IOException;
 
 
 @Plugin(type = Command.class)
-public class SimulatorIJ2UI implements Command {
+public class SimulatorMainDlg implements Command {
 	@Parameter
 	ProjectModel projectModel;
 
@@ -76,7 +76,7 @@ public class SimulatorIJ2UI implements Command {
 				SharedBigDataViewerData.fromDummyFilename(DUMMYXML),
 				new MamutProject(projectFileName));
 
-		SimulatorIJ2UI thisFrame = new SimulatorIJ2UI();
+		SimulatorMainDlg thisFrame = new SimulatorMainDlg();
 		thisFrame.projectModel = projectModel;
 		thisFrame.run();
 
