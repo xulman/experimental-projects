@@ -42,6 +42,9 @@ public class Simulator {
 	 *  for the x,y coords, the z-coord is randomized. */
 	public static double AGENT_MAX_VARIABLITY_FROM_A_PERPENDICULAR_DIVISION_PLANE = 3.14;
 
+	/** Using this radius the new spots are introduced into Mastodon. */
+	public static double MASTODON_SPOT_RADIUS = 2.0;
+
 
 	private int assignedIds = 0;
 	private int time = 0;
@@ -132,10 +135,9 @@ public class Simulator {
 	}
 
 	public void pushToMastodonGraph() {
-		final double SPOT_RADIUS = 1.0;
 		agentsContainer.forEach( (id,spot) -> {
 			Spot targetSpot = projectModel.getModel().getGraph().addVertex().init(time,
-					new double[] {spot.getX(),spot.getY(), spot.getZ()}, SPOT_RADIUS);
+					new double[] {spot.getX(),spot.getY(), spot.getZ()}, MASTODON_SPOT_RADIUS);
 			targetSpot.setLabel(spot.getName());
 
 			Spot sourceSpot = spot.getPreviousSpot();
