@@ -43,6 +43,9 @@ public class Agent {
 	public List<String> getReportLog() {
 		return reportLog;
 	}
+	public void reportStatus() {
+		reportLog.add(String.format("%d\t%f\t%f\t%f\t%d\t%d\t%s", this.t, this.x, this.y, this.z, this.id, this.parentId, this.name));
+	}
 
 	private Spot previousSpot = null;
 	public Spot getPreviousSpot() {
@@ -84,15 +87,11 @@ public class Agent {
 		this.dontDivideBefore = time + (int)(new Random().nextGaussian() * sigma + meanLifePeriod);
 		this.dontLiveBeyond = time + Simulator.AGENT_MAX_LIFESPAN_AND_DIES_AFTER;
 
-		if (parentID == 0) {
+		if (parentID == 0 && Simulator.COLLECT_INTERNAL_DATA) {
 			this.reportStatus();
 		}
 
 		System.out.printf("NEW AGENT %d (%s), parent %d @ [%f,%f,%f] tp=%d, divTime=%d, dieTime=%d%n", ID, label, parentID, x, y, z, time, this.dontDivideBefore, this.dontLiveBeyond);
-	}
-
-	public void reportStatus() {
-		this.reportLog.add(String.format("%d\t%f\t%f\t%f\t%d\t%d\t%s", this.t, this.x, this.y, this.z, this.id, this.parentId, this.name));
 	}
 
 	public void progress(int tillThisTime) {
@@ -107,7 +106,7 @@ public class Agent {
 		this.x = this.nextX;
 		this.y = this.nextY;
 		this.z = this.nextZ;
-		this.reportStatus();
+		if (Simulator.COLLECT_INTERNAL_DATA) this.reportStatus();
 	}
 
 	public void doOneTime(boolean fromCurrentPos) {

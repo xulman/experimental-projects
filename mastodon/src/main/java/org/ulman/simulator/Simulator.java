@@ -15,6 +15,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class Simulator {
 	/** If the _B,_W,_BW indicators should be prepended or appended to the spot label */
 	public static boolean PREPEND_HINT_LABELS = true;
+	/** Collect internal status info per every Agent. If not, may speed up the simulation as no extra data will be stored. */
+	public static boolean COLLECT_INTERNAL_DATA = false;
 
 	/** How far around shall an agent look for "nearby" agents to consider them for overlaps. */
 	public static double AGENT_SEARCH_RADIUS = 5.0;
