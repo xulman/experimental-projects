@@ -1,10 +1,12 @@
 package org.ulman.simulator;
 
 import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.util.Util;
+import org.mastodon.kdtree.IncrementalNearestNeighborSearch;
 import org.mastodon.mamut.ProjectModel;
 import org.mastodon.mamut.model.Spot;
+import org.mastodon.spatial.SpatialIndex;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
@@ -96,31 +98,33 @@ public class Simulator {
 		}
 	}
 
-	public List<double[]> getListOfOccupiedCoords(Agent fromThisSpot, final double searchDistance) {
+
+	final double[] nearbyCoordinates = new double[3000];
+
+	/** returns how many coordinates it has put into the array {@link Simulator#nearbyCoordinates},
+	 *  returns the actual last offset (so divide by three to learn how many neighbors are there */
+	int getListOfOccupiedCoords(Agent fromThisSpot, final double searchDistance) {
 		//do no searching if the agent actually doesn't care...
-		if (searchDistance == 0) return Collections.emptyList();
+		if (searchDistance == 0) return 0;
 
-		final double minX = fromThisSpot.getX() - searchDistance;
-		final double minY = fromThisSpot.getY() - searchDistance;
-		final double minZ = fromThisSpot.getZ() - searchDistance;
+		final Spot thisSpot = fromThisSpot.getPreviousSpot();
+		final SpatialIndex< Spot > spatialIndex
+				= projectModel.getModel().getSpatioTemporalIndex().getSpatialIndex( thisSpot.getTimepoint() );
+		final IncrementalNearestNeighborSearch< Spot > search = spatialIndex.getIncrementalNearestNeighborSearch();
 
-		final double maxX = fromThisSpot.getX() + searchDistance;
-		final double maxY = fromThisSpot.getY() + searchDistance;
-		final double maxZ = fromThisSpot.getZ() + searchDistance;
+		search.search( thisSpot );
+		int off = 0;
+		while ( search.hasNext() && off < nearbyCoordinates.length )
+		{
+			Spot neighbor = search.next();
+			if (neighbor.equals(thisSpot)) continue;
+			if (Util.distance(thisSpot,neighbor) > searchDistance) break;
 
-		final List<double[]> retCoords = new ArrayList<>(100);
-		for (Agent spot : agentsContainer.values()) {
-			if (spot.getId() == fromThisSpot.getId()) {
-				continue;
-			}
-			if (minX < spot.getX() && spot.getX() < maxX
-					&& minY < spot.getY() && spot.getY() < maxY
-					&& minZ < spot.getZ() && spot.getZ() < maxZ) {
-				retCoords.add(new double[]{spot.getX(), spot.getY(), spot.getZ()});
-			}
+			nearbyCoordinates[off++] = neighbor.getDoublePosition(0);
+			nearbyCoordinates[off++] = neighbor.getDoublePosition(1);
+			nearbyCoordinates[off++] = neighbor.getDoublePosition(2);
 		}
-
-		return retCoords;
+		return off;
 	}
 
 	public void doOneTime() {

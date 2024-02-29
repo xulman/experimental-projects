@@ -117,8 +117,9 @@ public class Agent {
 		final double oldZ = fromCurrentPos ? this.z : this.nextZ;
 		System.out.printf("  from pos [%f,%f,%f] (from_current_pos=%b)%n", oldX, oldY, oldZ, fromCurrentPos);
 
-		final List<double[]> neighbors = simulatorFrame.getListOfOccupiedCoords(this, interestRadius);
-		System.out.println("  neighs: " + neighbors); //TODO: isn't reporting well!
+		final int neighborsMaxIdx = simulatorFrame.getListOfOccupiedCoords(this, interestRadius);
+		final int neighborsCnt = neighborsMaxIdx / 3;
+		System.out.println("  neighs cnt: " + neighborsCnt);
 
 		final double minDistanceSquared = minDistanceToNeighbor * minDistanceToNeighbor;
 		double dispX = 0,dispY = 0,dispZ = 0;
@@ -146,10 +147,10 @@ public class Agent {
 			newZ = oldZ + dispZ;
 
 			tooClose = false;
-			for (double[] n : neighbors) {
-				double dx = n[0] - newX;
-				double dy = n[1] - newY;
-				double dz = n[2] - newZ;
+			for (int off = 0; off < neighborsMaxIdx; off += 3) {
+				double dx = simulatorFrame.nearbyCoordinates[off+0] - newX;
+				double dy = simulatorFrame.nearbyCoordinates[off+1] - newY;
+				double dz = simulatorFrame.nearbyCoordinates[off+2] - newZ;
 				double dist = dx * dx + dy * dy + dz * dz;
 				if (dist < minDistanceSquared) {
 					tooClose = true;
@@ -165,24 +166,23 @@ public class Agent {
 			this.nextZ = newZ;
 			this.name = this.nameClean;
 		} else {
-			System.out.println("  couldn't move when " + neighbors.size() + " neighbors are around");
+			System.out.println("  couldn't move when " + neighborsCnt + " neighbors are around");
 			this.name = this.nameBlocked;
 		}
 		this.t += 1;
 
 		System.out.printf("  established coords [%f,%f,%f] (required %d attempts)%n", this.nextX, this.nextY, this.nextZ, doneAttempts);
-		System.out.printf("  when %d neighbors around, too_close=%b%n", neighbors.size(), tooClose);
+		System.out.printf("  when %d neighbors around, too_close=%b%n", neighborsCnt, tooClose);
 
 		if (this.t > this.dontLiveBeyond) {
 			System.out.println("  dying now!");
 			this.simulatorFrame.deregisterAgent(this);
 		} else if (this.t > this.dontDivideBefore) {
-			int noOfNeighbors = neighbors.size();
-			if (noOfNeighbors <= this.maxNeighborsForDivide && !tooClose) {
+			if (neighborsCnt <= this.maxNeighborsForDivide && !tooClose) {
 				System.out.println("  dividing!");
 				this.divideMe();
 			} else {
-				System.out.printf("  should divide but space seems to be full... (%d neighbors, too_close=%b)%n", noOfNeighbors, tooClose);
+				System.out.printf("  should divide but space seems to be full... (%d neighbors, too_close=%b)%n", neighborsCnt, tooClose);
 				this.name = tooClose ? this.nameBlockedWantDivide : this.nameWantDivide;
 			}
 		}
