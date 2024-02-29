@@ -3,6 +3,8 @@ package org.ulman.simulator;
 import net.imglib2.RandomAccessibleInterval;
 import org.mastodon.mamut.ProjectModel;
 import org.mastodon.mamut.model.Spot;
+
+import java.util.Collections;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
@@ -69,6 +71,9 @@ public class Simulator {
 	}
 
 	public List<double[]> getListOfOccupiedCoords(Agent fromThisSpot, final double searchDistance) {
+		//do no searching if the agent actually doesn't care...
+		if (searchDistance == 0) return Collections.emptyList();
+
 		final double minX = fromThisSpot.getX() - searchDistance;
 		final double minY = fromThisSpot.getY() - searchDistance;
 		final double minZ = fromThisSpot.getZ() - searchDistance;
