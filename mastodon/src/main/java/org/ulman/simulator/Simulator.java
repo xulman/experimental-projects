@@ -19,6 +19,8 @@ public class Simulator {
 	public static boolean PREPEND_HINT_LABELS = true;
 	/** Collect internal status info per every Agent. If not, may speed up the simulation as no extra data will be stored. */
 	public static boolean COLLECT_INTERNAL_DATA = false;
+	/** Prints a lot of data to understand decisions making of the agents. */
+	public static boolean VERBOSE_AGENT_DEBUG = false;
 
 	/** How far around shall an agent look for "nearby" agents to consider them for overlaps. */
 	public static double AGENT_SEARCH_RADIUS = 5.0;

@@ -13,6 +13,9 @@ public class SimulatorAdvancedDlg implements Command {
 	@Parameter(description = "Collect internal status info per every Agent. If not, may speed up the simulation as no extra data will be stored.")
 	boolean COLLECT_INTERNAL_DATA = false;
 
+	@Parameter(description = "Prints a lot of data to understand decisions making of the agents.")
+	boolean VERBOSE_AGENT_DEBUG = false;
+
 	@Parameter(description = "How far around shall an agent look for \"nearby\" agents to consider them for overlaps.")
 	double AGENT_SEARCH_RADIUS = 5.0;
 
@@ -47,6 +50,7 @@ public class SimulatorAdvancedDlg implements Command {
 	public void run() {
 		Simulator.PREPEND_HINT_LABELS = PREPEND_HINT_LABELS;
 		Simulator.COLLECT_INTERNAL_DATA = COLLECT_INTERNAL_DATA;
+		Simulator.VERBOSE_AGENT_DEBUG = VERBOSE_AGENT_DEBUG;
 		Simulator.AGENT_SEARCH_RADIUS = AGENT_SEARCH_RADIUS;
 		Simulator.AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT = AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT;
 		Simulator.AGENT_USUAL_STEP_SIZE = AGENT_USUAL_STEP_SIZE;
