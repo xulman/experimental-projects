@@ -22,6 +22,8 @@ public class Simulator {
 	public static double AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT = 3.0;
 	/** How far an agent can move between time points. */
 	public static double AGENT_USUAL_STEP_SIZE = 1.0;
+	/** How many attempts is an agent (cell) allowed to try to move randomly until it finds an non-colliding position. */
+	public static int AGENT_NUMBER_OF_ATTEMPTS_TO_MAKE_A_MOVE = 6;
 
 
 	private int assignedIds = 0;

@@ -129,7 +129,7 @@ public class Agent {
 
 		int doneAttempts = 0;
 		boolean tooClose = true;
-		while (doneAttempts < 5 && tooClose) {
+		while (doneAttempts < Simulator.AGENT_NUMBER_OF_ATTEMPTS_TO_MAKE_A_MOVE && tooClose) {
 			doneAttempts += 1;
 
 			boolean isOdd = (doneAttempts & 1) == 1;
