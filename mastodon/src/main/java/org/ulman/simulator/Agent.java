@@ -116,12 +116,14 @@ public class Agent {
 		if (Simulator.COLLECT_INTERNAL_DATA) this.reportStatus();
 	}
 
+	final double[] nearbyCoordinates = new double[300];
+
 	public void doOneTime(boolean fromCurrentPos) {
 		final double oldX = fromCurrentPos ? this.x : this.nextX;
 		final double oldY = fromCurrentPos ? this.y : this.nextY;
 		final double oldZ = fromCurrentPos ? this.z : this.nextZ;
 
-		final int neighborsMaxIdx = simulatorFrame.getListOfOccupiedCoords(this, interestRadius);
+		final int neighborsMaxIdx = simulatorFrame.getListOfOccupiedCoords(this, interestRadius, nearbyCoordinates);
 		final int neighborsCnt = neighborsMaxIdx / 3;
 
 		if (Simulator.VERBOSE_AGENT_DEBUG) {
@@ -156,9 +158,9 @@ public class Agent {
 
 			tooClose = false;
 			for (int off = 0; off < neighborsMaxIdx; off += 3) {
-				double dx = simulatorFrame.nearbyCoordinates[off+0] - newX;
-				double dy = simulatorFrame.nearbyCoordinates[off+1] - newY;
-				double dz = simulatorFrame.nearbyCoordinates[off+2] - newZ;
+				double dx = nearbyCoordinates[off+0] - newX;
+				double dy = nearbyCoordinates[off+1] - newY;
+				double dz = nearbyCoordinates[off+2] - newZ;
 				double dist = dx * dx + dy * dy + dz * dz;
 				if (dist < minDistanceSquared) {
 					tooClose = true;

@@ -107,11 +107,9 @@ public class Simulator {
 	}
 
 
-	final double[] nearbyCoordinates = new double[3000];
-
-	/** returns how many coordinates it has put into the array {@link Simulator#nearbyCoordinates},
+	/** returns how many coordinates it has put into the array 'nearbyCoordinates', and
 	 *  returns the actual last offset (so divide by three to learn how many neighbors are there */
-	int getListOfOccupiedCoords(Agent fromThisSpot, final double searchDistance) {
+	int getListOfOccupiedCoords(Agent fromThisSpot, final double searchDistance, final double[] nearbyCoordinates) {
 		//do no searching if the agent actually doesn't care...
 		if (searchDistance == 0) return 0;
 
