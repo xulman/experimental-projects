@@ -118,7 +118,7 @@ public class Agent {
 		System.out.printf("  from pos [%f,%f,%f] (from_current_pos=%b)%n", oldX, oldY, oldZ, fromCurrentPos);
 
 		final List<double[]> neighbors = simulatorFrame.getListOfOccupiedCoords(this, interestRadius);
-		System.out.println("  neighs: " + neighbors);
+		System.out.println("  neighs: " + neighbors); //TODO: isn't reporting well!
 
 		final double minDistanceSquared = minDistanceToNeighbor * minDistanceToNeighbor;
 		double dispX = 0,dispY = 0,dispZ = 0;
@@ -195,6 +195,7 @@ public class Agent {
 		final String d2Name = name + "b";
 
 		double azimuth = Math.atan2(nextY-y, nextX-x);
+		azimuth += Math.PI / 2.0;
 		azimuth += new Random().nextGaussian() * Simulator.AGENT_MAX_VARIABLITY_FROM_A_PERPENDICULAR_DIVISION_PLANE / 3.0;
 		double dx = 0.5 * minDistanceToNeighbor * Math.cos(azimuth);
 		double dy = 0.5 * minDistanceToNeighbor * Math.sin(azimuth);
