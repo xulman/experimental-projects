@@ -11,6 +11,10 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 
 public class Simulator {
+	/** If the _B,_W,_BW indicators should be prepended or appended to the spot label */
+	public static boolean PREPEND_HINT_LABELS = true;
+
+
 	private int assignedIds = 0;
 	private int time = 0;
 	private final Map<Integer, Agent> agentsContainer = new HashMap<>(10000);

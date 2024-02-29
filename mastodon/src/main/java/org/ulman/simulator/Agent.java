@@ -58,9 +58,15 @@ public class Agent {
 
 		this.name = label;
 		this.nameClean = label;
-		this.nameBlocked = "B" + label;
-		this.nameWantDivide = "W" + label;
-		this.nameBlockedWantDivide = "BW" + label;
+		if (Simulator.PREPEND_HINT_LABELS) {
+			this.nameBlocked = "B_" + label;
+			this.nameWantDivide = "W_" + label;
+			this.nameBlockedWantDivide = "BW_" + label;
+		} else {
+			this.nameBlocked = label + "_B";
+			this.nameWantDivide = label + "_W";
+			this.nameBlockedWantDivide = label + "_BW";
+		}
 
 		this.id = ID;
 		this.parentId = parentID;
