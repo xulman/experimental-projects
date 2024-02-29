@@ -146,10 +146,14 @@ public class Simulator {
 		commitNewAndDeadAgents();
 	}
 
+	final double[] coords = new double[3];
 	public void pushToMastodonGraph() {
 		agentsContainer.forEach( (id,spot) -> {
-			Spot targetSpot = projectModel.getModel().getGraph().addVertex().init(time,
-					new double[] {spot.getX(),spot.getY(), spot.getZ()}, MASTODON_SPOT_RADIUS);
+			coords[0] = spot.getX();
+			coords[1] = spot.getY();
+			coords[2] = spot.getZ();
+			Spot targetSpot = projectModel.getModel().getGraph().addVertex()
+					.init(time, coords, MASTODON_SPOT_RADIUS);
 			targetSpot.setLabel(spot.getName());
 
 			Spot sourceSpot = spot.getPreviousSpot();
