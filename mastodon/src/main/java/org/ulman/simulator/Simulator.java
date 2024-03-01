@@ -138,20 +138,22 @@ public class Simulator {
 	}
 
 	final double[] coords = new double[3];
-	double sum_x,sum_y,sum_z;
+	final double[] sum_x = new double[2000];
+	final double[] sum_y = new double[2000];
+	final double[] sum_z = new double[2000];
 	Spot prevCentreSpot = null;
 	public void pushToMastodonGraph() {
-		sum_x = 0;
-		sum_y = 0;
-		sum_z = 0;
+		sum_x[time] = 0;
+		sum_y[time] = 0;
+		sum_z[time] = 0;
 
 		agentsContainer.forEach( spot -> {
 			coords[0] = spot.getX();
 			coords[1] = spot.getY();
 			coords[2] = spot.getZ();
-			sum_x += coords[0];
-			sum_y += coords[1];
-			sum_z += coords[2];
+			sum_x[time] += coords[0];
+			sum_y[time] += coords[1];
+			sum_z[time] += coords[2];
 			Spot targetSpot = projectModel.getModel().getGraph().addVertex()
 					.init(time, coords, MASTODON_SPOT_RADIUS);
 			targetSpot.setLabel(spot.getName());
@@ -163,10 +165,10 @@ public class Simulator {
 			spot.setPreviousSpot(targetSpot);
 		});
 
+		sum_x[time] /= agentsContainer.size();
+		sum_y[time] /= agentsContainer.size();
+		sum_z[time] /= agentsContainer.size();
 		if (Simulator.MASTODON_CENTER_SPOT) {
-			coords[0] = sum_x / agentsContainer.size();
-			coords[1] = sum_y / agentsContainer.size();
-			coords[2] = sum_z / agentsContainer.size();
 			Spot targetSpot = projectModel.getModel().getGraph().addVertex()
 					.init(time, coords, MASTODON_SPOT_RADIUS);
 			targetSpot.setLabel("centre");
