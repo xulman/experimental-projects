@@ -158,7 +158,7 @@ public class Simulator {
 
 			Spot sourceSpot = spot.getPreviousSpot();
 			if (sourceSpot != null) {
-				projectModel.getModel().getGraph().addEdge(sourceSpot, targetSpot);
+				projectModel.getModel().getGraph().addEdge(sourceSpot, targetSpot).init();
 			}
 			spot.setPreviousSpot(targetSpot);
 		});
@@ -174,7 +174,7 @@ public class Simulator {
 			if (prevCentreSpot == null) {
 				prevCentreSpot = projectModel.getModel().getGraph().vertexRef();
 			} else {
-				projectModel.getModel().getGraph().addEdge(prevCentreSpot, targetSpot);
+				projectModel.getModel().getGraph().addEdge(prevCentreSpot, targetSpot).init();
 			}
 			prevCentreSpot.refTo(targetSpot);
 		}
