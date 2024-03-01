@@ -6,9 +6,6 @@ import org.mastodon.kdtree.IncrementalNearestNeighborSearch;
 import org.mastodon.mamut.ProjectModel;
 import org.mastodon.mamut.model.Spot;
 import org.mastodon.spatial.SpatialIndex;
-
-import java.util.Map;
-import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -35,14 +32,14 @@ public class Simulator {
 	/** Prohibit any changes in the z-coordinate of agents (cells). */
 	public static boolean AGENT_DO_2D_MOVES_ONLY = false;
 
-	/** The mean life span of an agent (cell). Shorted means dividions occurs more often. */
+	/** The mean life span of an agent (cell). Shorted means divisions occurs more often. */
 	public static int AGENT_AVERAGE_LIFESPAN_BEFORE_DIVISION = 7;
 	/** Hard limit on the life span of an agent (cell). The cell dies, is removed from the simulation,
 	 *  whenever it's life exceeded this value. */
 	public static int AGENT_MAX_LIFESPAN_AND_DIES_AFTER = 30;
 	/** The maximum number of neighbors (within the {@link Simulator#AGENT_SEARCH_RADIUS} distance)
 	 *  tolerated for a division to occur; if more neighbors are around, the system believes the space
-	 *  is too condensed and doesn't permint agents (cells) to divide. */
+	 *  is too condensed and doesn't permit agents (cells) to divide. */
 	public static int AGENT_MAX_DENSITY_TO_ENABLE_DIVISION = 4;
 	/** Given the last move of a mother cell, project it onto an xy-plane, one can then imagine a perpendicular
 	 *  line in the xy-plane. A division line in the xy-plane is randomly picked such that it does not coincide
