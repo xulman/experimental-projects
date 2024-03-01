@@ -208,6 +208,7 @@ public class Simulator {
 	public void populate(final ProjectModel projectModel, final int timePoint) {
 		this.time = timePoint;
 		for (Spot s : projectModel.getModel().getSpatioTemporalIndex().getSpatialIndex(timePoint-1)) {
+			if (s.getLabel().equals(Simulator.MASTODON_CENTER_SPOT_NAME)) continue;
 			Agent agent = new Agent(this, this.getNewId(), 0, s.getLabel()+"-",
 					s.getDoublePosition(0), s.getDoublePosition(1), s.getDoublePosition(2), this.time);
 			agent.setPreviousSpot( projectModel.getModel().getGraph().vertexRef().refTo(s) );
