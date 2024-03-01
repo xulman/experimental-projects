@@ -4,6 +4,7 @@ import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.util.Util;
 import org.mastodon.kdtree.IncrementalNearestNeighborSearch;
 import org.mastodon.mamut.ProjectModel;
+import org.mastodon.mamut.model.ModelGraph;
 import org.mastodon.mamut.model.Spot;
 import org.mastodon.spatial.SpatialIndex;
 import java.util.List;
@@ -204,15 +205,22 @@ public class Simulator {
 		this.commitNewAndDeadAgents();
 	}
 
+	class ModelGraphListeners extends ModelGraph {
+		public void pauseListeners() {
+			super.pauseListeners();
+		}
+		public void resumeListeners() {
+			super.resumeListeners();
+		}
+	}
+
 	public void open() {
+		new ModelGraphListeners().pauseListeners();
 		lock.writeLock().lock();
 	}
 	public void close() {
 		lock.writeLock().unlock();
-		addThisMomentAsUndoPoint();
-	}
-
-	void addThisMomentAsUndoPoint() {
+		new ModelGraphListeners().resumeListeners();
 		projectModel.getModel().setUndoPoint();
 		projectModel.getModel().getGraph().notifyGraphChanged();
 	}
