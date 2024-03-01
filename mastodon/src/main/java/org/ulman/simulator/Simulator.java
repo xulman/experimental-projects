@@ -54,7 +54,7 @@ public class Simulator {
 
 	private int assignedIds = 0;
 	private int time = 0;
-	private final Map<Integer, Agent> agentsContainer = new HashMap<>(500000);
+	private final List<Agent> agentsContainer = new ArrayList<>(500000);
 	private final List<Agent> newAgentsContainer = new ArrayList<>(100000);
 	private final List<Agent> deadAgentsContainer = new ArrayList<>(100000);
 
@@ -74,10 +74,6 @@ public class Simulator {
 
 	synchronized
 	public void registerAgent(Agent spot) {
-		if (this.agentsContainer.containsKey(spot.getId())) {
-			System.out.println("========== SIM: ERROR with registering");
-			return;
-		}
 		if (VERBOSE_SIMULATOR_DEBUG) {
 			System.out.println("========== SIM: registering agent " + spot.getId());
 		}
@@ -86,10 +82,6 @@ public class Simulator {
 
 	synchronized
 	public void deregisterAgent(Agent spot) {
-		if (!this.agentsContainer.containsKey(spot.getId())) {
-			System.out.println("========== SIM: ERROR with deregistering");
-			return;
-		}
 		if (VERBOSE_SIMULATOR_DEBUG) {
 			System.out.println("========== SIM: DEregistering agent " + spot.getId());
 		}
@@ -97,12 +89,11 @@ public class Simulator {
 	}
 
 	public void commitNewAndDeadAgents() {
-		for (Agent spot : this.deadAgentsContainer) {
-			this.agentsContainer.remove(spot.getId());
-		}
-
-		for (Agent spot : this.newAgentsContainer) {
-			this.agentsContainer.put(spot.getId(), spot);
+		final int expectedSize = agentsContainer.size() - deadAgentsContainer.size() + newAgentsContainer.size();
+		agentsContainer.removeAll(deadAgentsContainer);
+		agentsContainer.addAll(newAgentsContainer);
+		if (agentsContainer.size() != expectedSize) {
+			System.out.println("========== SIM: ERROR with updating the main lists of agents");
 		}
 	}
 
@@ -139,14 +130,14 @@ public class Simulator {
 
 		time += 1;
 		System.out.println("========== SIM: creating time point " + time + " from " + agentsContainer.size() + " agents");
-		agentsContainer.values().parallelStream().forEach(s -> s.progress(time));
-		agentsContainer.values().parallelStream().forEach(Agent::progressFinish);
+		agentsContainer.parallelStream().forEach(s -> s.progress(time));
+		agentsContainer.parallelStream().forEach(Agent::progressFinish);
 		commitNewAndDeadAgents();
 	}
 
 	final double[] coords = new double[3];
 	public void pushToMastodonGraph() {
-		agentsContainer.forEach( (id,spot) -> {
+		agentsContainer.forEach( spot -> {
 			coords[0] = spot.getX();
 			coords[1] = spot.getY();
 			coords[2] = spot.getZ();
