@@ -84,11 +84,27 @@ public class Runner implements Runnable {
 			}
 			s.pushToMastodonGraph();
 
-			//TODO: !this.outputProjectFilename -> do progress bar
-			for (int time = this.timeFrom+1; time <= this.timeTill; ++time) {
+			int time = timeFrom+1;
+			ProgressBar pb = null;
+			if (outputProjectFilename == null) {
+				pb = new ProgressBar(time, timeTill, "Current time point: "+time);
+			}
+			while (time <= timeTill) {
 				s.doOneTime();
 				s.pushToMastodonGraph();
+
+				if (pb != null) {
+					if (pb.isStop()) {
+						System.out.println("Stopping the simulation!");
+						break;
+					}
+					pb.setProgress(time);
+					pb.updateLabel("Current time point: "+time);
+				}
+
+				++time;
 			}
+			if (pb != null) pb.close();
 		} catch (Exception e) {
 			System.out.println("SIMULATION ERROR: "+e.getMessage());
 		} finally {
