@@ -4,6 +4,7 @@ import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.util.Util;
 import org.mastodon.kdtree.IncrementalNearestNeighborSearch;
 import org.mastodon.mamut.ProjectModel;
+import org.mastodon.mamut.model.ModelGraph;
 import org.mastodon.mamut.model.Spot;
 import org.mastodon.spatial.SpatialIndex;
 import java.util.List;
@@ -51,6 +52,8 @@ public class Simulator {
 	public static double MASTODON_SPOT_RADIUS = 2.0;
 	/** Produce a \"lineage\" that stays in the geometric centre of the generated data. */
 	public static boolean MASTODON_CENTER_SPOT = false;
+
+	public final static String MASTODON_CENTER_SPOT_NAME = "centre";
 
 
 	private int assignedIds = 0;
@@ -137,46 +140,55 @@ public class Simulator {
 	}
 
 	final double[] coords = new double[3];
-	double sum_x,sum_y,sum_z;
-	Spot prevCentreSpot = null;
+	final double[] sum_x = new double[2000];
+	final double[] sum_y = new double[2000];
+	final double[] sum_z = new double[2000];
+
 	public void pushToMastodonGraph() {
-		sum_x = 0;
-		sum_y = 0;
-		sum_z = 0;
+		sum_x[time] = 0;
+		sum_y[time] = 0;
+		sum_z[time] = 0;
 
 		agentsContainer.forEach( spot -> {
 			coords[0] = spot.getX();
 			coords[1] = spot.getY();
 			coords[2] = spot.getZ();
-			sum_x += coords[0];
-			sum_y += coords[1];
-			sum_z += coords[2];
+			sum_x[time] += coords[0];
+			sum_y[time] += coords[1];
+			sum_z[time] += coords[2];
 			Spot targetSpot = projectModel.getModel().getGraph().addVertex()
 					.init(time, coords, MASTODON_SPOT_RADIUS);
 			targetSpot.setLabel(spot.getName());
 
 			Spot sourceSpot = spot.getPreviousSpot();
 			if (sourceSpot != null) {
-				projectModel.getModel().getGraph().addEdge(sourceSpot, targetSpot);
+				projectModel.getModel().getGraph().addEdge(sourceSpot, targetSpot).init();
 			}
 			spot.setPreviousSpot(targetSpot);
 		});
 
-		if (Simulator.MASTODON_CENTER_SPOT) {
-			coords[0] = sum_x / agentsContainer.size();
-			coords[1] = sum_y / agentsContainer.size();
-			coords[2] = sum_z / agentsContainer.size();
-			Spot targetSpot = projectModel.getModel().getGraph().addVertex()
-					.init(time, coords, MASTODON_SPOT_RADIUS);
-			targetSpot.setLabel("centre");
+		sum_x[time] /= agentsContainer.size();
+		sum_y[time] /= agentsContainer.size();
+		sum_z[time] /= agentsContainer.size();
+	}
 
-			if (prevCentreSpot == null) {
-				prevCentreSpot = projectModel.getModel().getGraph().vertexRef();
-			} else {
-				projectModel.getModel().getGraph().addEdge(prevCentreSpot, targetSpot);
+	public void pushCenterSpotsToMastodonGraph(int timeFrom, int timeTill) {
+		final Spot prevCentreSpot = projectModel.getModel().getGraph().vertexRef();
+
+		for (int time = timeFrom; time <= timeTill; ++time) {
+			coords[0] = sum_x[time];
+			coords[1] = sum_y[time];
+			coords[2] = sum_z[time];
+			Spot auxSpot = projectModel.getModel().getGraph().addVertex()
+					.init(time, coords, MASTODON_SPOT_RADIUS);
+			auxSpot.setLabel(MASTODON_CENTER_SPOT_NAME);
+			if (time > timeFrom) {
+				projectModel.getModel().getGraph().addEdge(prevCentreSpot, auxSpot).init();
 			}
-			prevCentreSpot.refTo(targetSpot);
+			prevCentreSpot.refTo(auxSpot);
 		}
+
+		projectModel.getModel().getGraph().releaseRef(prevCentreSpot);
 	}
 
 	public void populate(int numberOfCells, final int timePoint) {
@@ -196,6 +208,7 @@ public class Simulator {
 	public void populate(final ProjectModel projectModel, final int timePoint) {
 		this.time = timePoint;
 		for (Spot s : projectModel.getModel().getSpatioTemporalIndex().getSpatialIndex(timePoint-1)) {
+			if (s.getLabel().equals(Simulator.MASTODON_CENTER_SPOT_NAME)) continue;
 			Agent agent = new Agent(this, this.getNewId(), 0, s.getLabel()+"-",
 					s.getDoublePosition(0), s.getDoublePosition(1), s.getDoublePosition(2), this.time);
 			agent.setPreviousSpot( projectModel.getModel().getGraph().vertexRef().refTo(s) );
@@ -204,15 +217,22 @@ public class Simulator {
 		this.commitNewAndDeadAgents();
 	}
 
+	class ModelGraphListeners extends ModelGraph {
+		public void pauseListeners() {
+			super.pauseListeners();
+		}
+		public void resumeListeners() {
+			super.resumeListeners();
+		}
+	}
+
 	public void open() {
+		new ModelGraphListeners().pauseListeners();
 		lock.writeLock().lock();
 	}
 	public void close() {
 		lock.writeLock().unlock();
-		addThisMomentAsUndoPoint();
-	}
-
-	void addThisMomentAsUndoPoint() {
+		new ModelGraphListeners().resumeListeners();
 		projectModel.getModel().setUndoPoint();
 		projectModel.getModel().getGraph().notifyGraphChanged();
 	}
