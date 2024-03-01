@@ -151,6 +151,7 @@ public class Agent {
 				dispY /= 2.0;
 				dispZ /= 2.0;
 			}
+			if (Simulator.AGENT_DO_2D_MOVES_ONLY) dispZ = 0.0;
 
 			newX = oldX + dispX;
 			newY = oldY + dispY;
@@ -225,6 +226,10 @@ public class Agent {
 		double dy = 0.5 * minDistanceToNeighbor * Math.sin(azimuth);
 		double dz_a = 0.5 * minDistanceToNeighbor * moveRndGenerator.nextDouble();
 		double dz_b = 1.0 - dz_a;
+		if (Simulator.AGENT_DO_2D_MOVES_ONLY) {
+			dz_a = 0.0;
+			dz_b = 0.0;
+		}
 
 		Agent d1 = new Agent(simulatorFrame, d1Id, id, d1Name, nextX-dx, nextY-dy, nextZ-dz_a, t + 1);
 		Agent d2 = new Agent(simulatorFrame, d2Id, id, d2Name, nextX+dx, nextY+dy, nextZ+dz_b, t + 1);

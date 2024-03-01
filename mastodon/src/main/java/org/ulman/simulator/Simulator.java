@@ -32,6 +32,8 @@ public class Simulator {
 	public static double AGENT_USUAL_STEP_SIZE = 1.0;
 	/** How many attempts is an agent (cell) allowed to try to move randomly until it finds an non-colliding position. */
 	public static int AGENT_NUMBER_OF_ATTEMPTS_TO_MAKE_A_MOVE = 6;
+	/** Prohibit any changes in the z-coordinate of agents (cells). */
+	public static boolean AGENT_DO_2D_MOVES_ONLY = false;
 
 	/** The mean life span of an agent (cell). Shorted means dividions occurs more often. */
 	public static int AGENT_AVERAGE_LIFESPAN_BEFORE_DIVISION = 7;

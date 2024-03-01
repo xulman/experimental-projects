@@ -10,6 +10,8 @@ import org.scijava.command.Command;
 import org.scijava.command.CommandService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
+import org.ulman.simulator.Simulator;
+
 import javax.swing.WindowConstants;
 
 
@@ -26,6 +28,9 @@ public class SimulatorMainDlg implements Command {
 	@Parameter(label = "Number of time points to be created:", min="1")
 	int numTimepoints = 10;
 
+	@Parameter(label = "Restrict to 2D simulation in xy-plane:")
+	boolean do2D = false;
+
 	@Parameter(label = "Show the advanced dialog:")
 	boolean showAdvancedDlg = false;
 
@@ -34,6 +39,7 @@ public class SimulatorMainDlg implements Command {
 
 	@Override
 	public void run() {
+		Simulator.AGENT_DO_2D_MOVES_ONLY = do2D;
 		if (showAdvancedDlg) {
 			commandService.run(SimulatorAdvancedDlg.class,true,
 					"basicDialog",this);
