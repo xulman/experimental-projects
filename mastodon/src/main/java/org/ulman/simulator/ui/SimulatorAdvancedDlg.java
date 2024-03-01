@@ -46,6 +46,9 @@ public class SimulatorAdvancedDlg implements Command {
 	@Parameter(description = "Using this radius the new spots are introduced into Mastodon.")
 	double MASTODON_SPOT_RADIUS = 2.0;
 
+	@Parameter(description = "Produce a \"lineage\" that stays in the geometric centre of the generated data.")
+	boolean MASTODON_CENTER_SPOT = false;
+
 	@Parameter
 	SimulatorMainDlg basicDialog = null;
 
@@ -64,6 +67,7 @@ public class SimulatorAdvancedDlg implements Command {
 		Simulator.AGENT_MAX_DENSITY_TO_ENABLE_DIVISION = AGENT_MAX_DENSITY_TO_ENABLE_DIVISION;
 		Simulator.AGENT_MAX_VARIABLITY_FROM_A_PERPENDICULAR_DIVISION_PLANE = AGENT_MAX_VARIABLITY_FROM_A_PERPENDICULAR_DIVISION_PLANE;
 		Simulator.MASTODON_SPOT_RADIUS = MASTODON_SPOT_RADIUS;
+		Simulator.MASTODON_CENTER_SPOT = MASTODON_CENTER_SPOT;
 		if (basicDialog != null) basicDialog.runInsideMastodon();
 	}
 }

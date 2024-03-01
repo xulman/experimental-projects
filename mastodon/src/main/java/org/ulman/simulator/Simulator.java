@@ -49,6 +49,8 @@ public class Simulator {
 
 	/** Using this radius the new spots are introduced into Mastodon. */
 	public static double MASTODON_SPOT_RADIUS = 2.0;
+	/** Produce a \"lineage\" that stays in the geometric centre of the generated data. */
+	public static boolean MASTODON_CENTER_SPOT = false;
 
 
 	private int assignedIds = 0;
