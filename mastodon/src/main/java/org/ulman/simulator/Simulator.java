@@ -58,6 +58,7 @@ public class Simulator {
 
 	private int assignedIds = 0;
 	private int time = 0;
+	private long spotsInTotal = 0;
 	private final List<Agent> agentsContainer = new ArrayList<>(500000);
 	private final List<Agent> newAgentsContainer = new ArrayList<>(100000);
 	private final List<Agent> deadAgentsContainer = new ArrayList<>(100000);
@@ -133,7 +134,9 @@ public class Simulator {
 		deadAgentsContainer.clear();
 
 		time += 1;
-		System.out.println("========== SIM: creating time point " + time + " from " + agentsContainer.size() + " agents");
+		System.out.println("========== SIM: creating time point " + time
+				+ " from " + agentsContainer.size() + " agents ("
+				+ spotsInTotal + " in total)");
 		agentsContainer.parallelStream().forEach(s -> s.progress(time));
 		agentsContainer.parallelStream().forEach(Agent::progressFinish);
 		commitNewAndDeadAgents();
@@ -166,6 +169,7 @@ public class Simulator {
 			}
 			spot.setPreviousSpot(targetSpot);
 		});
+		spotsInTotal += agentsContainer.size();
 
 		sum_x[time] /= agentsContainer.size();
 		sum_y[time] /= agentsContainer.size();
