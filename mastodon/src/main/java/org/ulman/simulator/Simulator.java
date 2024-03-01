@@ -53,6 +53,8 @@ public class Simulator {
 	/** Produce a \"lineage\" that stays in the geometric centre of the generated data. */
 	public static boolean MASTODON_CENTER_SPOT = false;
 
+	public final static String MASTODON_CENTER_SPOT_NAME = "centre";
+
 
 	private int assignedIds = 0;
 	private int time = 0;
@@ -141,7 +143,7 @@ public class Simulator {
 	final double[] sum_x = new double[2000];
 	final double[] sum_y = new double[2000];
 	final double[] sum_z = new double[2000];
-	Spot prevCentreSpot = null;
+
 	public void pushToMastodonGraph() {
 		sum_x[time] = 0;
 		sum_y[time] = 0;
@@ -168,18 +170,25 @@ public class Simulator {
 		sum_x[time] /= agentsContainer.size();
 		sum_y[time] /= agentsContainer.size();
 		sum_z[time] /= agentsContainer.size();
-		if (Simulator.MASTODON_CENTER_SPOT) {
-			Spot targetSpot = projectModel.getModel().getGraph().addVertex()
-					.init(time, coords, MASTODON_SPOT_RADIUS);
-			targetSpot.setLabel("centre");
+	}
 
-			if (prevCentreSpot == null) {
-				prevCentreSpot = projectModel.getModel().getGraph().vertexRef();
-			} else {
-				projectModel.getModel().getGraph().addEdge(prevCentreSpot, targetSpot).init();
+	public void pushCenterSpotsToMastodonGraph(int timeFrom, int timeTill) {
+		final Spot prevCentreSpot = projectModel.getModel().getGraph().vertexRef();
+
+		for (int time = timeFrom; time <= timeTill; ++time) {
+			coords[0] = sum_x[time];
+			coords[1] = sum_y[time];
+			coords[2] = sum_z[time];
+			Spot auxSpot = projectModel.getModel().getGraph().addVertex()
+					.init(time, coords, MASTODON_SPOT_RADIUS);
+			auxSpot.setLabel(MASTODON_CENTER_SPOT_NAME);
+			if (time > timeFrom) {
+				projectModel.getModel().getGraph().addEdge(prevCentreSpot, auxSpot).init();
 			}
-			prevCentreSpot.refTo(targetSpot);
+			prevCentreSpot.refTo(auxSpot);
 		}
+
+		projectModel.getModel().getGraph().releaseRef(prevCentreSpot);
 	}
 
 	public void populate(int numberOfCells, final int timePoint) {
