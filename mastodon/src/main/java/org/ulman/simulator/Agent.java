@@ -47,12 +47,18 @@ public class Agent {
 		reportLog.add(String.format("%d\t%f\t%f\t%f\t%d\t%d\t%s", this.t, this.x, this.y, this.z, this.id, this.parentId, this.name));
 	}
 
-	private Spot previousSpot = null;
-	public Spot getPreviousSpot() {
-		return previousSpot;
+	private Spot mostRecentMastodonSpotRepre = null;
+	public boolean isMostRecentMastodonSpotValid() {
+		return mostRecentMastodonSpotRepre != null;
 	}
-	public void setPreviousSpot(final Spot spot) {
-		previousSpot = spot;
+	public Spot getMostRecentMastodonSpotRepre() {
+		return mostRecentMastodonSpotRepre;
+	}
+	public void setMostRecentMastodonSpotRepre(final Spot initToThis) {
+		if (mostRecentMastodonSpotRepre == null) {
+			mostRecentMastodonSpotRepre = initToThis.getModelGraph().vertexRef();
+		}
+		mostRecentMastodonSpotRepre.refTo(initToThis);
 	}
 
 	//one generator for all agents
@@ -234,8 +240,8 @@ public class Agent {
 		Agent d1 = new Agent(simulatorFrame, d1Id, id, d1Name, nextX-dx, nextY-dy, nextZ-dz_a, t + 1);
 		Agent d2 = new Agent(simulatorFrame, d2Id, id, d2Name, nextX+dx, nextY+dy, nextZ+dz_b, t + 1);
 
-		d1.previousSpot = this.previousSpot;
-		d2.previousSpot = this.previousSpot;
+		d1.mostRecentMastodonSpotRepre = this.mostRecentMastodonSpotRepre;
+		d2.mostRecentMastodonSpotRepre = this.mostRecentMastodonSpotRepre;
 
 		simulatorFrame.deregisterAgent(this);
 		simulatorFrame.registerAgent(d1);

@@ -109,7 +109,8 @@ public class Simulator {
 		//do no searching if the agent actually doesn't care...
 		if (searchDistance == 0) return 0;
 
-		final Spot thisSpot = fromThisSpot.getPreviousSpot();
+		//NB: should exist since this method is always called after this.pushToMastodonGraph()
+		final Spot thisSpot = fromThisSpot.getMostRecentMastodonSpotRepre();
 		final SpatialIndex< Spot > spatialIndex
 				= projectModel.getModel().getSpatioTemporalIndex().getSpatialIndex( thisSpot.getTimepoint() );
 		final IncrementalNearestNeighborSearch< Spot > search = spatialIndex.getIncrementalNearestNeighborSearch();
@@ -152,22 +153,21 @@ public class Simulator {
 		sum_y[time] = 0;
 		sum_z[time] = 0;
 
-		agentsContainer.forEach( spot -> {
-			coords[0] = spot.getX();
-			coords[1] = spot.getY();
-			coords[2] = spot.getZ();
+		agentsContainer.forEach( agent -> {
+			coords[0] = agent.getX();
+			coords[1] = agent.getY();
+			coords[2] = agent.getZ();
 			sum_x[time] += coords[0];
 			sum_y[time] += coords[1];
 			sum_z[time] += coords[2];
 			Spot targetSpot = projectModel.getModel().getGraph().addVertex()
 					.init(time, coords, MASTODON_SPOT_RADIUS);
-			targetSpot.setLabel(spot.getName());
+			targetSpot.setLabel(agent.getName());
 
-			Spot sourceSpot = spot.getPreviousSpot();
-			if (sourceSpot != null) {
-				projectModel.getModel().getGraph().addEdge(sourceSpot, targetSpot).init();
+			if (agent.isMostRecentMastodonSpotValid()) {
+				projectModel.getModel().getGraph().addEdge(agent.getMostRecentMastodonSpotRepre(), targetSpot).init();
 			}
-			spot.setPreviousSpot(targetSpot);
+			agent.setMostRecentMastodonSpotRepre(targetSpot);
 		});
 		spotsInTotal += agentsContainer.size();
 
@@ -215,7 +215,7 @@ public class Simulator {
 			if (s.getLabel().equals(Simulator.MASTODON_CENTER_SPOT_NAME)) continue;
 			Agent agent = new Agent(this, this.getNewId(), 0, s.getLabel()+"-",
 					s.getDoublePosition(0), s.getDoublePosition(1), s.getDoublePosition(2), this.time);
-			agent.setPreviousSpot( projectModel.getModel().getGraph().vertexRef().refTo(s) );
+			agent.setMostRecentMastodonSpotRepre(s);
 			this.registerAgent(agent);
 		}
 		this.commitNewAndDeadAgents();
