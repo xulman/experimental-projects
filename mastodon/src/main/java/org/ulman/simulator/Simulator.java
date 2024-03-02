@@ -147,6 +147,7 @@ public class Simulator {
 	final double[] sum_x = new double[2000];
 	final double[] sum_y = new double[2000];
 	final double[] sum_z = new double[2000];
+	Spot auxSpot = null;
 
 	public void pushToMastodonGraph() {
 		sum_x[time] = 0;
@@ -160,14 +161,14 @@ public class Simulator {
 			sum_x[time] += coords[0];
 			sum_y[time] += coords[1];
 			sum_z[time] += coords[2];
-			Spot targetSpot = projectModel.getModel().getGraph().addVertex()
+			projectModel.getModel().getGraph().addVertex(auxSpot)
 					.init(time, coords, MASTODON_SPOT_RADIUS);
-			targetSpot.setLabel(agent.getName());
+			auxSpot.setLabel(agent.getName());
 
 			if (agent.isMostRecentMastodonSpotValid()) {
-				projectModel.getModel().getGraph().addEdge(agent.getMostRecentMastodonSpotRepre(), targetSpot).init();
+				projectModel.getModel().getGraph().addEdge(agent.getMostRecentMastodonSpotRepre(), auxSpot).init();
 			}
-			agent.setMostRecentMastodonSpotRepre(targetSpot);
+			agent.setMostRecentMastodonSpotRepre(auxSpot);
 		});
 		spotsInTotal += agentsContainer.size();
 
@@ -183,7 +184,7 @@ public class Simulator {
 			coords[0] = sum_x[time];
 			coords[1] = sum_y[time];
 			coords[2] = sum_z[time];
-			Spot auxSpot = projectModel.getModel().getGraph().addVertex()
+			projectModel.getModel().getGraph().addVertex(auxSpot)
 					.init(time, coords, MASTODON_SPOT_RADIUS);
 			auxSpot.setLabel(MASTODON_CENTER_SPOT_NAME);
 			if (time > timeFrom) {
@@ -233,8 +234,10 @@ public class Simulator {
 	public void open() {
 		new ModelGraphListeners().pauseListeners();
 		lock.writeLock().lock();
+		auxSpot = projectModel.getModel().getGraph().vertexRef();
 	}
 	public void close() {
+		if (auxSpot != null) projectModel.getModel().getGraph().releaseRef(auxSpot);
 		lock.writeLock().unlock();
 		new ModelGraphListeners().resumeListeners();
 		projectModel.getModel().setUndoPoint();
