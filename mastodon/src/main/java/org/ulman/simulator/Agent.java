@@ -60,6 +60,10 @@ public class Agent {
 		}
 		mostRecentMastodonSpotRepre.refTo(initToThis);
 	}
+	private void releaseMostRecentMastodonSpotRepre() {
+		mostRecentMastodonSpotRepre.getModelGraph().releaseRef( mostRecentMastodonSpotRepre );
+		mostRecentMastodonSpotRepre = null;
+	}
 
 	//one generator for all agents
 	static private final Random lifeSpanRndGenerator = new Random();
@@ -239,9 +243,10 @@ public class Agent {
 
 		Agent d1 = new Agent(simulatorFrame, d1Id, id, d1Name, nextX-dx, nextY-dy, nextZ-dz_a, t + 1);
 		Agent d2 = new Agent(simulatorFrame, d2Id, id, d2Name, nextX+dx, nextY+dy, nextZ+dz_b, t + 1);
-
-		d1.mostRecentMastodonSpotRepre = this.mostRecentMastodonSpotRepre;
-		d2.mostRecentMastodonSpotRepre = this.mostRecentMastodonSpotRepre;
+		//NB: mother must have existed for at least one time point, and thus must exist its Mastodon representation
+		d1.setMostRecentMastodonSpotRepre(this.mostRecentMastodonSpotRepre);
+		d2.setMostRecentMastodonSpotRepre(this.mostRecentMastodonSpotRepre);
+		this.releaseMostRecentMastodonSpotRepre();
 
 		simulatorFrame.deregisterAgent(this);
 		simulatorFrame.registerAgent(d1);
