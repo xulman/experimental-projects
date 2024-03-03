@@ -172,7 +172,8 @@ public class Simulator {
 		time += 1;
 		System.out.println("========== SIM: creating time point " + time
 				+ " from " + agentsContainer.size() + " agents ("
-				+ spotsInTotal + " in total)");
+				+ spotsInTotal + " in total, time is "
+				+ java.time.LocalTime.now() + ")");
 		agentsContainer.parallelStream().forEach(s -> s.progress(time));
 		agentsContainer.parallelStream().forEach(Agent::progressFinish);
 		commitNewAndDeadAgents();
