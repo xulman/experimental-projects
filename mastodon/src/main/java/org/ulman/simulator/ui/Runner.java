@@ -8,6 +8,7 @@ import org.mastodon.mamut.model.Model;
 import org.mastodon.mamut.model.Spot;
 import org.mastodon.spatial.SpatialIndex;
 import org.mastodon.views.bdv.SharedBigDataViewerData;
+import org.ulman.simulator.SimulationConfig;
 import org.ulman.simulator.Simulator;
 import java.io.File;
 import java.io.IOException;
@@ -20,6 +21,7 @@ public class Runner implements Runnable {
 	private final int initialNumberOfCells;
 	private final int timeFrom;
 	private final int timeTill;
+	private SimulationConfig simConfig = null;
 
 	/** intended for when full Mastodon is around, starts from the beginning */
 	public Runner(final ProjectModel projectModel,
@@ -70,9 +72,18 @@ public class Runner implements Runnable {
 		this.timeTill = timepoints-1;
 	}
 
+	public void changeConfigTo(final SimulationConfig c) {
+		this.simConfig = c;
+	}
+
 	@Override
 	public void run() {
 		Simulator s = new Simulator(projectModel);
+		if (simConfig != null) {
+			s.setParamsFromConfig(simConfig);
+		}
+		System.out.println(s);
+
 		ProgressBar pb = null;
 		try {
 			System.out.println("SIMULATOR STARTED on "+java.time.LocalTime.now());
