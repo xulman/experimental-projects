@@ -73,6 +73,7 @@ public class Runner implements Runnable {
 	@Override
 	public void run() {
 		Simulator s = new Simulator(projectModel);
+		ProgressBar pb = null;
 		try {
 			System.out.println("SIMULATOR STARTED on "+java.time.LocalTime.now());
 			s.open();
@@ -84,14 +85,30 @@ public class Runner implements Runnable {
 			}
 			s.pushToMastodonGraph();
 
-			//TODO: !this.outputProjectFilename -> do progress bar
-			for (int time = this.timeFrom+1; time <= this.timeTill; ++time) {
+			int time = timeFrom+1;
+			if (outputProjectFilename == null) {
+				pb = new ProgressBar(time, timeTill, "Current time point: "+time);
+			}
+			while (time <= timeTill) {
 				s.doOneTime();
 				s.pushToMastodonGraph();
+
+				if (pb != null) {
+					if (pb.isStop()) {
+						System.out.println("Stopping the simulation!");
+						break;
+					}
+					pb.setProgress(time);
+					pb.updateLabel("Current time point: "+time);
+				}
+
+				++time;
 			}
+			if (Simulator.MASTODON_CENTER_SPOT) s.pushCenterSpotsToMastodonGraph(timeFrom, timeTill);
 		} catch (Exception e) {
 			System.out.println("SIMULATION ERROR: "+e.getMessage());
 		} finally {
+			if (pb != null) pb.close();
 			s.close();
 			System.out.println("SIMULATOR FINISHED on "+java.time.LocalTime.now());
 		}

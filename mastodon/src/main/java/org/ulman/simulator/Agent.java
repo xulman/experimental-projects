@@ -47,12 +47,22 @@ public class Agent {
 		reportLog.add(String.format("%d\t%f\t%f\t%f\t%d\t%d\t%s", this.t, this.x, this.y, this.z, this.id, this.parentId, this.name));
 	}
 
-	private Spot previousSpot = null;
-	public Spot getPreviousSpot() {
-		return previousSpot;
+	private Spot mostRecentMastodonSpotRepre = null;
+	public boolean isMostRecentMastodonSpotValid() {
+		return mostRecentMastodonSpotRepre != null;
 	}
-	public void setPreviousSpot(final Spot spot) {
-		previousSpot = spot;
+	public Spot getMostRecentMastodonSpotRepre() {
+		return mostRecentMastodonSpotRepre;
+	}
+	public void setMostRecentMastodonSpotRepre(final Spot initToThis) {
+		if (mostRecentMastodonSpotRepre == null) {
+			mostRecentMastodonSpotRepre = initToThis.getModelGraph().vertexRef();
+		}
+		mostRecentMastodonSpotRepre.refTo(initToThis);
+	}
+	private void releaseMostRecentMastodonSpotRepre() {
+		mostRecentMastodonSpotRepre.getModelGraph().releaseRef( mostRecentMastodonSpotRepre );
+		mostRecentMastodonSpotRepre = null;
 	}
 
 	//one generator for all agents
@@ -151,6 +161,7 @@ public class Agent {
 				dispY /= 2.0;
 				dispZ /= 2.0;
 			}
+			if (Simulator.AGENT_DO_2D_MOVES_ONLY) dispZ = 0.0;
 
 			newX = oldX + dispX;
 			newY = oldY + dispY;
@@ -225,12 +236,17 @@ public class Agent {
 		double dy = 0.5 * minDistanceToNeighbor * Math.sin(azimuth);
 		double dz_a = 0.5 * minDistanceToNeighbor * moveRndGenerator.nextDouble();
 		double dz_b = 1.0 - dz_a;
+		if (Simulator.AGENT_DO_2D_MOVES_ONLY) {
+			dz_a = 0.0;
+			dz_b = 0.0;
+		}
 
 		Agent d1 = new Agent(simulatorFrame, d1Id, id, d1Name, nextX-dx, nextY-dy, nextZ-dz_a, t + 1);
 		Agent d2 = new Agent(simulatorFrame, d2Id, id, d2Name, nextX+dx, nextY+dy, nextZ+dz_b, t + 1);
-
-		d1.previousSpot = this.previousSpot;
-		d2.previousSpot = this.previousSpot;
+		//NB: mother must have existed for at least one time point, and thus must exist its Mastodon representation
+		d1.setMostRecentMastodonSpotRepre(this.mostRecentMastodonSpotRepre);
+		d2.setMostRecentMastodonSpotRepre(this.mostRecentMastodonSpotRepre);
+		this.releaseMostRecentMastodonSpotRepre();
 
 		simulatorFrame.deregisterAgent(this);
 		simulatorFrame.registerAgent(d1);

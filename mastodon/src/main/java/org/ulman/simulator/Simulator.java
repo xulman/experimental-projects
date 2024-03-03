@@ -4,11 +4,9 @@ import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.util.Util;
 import org.mastodon.kdtree.IncrementalNearestNeighborSearch;
 import org.mastodon.mamut.ProjectModel;
+import org.mastodon.mamut.model.ModelGraph;
 import org.mastodon.mamut.model.Spot;
 import org.mastodon.spatial.SpatialIndex;
-
-import java.util.Map;
-import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -32,15 +30,17 @@ public class Simulator {
 	public static double AGENT_USUAL_STEP_SIZE = 1.0;
 	/** How many attempts is an agent (cell) allowed to try to move randomly until it finds an non-colliding position. */
 	public static int AGENT_NUMBER_OF_ATTEMPTS_TO_MAKE_A_MOVE = 6;
+	/** Prohibit any changes in the z-coordinate of agents (cells). */
+	public static boolean AGENT_DO_2D_MOVES_ONLY = false;
 
-	/** The mean life span of an agent (cell). Shorted means dividions occurs more often. */
+	/** The mean life span of an agent (cell). Shorted means divisions occurs more often. */
 	public static int AGENT_AVERAGE_LIFESPAN_BEFORE_DIVISION = 7;
 	/** Hard limit on the life span of an agent (cell). The cell dies, is removed from the simulation,
 	 *  whenever it's life exceeded this value. */
 	public static int AGENT_MAX_LIFESPAN_AND_DIES_AFTER = 30;
 	/** The maximum number of neighbors (within the {@link Simulator#AGENT_SEARCH_RADIUS} distance)
 	 *  tolerated for a division to occur; if more neighbors are around, the system believes the space
-	 *  is too condensed and doesn't permint agents (cells) to divide. */
+	 *  is too condensed and doesn't permit agents (cells) to divide. */
 	public static int AGENT_MAX_DENSITY_TO_ENABLE_DIVISION = 4;
 	/** Given the last move of a mother cell, project it onto an xy-plane, one can then imagine a perpendicular
 	 *  line in the xy-plane. A division line in the xy-plane is randomly picked such that it does not coincide
@@ -50,10 +50,15 @@ public class Simulator {
 
 	/** Using this radius the new spots are introduced into Mastodon. */
 	public static double MASTODON_SPOT_RADIUS = 2.0;
+	/** Produce a \"lineage\" that stays in the geometric centre of the generated data. */
+	public static boolean MASTODON_CENTER_SPOT = false;
+
+	public final static String MASTODON_CENTER_SPOT_NAME = "centre";
 
 
 	private int assignedIds = 0;
 	private int time = 0;
+	private long spotsInTotal = 0;
 	private final List<Agent> agentsContainer = new ArrayList<>(500000);
 	private final List<Agent> newAgentsContainer = new ArrayList<>(100000);
 	private final List<Agent> deadAgentsContainer = new ArrayList<>(100000);
@@ -104,7 +109,8 @@ public class Simulator {
 		//do no searching if the agent actually doesn't care...
 		if (searchDistance == 0) return 0;
 
-		final Spot thisSpot = fromThisSpot.getPreviousSpot();
+		//NB: should exist since this method is always called after this.pushToMastodonGraph()
+		final Spot thisSpot = fromThisSpot.getMostRecentMastodonSpotRepre();
 		final SpatialIndex< Spot > spatialIndex
 				= projectModel.getModel().getSpatioTemporalIndex().getSpatialIndex( thisSpot.getTimepoint() );
 		final IncrementalNearestNeighborSearch< Spot > search = spatialIndex.getIncrementalNearestNeighborSearch();
@@ -129,28 +135,65 @@ public class Simulator {
 		deadAgentsContainer.clear();
 
 		time += 1;
-		System.out.println("========== SIM: creating time point " + time + " from " + agentsContainer.size() + " agents");
+		System.out.println("========== SIM: creating time point " + time
+				+ " from " + agentsContainer.size() + " agents ("
+				+ spotsInTotal + " in total)");
 		agentsContainer.parallelStream().forEach(s -> s.progress(time));
 		agentsContainer.parallelStream().forEach(Agent::progressFinish);
 		commitNewAndDeadAgents();
 	}
 
 	final double[] coords = new double[3];
-	public void pushToMastodonGraph() {
-		agentsContainer.forEach( spot -> {
-			coords[0] = spot.getX();
-			coords[1] = spot.getY();
-			coords[2] = spot.getZ();
-			Spot targetSpot = projectModel.getModel().getGraph().addVertex()
-					.init(time, coords, MASTODON_SPOT_RADIUS);
-			targetSpot.setLabel(spot.getName());
+	final double[] sum_x = new double[2000];
+	final double[] sum_y = new double[2000];
+	final double[] sum_z = new double[2000];
+	Spot auxSpot = null;
 
-			Spot sourceSpot = spot.getPreviousSpot();
-			if (sourceSpot != null) {
-				projectModel.getModel().getGraph().addEdge(sourceSpot, targetSpot);
+	public void pushToMastodonGraph() {
+		sum_x[time] = 0;
+		sum_y[time] = 0;
+		sum_z[time] = 0;
+
+		agentsContainer.forEach( agent -> {
+			coords[0] = agent.getX();
+			coords[1] = agent.getY();
+			coords[2] = agent.getZ();
+			sum_x[time] += coords[0];
+			sum_y[time] += coords[1];
+			sum_z[time] += coords[2];
+			projectModel.getModel().getGraph().addVertex(auxSpot)
+					.init(time, coords, MASTODON_SPOT_RADIUS);
+			auxSpot.setLabel(agent.getName());
+
+			if (agent.isMostRecentMastodonSpotValid()) {
+				projectModel.getModel().getGraph().addEdge(agent.getMostRecentMastodonSpotRepre(), auxSpot).init();
 			}
-			spot.setPreviousSpot(targetSpot);
+			agent.setMostRecentMastodonSpotRepre(auxSpot);
 		});
+		spotsInTotal += agentsContainer.size();
+
+		sum_x[time] /= agentsContainer.size();
+		sum_y[time] /= agentsContainer.size();
+		sum_z[time] /= agentsContainer.size();
+	}
+
+	public void pushCenterSpotsToMastodonGraph(int timeFrom, int timeTill) {
+		final Spot prevCentreSpot = projectModel.getModel().getGraph().vertexRef();
+
+		for (int time = timeFrom; time <= timeTill; ++time) {
+			coords[0] = sum_x[time];
+			coords[1] = sum_y[time];
+			coords[2] = sum_z[time];
+			projectModel.getModel().getGraph().addVertex(auxSpot)
+					.init(time, coords, MASTODON_SPOT_RADIUS);
+			auxSpot.setLabel(MASTODON_CENTER_SPOT_NAME);
+			if (time > timeFrom) {
+				projectModel.getModel().getGraph().addEdge(prevCentreSpot, auxSpot).init();
+			}
+			prevCentreSpot.refTo(auxSpot);
+		}
+
+		projectModel.getModel().getGraph().releaseRef(prevCentreSpot);
 	}
 
 	public void populate(int numberOfCells, final int timePoint) {
@@ -170,23 +213,33 @@ public class Simulator {
 	public void populate(final ProjectModel projectModel, final int timePoint) {
 		this.time = timePoint;
 		for (Spot s : projectModel.getModel().getSpatioTemporalIndex().getSpatialIndex(timePoint-1)) {
+			if (s.getLabel().equals(Simulator.MASTODON_CENTER_SPOT_NAME)) continue;
 			Agent agent = new Agent(this, this.getNewId(), 0, s.getLabel()+"-",
 					s.getDoublePosition(0), s.getDoublePosition(1), s.getDoublePosition(2), this.time);
-			agent.setPreviousSpot( projectModel.getModel().getGraph().vertexRef().refTo(s) );
+			agent.setMostRecentMastodonSpotRepre(s);
 			this.registerAgent(agent);
 		}
 		this.commitNewAndDeadAgents();
 	}
 
-	public void open() {
-		lock.writeLock().lock();
-	}
-	public void close() {
-		lock.writeLock().unlock();
-		addThisMomentAsUndoPoint();
+	class ModelGraphListeners extends ModelGraph {
+		public void pauseListeners() {
+			super.pauseListeners();
+		}
+		public void resumeListeners() {
+			super.resumeListeners();
+		}
 	}
 
-	void addThisMomentAsUndoPoint() {
+	public void open() {
+		new ModelGraphListeners().pauseListeners();
+		lock.writeLock().lock();
+		auxSpot = projectModel.getModel().getGraph().vertexRef();
+	}
+	public void close() {
+		if (auxSpot != null) projectModel.getModel().getGraph().releaseRef(auxSpot);
+		lock.writeLock().unlock();
+		new ModelGraphListeners().resumeListeners();
 		projectModel.getModel().setUndoPoint();
 		projectModel.getModel().getGraph().notifyGraphChanged();
 	}
