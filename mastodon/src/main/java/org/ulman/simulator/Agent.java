@@ -231,7 +231,7 @@ public class Agent {
 
 		double azimuth = Math.atan2(nextY-y, nextX-x);
 		azimuth += Math.PI / 2.0;
-		azimuth += moveRndGenerator.nextGaussian() * Simulator.AGENT_MAX_VARIABLITY_FROM_A_PERPENDICULAR_DIVISION_PLANE / 3.0;
+		azimuth += moveRndGenerator.nextGaussian() * Simulator.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE / 3.0;
 		double dx = 0.5 * minDistanceToNeighbor * Math.cos(azimuth);
 		double dy = 0.5 * minDistanceToNeighbor * Math.sin(azimuth);
 		double dz_a = 0.5 * minDistanceToNeighbor * moveRndGenerator.nextDouble();
