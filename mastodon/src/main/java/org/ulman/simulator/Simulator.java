@@ -11,6 +11,7 @@ import org.mastodon.spatial.SpatialIndex;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 
@@ -258,9 +259,13 @@ public class Simulator {
 		final double dx = 0.5 * (pixelSource.min(0) + pixelSource.max(0));
 		final double dy = 0.5 * (pixelSource.min(1) + pixelSource.max(1));
 		final double dz = 0.5 * (pixelSource.min(2) + pixelSource.max(2));
+		final int iShift = numberOfCells/2;
+		final double dxStep = Simulator.AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT * 1.7;
 		for (int i = 0; i < numberOfCells; i++) {
 			Agent agent = new Agent(this, this.getNewId(), 0, String.valueOf(i + 1),
-					dx+ i * 3, dy, dz, this.time);
+					dx + (i-iShift) * dxStep,
+					dy + 1.8 * dxStep * (new Random().nextDouble() - 0.5),
+					dz, this.time);
 			this.registerAgent(agent);
 		}
 		this.commitNewAndDeadAgents();
