@@ -69,7 +69,8 @@ simCfg.AGENT_DO_2D_MOVES_ONLY = True
 
 # now override some of the params with my own
 # ============================
-simCfg.AGENT_AVERAGE_LIFESPAN_BEFORE_DIVISION = 10
+simCfg.AGENT_AVERAGE_LIFESPAN_BEFORE_DIVISION = 7
+simCfg.MASTODON_CENTER_SPOT = True
 
 
 # simulates into this existing Mastodon app,
@@ -89,7 +90,7 @@ r.run()
 # continues with the same config, which has been further adjusted
 
 # provide own number of cells and length of this simulation run
-noOfTimepoints = 40
+noOfTimepoints = 80
 
 r = Runner(projectModel,noOfTimepoints)
 simCfg.AGENT_DO_2D_MOVES_ONLY = False
