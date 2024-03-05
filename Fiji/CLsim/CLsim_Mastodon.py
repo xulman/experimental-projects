@@ -1,6 +1,4 @@
 #@File initialMastodonProjectFile
-#@int noOfCells
-#@int noOfTimepoints
 #@Context ctx
 
 from org.mastodon.mamut import MainWindow
@@ -19,6 +17,11 @@ simCfg.AGENT_AVERAGE_LIFESPAN_BEFORE_DIVISION = 10
 
 # simulates into this existing Mastodon app,
 # assumes empty project and in any case starts from timepoint = 0
+
+# provide own number of cells and length of this simulation run
+noOfCells = 10
+noOfTimepoints = 80
+
 r = Runner(projectModel,noOfCells,noOfTimepoints)
 r.changeConfigTo(simCfg)
 r.run()
@@ -27,7 +30,19 @@ r.run()
 # but here the Runner will run simulation from the last non-empty timpoint,
 # thus continuing on where the last run ended;
 # continues with the same config, which has been further adjusted
+
+# provide own number of cells and length of this simulation run
+noOfTimepoints = 40
+
 r = Runner(projectModel,noOfTimepoints)
 simCfg.AGENT_DO_2D_MOVES_ONLY = False
 r.changeConfigTo(simCfg)
 r.run()
+
+
+# if one wants a third stage of the simulation, the last pattern shall be put here, e.g.:
+# noOfTimepoints = 20
+# r = Runner(projectModel,noOfTimepoints)
+# simCfg.AGENT_DO_2D_MOVES_ONLY = False
+# r.changeConfigTo(simCfg)
+# r.run()
