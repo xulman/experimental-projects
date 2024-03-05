@@ -26,9 +26,9 @@ public class Simulator {
 	public static boolean VERBOSE_SIMULATOR_DEBUG = false;
 
 	/** How far around shall an agent look for "nearby" agents to consider them for overlaps. */
-	public static double AGENT_SEARCH_RADIUS = 5.0;
+	public static double AGENT_SEARCH_RADIUS = 4.2;
 	/** How close two agents can come before they are considered overlapping. */
-	public static double AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT = 3.0;
+	public static double AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT = 3.2;
 	/** How far an agent can move between time points. */
 	public static double AGENT_USUAL_STEP_SIZE = 1.0;
 	/** How many attempts is an agent (cell) allowed to try to move randomly until it finds an non-colliding position. */
@@ -37,24 +37,24 @@ public class Simulator {
 	public static boolean AGENT_DO_2D_MOVES_ONLY = false;
 
 	/** The mean life span of an agent (cell). Shorted means divisions occurs more often. */
-	public static int AGENT_AVERAGE_LIFESPAN_BEFORE_DIVISION = 7;
+	public static int AGENT_AVERAGE_LIFESPAN_BEFORE_DIVISION = 10;
 	/** Hard limit on the life span of an agent (cell). The cell dies, is removed from the simulation,
 	 *  whenever it's life exceeded this value. */
 	public static int AGENT_MAX_LIFESPAN_AND_DIES_AFTER = 30;
 	/** The maximum number of neighbors (within the {@link Simulator#AGENT_SEARCH_RADIUS} distance)
 	 *  tolerated for a division to occur; if more neighbors are around, the system believes the space
 	 *  is too condensed and doesn't permit agents (cells) to divide. */
-	public static int AGENT_MAX_DENSITY_TO_ENABLE_DIVISION = 4;
+	public static int AGENT_MAX_DENSITY_TO_ENABLE_DIVISION = 2;
 	/** Given the last move of a mother cell, project it onto an xy-plane, one can then imagine a perpendicular
 	 *  line in the xy-plane. A division line in the xy-plane is randomly picked such that it does not coincide
 	 *  by larger angle with that perpendicular line, and this random line would be a "division" orientation
 	 *  for the x,y coords, the z-coord is randomized. */
-	public static double AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE = 3.14;
+	public static double AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE = 2.35;
 	/** Freshly "born" daughters are placed exactly this distance apart from one another. */
 	public static double AGENT_DAUGHTERS_INITIAL_DISTANCE = 1.6;
 
 	/** Using this radius the new spots are introduced into Mastodon. */
-	public static double MASTODON_SPOT_RADIUS = 2.0;
+	public static double MASTODON_SPOT_RADIUS = 1.5;
 	/** Produce a \"lineage\" that stays in the geometric centre of the generated data. */
 	public static boolean MASTODON_CENTER_SPOT = false;
 

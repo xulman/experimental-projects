@@ -20,10 +20,10 @@ public class SimulatorAdvancedDlg implements Command {
 	boolean VERBOSE_SIMULATOR_DEBUG = false;
 
 	@Parameter(description = "How far around shall an agent look for \"nearby\" agents to consider them for overlaps.")
-	double AGENT_SEARCH_RADIUS = 5.0;
+	double AGENT_SEARCH_RADIUS = 4.2;
 
 	@Parameter(description = "How close two agents can come before they are considered overlapping.")
-	double AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT = 3.0;
+	double AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT = 3.2;
 
 	@Parameter(description = "How far an agent can move between time points.")
 	double AGENT_USUAL_STEP_SIZE = 1.0;
@@ -32,22 +32,22 @@ public class SimulatorAdvancedDlg implements Command {
 	int AGENT_NUMBER_OF_ATTEMPTS_TO_MAKE_A_MOVE = 6;
 
 	@Parameter(description = "The mean life span of an agent (cell). Shorted means divisions occurs more often.")
-	int AGENT_AVERAGE_LIFESPAN_BEFORE_DIVISION = 7;
+	int AGENT_AVERAGE_LIFESPAN_BEFORE_DIVISION = 10;
 
 	@Parameter(description = "Hard limit on the life span of an agent (cell). The cell dies, is removed from the simulation, whenever it's life exceeded this value.")
 	int AGENT_MAX_LIFESPAN_AND_DIES_AFTER = 30;
 
 	@Parameter(description = "The maximum number of neighbors tolerated for a division to occur; if more neighbors are around, the system believes the space is too condensed and doesn't permit agents (cells) to divide.")
-	int AGENT_MAX_DENSITY_TO_ENABLE_DIVISION = 4;
+	int AGENT_MAX_DENSITY_TO_ENABLE_DIVISION = 2;
 
 	@Parameter(description = "Given the last move of a mother cell, project it onto an xy-plane, one can then imagine a perpendicular line in the xy-plane. A division line in the xy-plane is randomly picked such that it does not coincide by larger angle with that perpendicular line, and this random line would be a \"division\" orientation for the x,y coords, the z-coord is randomized.")
-	double AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE = 3.14;
+	double AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE = 2.35;
 
 	@Parameter(description = "Freshly \"born\" daughters are placed exactly this distance apart from one another.")
 	double AGENT_DAUGHTERS_INITIAL_DISTANCE = 1.6;
 
 	@Parameter(description = "Using this radius the new spots are introduced into Mastodon.")
-	double MASTODON_SPOT_RADIUS = 2.0;
+	double MASTODON_SPOT_RADIUS = 1.5;
 
 	@Parameter(description = "Produce a \"lineage\" that stays in the geometric centre of the generated data.")
 	boolean MASTODON_CENTER_SPOT = false;
