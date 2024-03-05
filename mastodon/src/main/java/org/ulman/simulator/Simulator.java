@@ -7,6 +7,8 @@ import org.mastodon.mamut.ProjectModel;
 import org.mastodon.mamut.model.ModelGraph;
 import org.mastodon.mamut.model.Spot;
 import org.mastodon.spatial.SpatialIndex;
+
+import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -215,6 +217,19 @@ public class Simulator {
 
 	public void pushCenterSpotsToMastodonGraph(int timeFrom, int timeTill) {
 		final Spot prevCentreSpot = projectModel.getModel().getGraph().vertexRef();
+		boolean isPrevCentreValid = false;
+
+		//try to find previous centre and connect/link to it
+		if (timeFrom > 0) {
+			Iterator<Spot> it = projectModel.getModel().getSpatioTemporalIndex().getSpatialIndex(timeFrom - 1).iterator();
+			while (!isPrevCentreValid && it.hasNext()) {
+				Spot s = it.next();
+				if (s.getLabel().equals(Simulator.MASTODON_CENTER_SPOT_NAME)) {
+					prevCentreSpot.refTo(s);
+					isPrevCentreValid = true;
+				}
+			}
+		}
 
 		for (int time = timeFrom; time <= timeTill; ++time) {
 			coords[0] = sum_x[time];
@@ -223,10 +238,11 @@ public class Simulator {
 			projectModel.getModel().getGraph().addVertex(auxSpot)
 					.init(time, coords, MASTODON_SPOT_RADIUS);
 			auxSpot.setLabel(MASTODON_CENTER_SPOT_NAME);
-			if (time > timeFrom) {
+			if (isPrevCentreValid) {
 				projectModel.getModel().getGraph().addEdge(prevCentreSpot, auxSpot).init();
 			}
 			prevCentreSpot.refTo(auxSpot);
+			isPrevCentreValid = true;
 		}
 
 		projectModel.getModel().getGraph().releaseRef(prevCentreSpot);
