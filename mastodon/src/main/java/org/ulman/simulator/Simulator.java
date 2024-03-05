@@ -101,9 +101,9 @@ public class Simulator {
 	private int assignedIds = 0;
 	private int time = 0;
 	private long spotsInTotal = 0;
-	private final List<Agent> agentsContainer = new ArrayList<>(500000);
-	private final List<Agent> newAgentsContainer = new ArrayList<>(100000);
-	private final List<Agent> deadAgentsContainer = new ArrayList<>(100000);
+	private final List<Agent> agentsContainer = new ArrayList<>(5000000);
+	private final List<Agent> newAgentsContainer = new ArrayList<>(2000000);
+	private final List<Agent> deadAgentsContainer = new ArrayList<>(2000000);
 
 	private final ProjectModel projectModel;
 	private final ReentrantReadWriteLock lock;
