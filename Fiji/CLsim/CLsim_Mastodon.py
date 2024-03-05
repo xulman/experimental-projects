@@ -18,16 +18,16 @@ simCfg = SimulationConfig()
 # ============================
 
 # If the _B,_W,_BW indicators should be prepended or appended to the spot label.
-simCfg.PREPEND_HINT_LABELS = true;
+simCfg.PREPEND_HINT_LABELS = True;
 
 # Collect internal status info per every Agent. If not, may speed up the simulation as no extra data will be stored.
-simCfg.COLLECT_INTERNAL_DATA = false;
+simCfg.COLLECT_INTERNAL_DATA = False;
 
 # Prints a lot of data to understand decisions making of the agents.
-simCfg.VERBOSE_AGENT_DEBUG = false;
+simCfg.VERBOSE_AGENT_DEBUG = False;
 
 # Prints relative little reports about what the simulation framework was asked to do.
-simCfg.VERBOSE_SIMULATOR_DEBUG = false;
+simCfg.VERBOSE_SIMULATOR_DEBUG = False;
 
 # How far around shall an agent look for \"nearby\" agents to consider them for overlaps.
 simCfg.AGENT_SEARCH_RADIUS = 4.2;
@@ -60,7 +60,7 @@ simCfg.AGENT_DAUGHTERS_INITIAL_DISTANCE = 1.6;
 simCfg.MASTODON_SPOT_RADIUS = 1.5;
 
 # Produce a \"lineage\" that stays in the geometric centre of the generated data.
-simCfg.MASTODON_CENTER_SPOT = false;
+simCfg.MASTODON_CENTER_SPOT = False;
 
 # Controls if the agents are allowed to move in z-axis at all.
 simCfg.AGENT_DO_2D_MOVES_ONLY = True
