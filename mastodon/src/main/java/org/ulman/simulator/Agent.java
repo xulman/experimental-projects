@@ -146,6 +146,10 @@ public class Agent {
 		double dispX = 0,dispY = 0,dispZ = 0;
 		double newX = 0,newY = 0,newZ = 0;
 
+		//NB: if 'step' is a distance alone one axis, the total length in the space is sqrt(spaceDim)-times larger
+		final double stepSizeDimensionalityCompensation = Simulator.AGENT_DO_2D_MOVES_ONLY ? 1.41 : 1.73;
+		final double stepSize = usualStepSize / stepSizeDimensionalityCompensation;
+
 		int doneAttempts = 0;
 		boolean tooClose = true;
 		while (doneAttempts < Simulator.AGENT_NUMBER_OF_ATTEMPTS_TO_MAKE_A_MOVE && tooClose) {
@@ -153,9 +157,9 @@ public class Agent {
 
 			boolean isOdd = (doneAttempts & 1) == 1;
 			if (isOdd) {
-				dispX = moveRndGenerator.nextGaussian() * (this.usualStepSize / 2.0);
-				dispY = moveRndGenerator.nextGaussian() * (this.usualStepSize / 2.0);
-				dispZ = moveRndGenerator.nextGaussian() * (this.usualStepSize / 2.0);
+				dispX = moveRndGenerator.nextGaussian() * stepSize;
+				dispY = moveRndGenerator.nextGaussian() * stepSize;
+				dispZ = moveRndGenerator.nextGaussian() * stepSize;
 			} else {
 				dispX /= 2.0;
 				dispY /= 2.0;
