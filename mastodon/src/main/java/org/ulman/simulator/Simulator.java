@@ -7,8 +7,11 @@ import org.mastodon.mamut.ProjectModel;
 import org.mastodon.mamut.model.ModelGraph;
 import org.mastodon.mamut.model.Spot;
 import org.mastodon.spatial.SpatialIndex;
+
+import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 
@@ -23,9 +26,9 @@ public class Simulator {
 	public static boolean VERBOSE_SIMULATOR_DEBUG = false;
 
 	/** How far around shall an agent look for "nearby" agents to consider them for overlaps. */
-	public static double AGENT_SEARCH_RADIUS = 5.0;
+	public static double AGENT_SEARCH_RADIUS = 4.2;
 	/** How close two agents can come before they are considered overlapping. */
-	public static double AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT = 3.0;
+	public static double AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT = 3.2;
 	/** How far an agent can move between time points. */
 	public static double AGENT_USUAL_STEP_SIZE = 1.0;
 	/** How many attempts is an agent (cell) allowed to try to move randomly until it finds an non-colliding position. */
@@ -34,22 +37,24 @@ public class Simulator {
 	public static boolean AGENT_DO_2D_MOVES_ONLY = false;
 
 	/** The mean life span of an agent (cell). Shorted means divisions occurs more often. */
-	public static int AGENT_AVERAGE_LIFESPAN_BEFORE_DIVISION = 7;
+	public static int AGENT_AVERAGE_LIFESPAN_BEFORE_DIVISION = 10;
 	/** Hard limit on the life span of an agent (cell). The cell dies, is removed from the simulation,
 	 *  whenever it's life exceeded this value. */
 	public static int AGENT_MAX_LIFESPAN_AND_DIES_AFTER = 30;
 	/** The maximum number of neighbors (within the {@link Simulator#AGENT_SEARCH_RADIUS} distance)
 	 *  tolerated for a division to occur; if more neighbors are around, the system believes the space
 	 *  is too condensed and doesn't permit agents (cells) to divide. */
-	public static int AGENT_MAX_DENSITY_TO_ENABLE_DIVISION = 4;
+	public static int AGENT_MAX_DENSITY_TO_ENABLE_DIVISION = 2;
 	/** Given the last move of a mother cell, project it onto an xy-plane, one can then imagine a perpendicular
 	 *  line in the xy-plane. A division line in the xy-plane is randomly picked such that it does not coincide
 	 *  by larger angle with that perpendicular line, and this random line would be a "division" orientation
 	 *  for the x,y coords, the z-coord is randomized. */
-	public static double AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE = 3.14;
+	public static double AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE = 2.35;
+	/** Freshly "born" daughters are placed exactly this distance apart from one another. */
+	public static double AGENT_DAUGHTERS_INITIAL_DISTANCE = 1.6;
 
 	/** Using this radius the new spots are introduced into Mastodon. */
-	public static double MASTODON_SPOT_RADIUS = 2.0;
+	public static double MASTODON_SPOT_RADIUS = 1.5;
 	/** Produce a \"lineage\" that stays in the geometric centre of the generated data. */
 	public static boolean MASTODON_CENTER_SPOT = false;
 
@@ -69,6 +74,7 @@ public class Simulator {
 		AGENT_MAX_LIFESPAN_AND_DIES_AFTER = c.AGENT_MAX_LIFESPAN_AND_DIES_AFTER;
 		AGENT_MAX_DENSITY_TO_ENABLE_DIVISION = c.AGENT_MAX_DENSITY_TO_ENABLE_DIVISION;
 		AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE = c.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE;
+		AGENT_DAUGHTERS_INITIAL_DISTANCE = c.AGENT_DAUGHTERS_INITIAL_DISTANCE;
 		MASTODON_SPOT_RADIUS = c.MASTODON_SPOT_RADIUS;
 		MASTODON_CENTER_SPOT = c.MASTODON_CENTER_SPOT;
 	}
@@ -85,6 +91,7 @@ public class Simulator {
 				"\n  AGENT_MAX_LIFESPAN_AND_DIES_AFTER: " + AGENT_MAX_LIFESPAN_AND_DIES_AFTER +
 				"\n  AGENT_MAX_DENSITY_TO_ENABLE_DIVISION: " + AGENT_MAX_DENSITY_TO_ENABLE_DIVISION +
 				"\n  AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE: " + AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE +
+				"\n  AGENT_DAUGHTERS_INITIAL_DISTANCE: " + AGENT_DAUGHTERS_INITIAL_DISTANCE +
 				"\n  MASTODON_SPOT_RADIUS: " + MASTODON_SPOT_RADIUS +
 				"\n  MASTODON_CENTER_SPOT: " + MASTODON_CENTER_SPOT;
 		return sb;
@@ -215,6 +222,19 @@ public class Simulator {
 
 	public void pushCenterSpotsToMastodonGraph(int timeFrom, int timeTill) {
 		final Spot prevCentreSpot = projectModel.getModel().getGraph().vertexRef();
+		boolean isPrevCentreValid = false;
+
+		//try to find previous centre and connect/link to it
+		if (timeFrom > 0) {
+			Iterator<Spot> it = projectModel.getModel().getSpatioTemporalIndex().getSpatialIndex(timeFrom - 1).iterator();
+			while (!isPrevCentreValid && it.hasNext()) {
+				Spot s = it.next();
+				if (s.getLabel().equals(Simulator.MASTODON_CENTER_SPOT_NAME)) {
+					prevCentreSpot.refTo(s);
+					isPrevCentreValid = true;
+				}
+			}
+		}
 
 		for (int time = timeFrom; time <= timeTill; ++time) {
 			coords[0] = sum_x[time];
@@ -223,10 +243,11 @@ public class Simulator {
 			projectModel.getModel().getGraph().addVertex(auxSpot)
 					.init(time, coords, MASTODON_SPOT_RADIUS);
 			auxSpot.setLabel(MASTODON_CENTER_SPOT_NAME);
-			if (time > timeFrom) {
+			if (isPrevCentreValid) {
 				projectModel.getModel().getGraph().addEdge(prevCentreSpot, auxSpot).init();
 			}
 			prevCentreSpot.refTo(auxSpot);
+			isPrevCentreValid = true;
 		}
 
 		projectModel.getModel().getGraph().releaseRef(prevCentreSpot);
@@ -238,9 +259,13 @@ public class Simulator {
 		final double dx = 0.5 * (pixelSource.min(0) + pixelSource.max(0));
 		final double dy = 0.5 * (pixelSource.min(1) + pixelSource.max(1));
 		final double dz = 0.5 * (pixelSource.min(2) + pixelSource.max(2));
+		final int iShift = numberOfCells/2;
+		final double dxStep = Simulator.AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT * 1.7;
 		for (int i = 0; i < numberOfCells; i++) {
 			Agent agent = new Agent(this, this.getNewId(), 0, String.valueOf(i + 1),
-					dx+ i * 3, dy, dz, this.time);
+					dx + (i-iShift) * dxStep,
+					dy + 1.8 * dxStep * (new Random().nextDouble() - 0.5),
+					dz, this.time);
 			this.registerAgent(agent);
 		}
 		this.commitNewAndDeadAgents();
