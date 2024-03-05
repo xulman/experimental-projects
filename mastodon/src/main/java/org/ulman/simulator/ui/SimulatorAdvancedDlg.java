@@ -4,11 +4,16 @@ import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.ulman.simulator.Simulator;
+import org.ulman.simulator.AgentNamingPolicy;
 
 @Plugin(type = Command.class)
 public class SimulatorAdvancedDlg implements Command {
-	@Parameter(description = "If the _B,_W,_BW indicators should be prepended or appended to the spot label.")
-	boolean PREPEND_HINT_LABELS = true;
+	@Parameter(description = "Spots labels can be either 'M' or can be encoding the lineage history, also optionally with debug hints _B,_W,_BW.",
+		choices = { "Lineage encoding labels (1aabba...)",
+		            "Prepend hints B_,W_,BW_ to encoding labels",
+		            "Append hints _B,_W,_BW to encoding labels",
+		            "Always 'M' (no lineage encoding)" })
+	String LABELS_NAMING_POLICY = "Lineage";
 
 	@Parameter(description = "Collect internal status info per every Agent. If not, may speed up the simulation as no extra data will be stored.")
 	boolean COLLECT_INTERNAL_DATA = false;
@@ -57,7 +62,15 @@ public class SimulatorAdvancedDlg implements Command {
 
 	@Override
 	public void run() {
-		Simulator.PREPEND_HINT_LABELS = PREPEND_HINT_LABELS;
+		if (this.LABELS_NAMING_POLICY.startsWith("Always")) {
+			Simulator.LABELS_NAMING_POLICY = AgentNamingPolicy.USE_ALWAYS_M;
+		} else if (this.LABELS_NAMING_POLICY.startsWith("Prepend")) {
+			Simulator.LABELS_NAMING_POLICY = AgentNamingPolicy.ENCODING_LABELS_AND_PREPENDING;
+		} else if (this.LABELS_NAMING_POLICY.startsWith("Append")) {
+			Simulator.LABELS_NAMING_POLICY = AgentNamingPolicy.ENCODING_LABELS_AND_APPENDING;
+		} else {
+			Simulator.LABELS_NAMING_POLICY = AgentNamingPolicy.ENCODING_LABELS;
+		}
 		Simulator.COLLECT_INTERNAL_DATA = COLLECT_INTERNAL_DATA;
 		Simulator.VERBOSE_AGENT_DEBUG = VERBOSE_AGENT_DEBUG;
 		Simulator.VERBOSE_SIMULATOR_DEBUG = VERBOSE_SIMULATOR_DEBUG;

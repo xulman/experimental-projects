@@ -16,8 +16,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 
 public class Simulator {
-	/** If the _B,_W,_BW indicators should be prepended or appended to the spot label. */
-	public static boolean PREPEND_HINT_LABELS = true;
+	/** Spots labels can be either 'M' or can be encoding the lineage history, also optionally with debug hints _B,_W,_BW. */
+	public static AgentNamingPolicy LABELS_NAMING_POLICY = AgentNamingPolicy.ENCODING_LABELS;
 	/** Collect internal status info per every Agent. If not, may speed up the simulation as no extra data will be stored. */
 	public static boolean COLLECT_INTERNAL_DATA = false;
 	/** Prints a lot of data to understand decisions making of the agents. */
@@ -61,7 +61,7 @@ public class Simulator {
 	public final static String MASTODON_CENTER_SPOT_NAME = "centre";
 
 	public void setParamsFromConfig(final SimulationConfig c) {
-		PREPEND_HINT_LABELS = c.PREPEND_HINT_LABELS;
+		LABELS_NAMING_POLICY = c.LABELS_NAMING_POLICY;
 		COLLECT_INTERNAL_DATA = c.COLLECT_INTERNAL_DATA;
 		VERBOSE_AGENT_DEBUG = c.VERBOSE_AGENT_DEBUG;
 		VERBOSE_SIMULATOR_DEBUG = c.VERBOSE_SIMULATOR_DEBUG;
@@ -81,7 +81,7 @@ public class Simulator {
 
 	@Override
 	public String toString() {
-		String sb = "Simulation params:\n" + "  PREPEND_HINT_LABELS: " + PREPEND_HINT_LABELS +
+		String sb = "Simulation parameters:\n" + "  LABELS_NAMING_POLICY: " + LABELS_NAMING_POLICY +
 				"\n  AGENT_SEARCH_RADIUS: " + AGENT_SEARCH_RADIUS +
 				"\n  AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT: " + AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT +
 				"\n  AGENT_USUAL_STEP_SIZE: " + AGENT_USUAL_STEP_SIZE +

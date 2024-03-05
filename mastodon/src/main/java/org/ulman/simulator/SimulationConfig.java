@@ -1,7 +1,7 @@
 package org.ulman.simulator;
 
 public class SimulationConfig {
-	public boolean PREPEND_HINT_LABELS = Simulator.PREPEND_HINT_LABELS;
+	public AgentNamingPolicy LABELS_NAMING_POLICY = Simulator.LABELS_NAMING_POLICY;
 	public boolean COLLECT_INTERNAL_DATA = Simulator.COLLECT_INTERNAL_DATA;
 	public boolean VERBOSE_AGENT_DEBUG = Simulator.VERBOSE_AGENT_DEBUG;
 	public boolean VERBOSE_SIMULATOR_DEBUG = Simulator.VERBOSE_SIMULATOR_DEBUG;

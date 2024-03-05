@@ -16,6 +16,8 @@ public class Agent {
 		return name;
 	}
 
+	public static final String ONE_AND_ONLY_NAME = "M";
+
 	private final int id;
 	public int getId() {
 		return id;
@@ -76,16 +78,34 @@ public class Agent {
 	             double x, double y, double z, int time) {
 		this.simulatorFrame = simulator;
 
-		this.name = label;
-		this.nameClean = label;
-		if (Simulator.PREPEND_HINT_LABELS) {
+		switch (Simulator.LABELS_NAMING_POLICY) {
+		case USE_ALWAYS_M:
+			this.name = ONE_AND_ONLY_NAME;
+			this.nameClean = ONE_AND_ONLY_NAME;
+			this.nameBlocked = ONE_AND_ONLY_NAME;
+			this.nameWantDivide = ONE_AND_ONLY_NAME;
+			this.nameBlockedWantDivide = ONE_AND_ONLY_NAME;
+			break;
+		case ENCODING_LABELS_AND_PREPENDING:
+			this.name = label;
+			this.nameClean = label;
 			this.nameBlocked = "B_" + label;
 			this.nameWantDivide = "W_" + label;
 			this.nameBlockedWantDivide = "BW_" + label;
-		} else {
+			break;
+		case ENCODING_LABELS_AND_APPENDING:
+			this.name = label;
+			this.nameClean = label;
 			this.nameBlocked = label + "_B";
 			this.nameWantDivide = label + "_W";
 			this.nameBlockedWantDivide = label + "_BW";
+			break;
+		default: //NB: the same as ENCODING_LABELS
+			this.name = label;
+			this.nameClean = label;
+			this.nameBlocked = label;
+			this.nameWantDivide = label;
+			this.nameBlockedWantDivide = label;
 		}
 
 		this.id = ID;
