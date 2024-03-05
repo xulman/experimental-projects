@@ -34,6 +34,7 @@ public class Agent {
 
 	private final double usualStepSize = Simulator.AGENT_USUAL_STEP_SIZE;
 	private final double minDistanceToNeighbor = Simulator.AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT;
+	private final double daughtersInitialDisplacement = Simulator.AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT;
 
 	private final int dontDivideBefore;
 	private final int dontLiveBeyond;
@@ -233,20 +234,21 @@ public class Agent {
 		final String d1Name = name + "a";
 		final String d2Name = name + "b";
 
+		//NB: if 'step' is a distance alone one axis, the total length in the space is sqrt(spaceDim)-times larger
+		final double stepSizeDimensionalityCompensation = Simulator.AGENT_DO_2D_MOVES_ONLY ? (1.0/1.41) : (1.0/1.73);
+		double dz = moveRndGenerator.nextDouble();
+		final double stepSize = Simulator.AGENT_DO_2D_MOVES_ONLY ?
+				daughtersInitialDisplacement : (daughtersInitialDisplacement / Math.sqrt(1 + dz*dz));
+
 		double azimuth = Math.atan2(nextY-y, nextX-x);
 		azimuth += Math.PI / 2.0;
 		azimuth += moveRndGenerator.nextGaussian() * Simulator.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE / 3.0;
-		double dx = 0.5 * minDistanceToNeighbor * Math.cos(azimuth);
-		double dy = 0.5 * minDistanceToNeighbor * Math.sin(azimuth);
-		double dz_a = 0.5 * minDistanceToNeighbor * moveRndGenerator.nextDouble();
-		double dz_b = 1.0 - dz_a;
-		if (Simulator.AGENT_DO_2D_MOVES_ONLY) {
-			dz_a = 0.0;
-			dz_b = 0.0;
-		}
+		double dx = stepSize * Math.cos(azimuth);
+		double dy = stepSize * Math.sin(azimuth);
+		dz = Simulator.AGENT_DO_2D_MOVES_ONLY ? 0.0 : (dz*stepSize);
 
-		Agent d1 = new Agent(simulatorFrame, d1Id, id, d1Name, nextX-dx, nextY-dy, nextZ-dz_a, t + 1);
-		Agent d2 = new Agent(simulatorFrame, d2Id, id, d2Name, nextX+dx, nextY+dy, nextZ+dz_b, t + 1);
+		Agent d1 = new Agent(simulatorFrame, d1Id, id, d1Name, nextX-dx, nextY-dy, nextZ-dz, t + 1);
+		Agent d2 = new Agent(simulatorFrame, d2Id, id, d2Name, nextX+dx, nextY+dy, nextZ+dz, t + 1);
 		//NB: mother must have existed for at least one time point, and thus must exist its Mastodon representation
 		d1.setMostRecentMastodonSpotRepre(this.mostRecentMastodonSpotRepre);
 		d2.setMostRecentMastodonSpotRepre(this.mostRecentMastodonSpotRepre);
