@@ -34,7 +34,7 @@ public class Agent {
 
 	private final double usualStepSize = Simulator.AGENT_USUAL_STEP_SIZE;
 	private final double minDistanceToNeighbor = Simulator.AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT;
-	private final double daughtersInitialDisplacement = Simulator.AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT;
+	private final double daughtersInitialDisplacement = Simulator.AGENT_DAUGHTERS_INITIAL_DISTANCE;
 
 	private final int dontDivideBefore;
 	private final int dontLiveBeyond;

@@ -43,6 +43,9 @@ public class SimulatorAdvancedDlg implements Command {
 	@Parameter(description = "Given the last move of a mother cell, project it onto an xy-plane, one can then imagine a perpendicular line in the xy-plane. A division line in the xy-plane is randomly picked such that it does not coincide by larger angle with that perpendicular line, and this random line would be a \"division\" orientation for the x,y coords, the z-coord is randomized.")
 	double AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE = 3.14;
 
+	@Parameter(description = "Freshly \"born\" daughters are placed exactly this distance apart from one another.")
+	double AGENT_DAUGHTERS_INITIAL_DISTANCE = 1.6;
+
 	@Parameter(description = "Using this radius the new spots are introduced into Mastodon.")
 	double MASTODON_SPOT_RADIUS = 2.0;
 
@@ -66,6 +69,7 @@ public class SimulatorAdvancedDlg implements Command {
 		Simulator.AGENT_MAX_LIFESPAN_AND_DIES_AFTER = AGENT_MAX_LIFESPAN_AND_DIES_AFTER;
 		Simulator.AGENT_MAX_DENSITY_TO_ENABLE_DIVISION = AGENT_MAX_DENSITY_TO_ENABLE_DIVISION;
 		Simulator.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE = AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE;
+		Simulator.AGENT_DAUGHTERS_INITIAL_DISTANCE = AGENT_DAUGHTERS_INITIAL_DISTANCE;
 		Simulator.MASTODON_SPOT_RADIUS = MASTODON_SPOT_RADIUS;
 		Simulator.MASTODON_CENTER_SPOT = MASTODON_CENTER_SPOT;
 		if (basicDialog != null) basicDialog.runInsideMastodon();
