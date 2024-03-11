@@ -10,7 +10,9 @@ public class NonSenseDataGenerator {
 	public NonSenseDataGenerator(final ProjectModel projectModel,
 	                             final int numberOfTimepoints,
 	                             final int numberOfSpotsPerTimepoint,
-	                             final boolean doLinkSpots) {
+	                             final boolean doLinkSpots,
+	                             final int reportFromRound,
+	                             final int reportEveryNthRound) {
 
 		ReentrantReadWriteLock lock = projectModel.getModel().getGraph().getLock();
 		final Spot auxSpot = projectModel.getModel().getGraph().vertexRef();
@@ -37,9 +39,11 @@ public class NonSenseDataGenerator {
 						if (time > 0) projectModel.getModel().getGraph().addEdge(prevSpot, auxSpot).init();
 						prevSpot.refTo(auxSpot);
 					}
-					System.out.println("added in total "+(numberOfTimepoints*(cnt+1))
-							+" spots and "+((numberOfTimepoints-1)*(cnt+1))+" links on "
-							+java.time.LocalTime.now());
+					if (cnt > reportFromRound && (cnt % reportEveryNthRound) == 0) {
+						System.out.println("added in total "+(numberOfTimepoints*(cnt+1))
+								+" spots and "+((numberOfTimepoints-1)*(cnt+1))+" links on "
+								+java.time.LocalTime.now());
+					}
 				}
 			} else {
 				//"horizontally", no-linking
@@ -50,8 +54,10 @@ public class NonSenseDataGenerator {
 						coords[1] = 100.0 * Math.sin(6.28 * (double)cnt / (double)numberOfSpotsPerTimepoint);
 						projectModel.getModel().getGraph().addVertex(auxSpot).init(time, coords, 0.87);
 					}
-					System.out.println("added in total "+(numberOfSpotsPerTimepoint*(time+1))
-							+" spots and on "+java.time.LocalTime.now());
+					if (time > reportFromRound && (time % reportEveryNthRound) == 0) {
+						System.out.println("added in total "+(numberOfSpotsPerTimepoint*(time+1))
+								+" spots and on "+java.time.LocalTime.now());
+					}
 				}
 			}
 
