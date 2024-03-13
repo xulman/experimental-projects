@@ -187,9 +187,9 @@ public class Simulator {
 	}
 
 	final double[] coords = new double[3];
-	final double[] sum_x = new double[2000];
-	final double[] sum_y = new double[2000];
-	final double[] sum_z = new double[2000];
+	final double[] sum_x = new double[5000];
+	final double[] sum_y = new double[5000];
+	final double[] sum_z = new double[5000];
 	Spot auxSpot = null;
 
 	public void pushToMastodonGraph() {
