@@ -46,7 +46,7 @@ public class Runner implements Runnable {
 			if (spots.size() > 0) {
 				System.out.println("Found last non-empty time point "+time);
 				this.timeFrom = time+1;
-				this.timeTill = Math.min(time+timepoints-1, projectModel.getMaxTimepoint());
+				this.timeTill = Math.min(timeFrom+timepoints-1, projectModel.getMaxTimepoint());
 				return;
 			}
 		}
