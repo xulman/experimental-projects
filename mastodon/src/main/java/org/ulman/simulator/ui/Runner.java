@@ -119,6 +119,7 @@ public class Runner implements Runnable {
 			if (Simulator.MASTODON_CENTER_SPOT) s.pushCenterSpotsToMastodonGraph(timeFrom, timeTill);
 		} catch (Exception e) {
 			System.out.println("SIMULATION ERROR: "+e.getMessage());
+			e.printStackTrace();
 		} finally {
 			if (pb != null) pb.close();
 			s.close();
