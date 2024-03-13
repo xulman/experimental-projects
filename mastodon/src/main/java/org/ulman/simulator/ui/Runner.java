@@ -97,7 +97,8 @@ public class Runner implements Runnable {
 			s.pushToMastodonGraph();
 
 			int time = timeFrom+1;
-			if (outputProjectFilename == null) {
+			if (outputProjectFilename == null && time < timeTill) {
+				//NB: doesn't make sense to show progress bar when zero time points are to be simulated
 				pb = new ProgressBar(time, timeTill, "Current time point: "+time);
 			}
 			while (time <= timeTill) {
