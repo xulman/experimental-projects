@@ -1,4 +1,4 @@
-package org.ulman.simulator.ui;
+package org.ulman.simulator;
 
 import org.mastodon.mamut.ProjectModel;
 import org.mastodon.mamut.model.ModelGraph;
