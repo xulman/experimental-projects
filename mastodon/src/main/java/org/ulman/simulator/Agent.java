@@ -58,14 +58,17 @@ public class Agent {
 		return mostRecentMastodonSpotRepre;
 	}
 	public void setMostRecentMastodonSpotRepre(final Spot initToThis) {
+		if (initToThis == null) return;
 		if (mostRecentMastodonSpotRepre == null) {
 			mostRecentMastodonSpotRepre = initToThis.getModelGraph().vertexRef();
 		}
 		mostRecentMastodonSpotRepre.refTo(initToThis);
 	}
 	private void releaseMostRecentMastodonSpotRepre() {
-		mostRecentMastodonSpotRepre.getModelGraph().releaseRef( mostRecentMastodonSpotRepre );
-		mostRecentMastodonSpotRepre = null;
+		if (mostRecentMastodonSpotRepre != null) {
+			mostRecentMastodonSpotRepre.getModelGraph().releaseRef( mostRecentMastodonSpotRepre );
+			mostRecentMastodonSpotRepre = null;
+		}
 	}
 
 	//one generator for all agents
