@@ -193,6 +193,7 @@ public class Simulator {
 	Spot auxSpot = null;
 
 	public void pushToMastodonGraph() {
+		System.out.println("========== SIM: publishing to Mastodon " + agentsContainer.size() + " agents");
 		sum_x[time] = 0;
 		sum_y[time] = 0;
 		sum_z[time] = 0;
@@ -269,6 +270,8 @@ public class Simulator {
 			this.registerAgent(agent);
 		}
 		this.commitNewAndDeadAgents();
+		System.out.println("========== SIM: initiated at time point " + timePoint
+				+ " with " + agentsContainer.size() + " agents");
 	}
 
 	public void populate(final ProjectModel projectModel, final int timePoint) {
@@ -281,6 +284,8 @@ public class Simulator {
 			this.registerAgent(agent);
 		}
 		this.commitNewAndDeadAgents();
+		System.out.println("========== SIM: initiated at time point " + timePoint
+				+ " with " + agentsContainer.size() + " agents");
 	}
 
 	class ModelGraphListeners extends ModelGraph {
