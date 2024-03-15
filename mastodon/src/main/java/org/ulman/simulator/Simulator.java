@@ -11,6 +11,8 @@ import org.mastodon.spatial.SpatialIndex;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.LinkedHashMap;
 import java.util.Random;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -101,7 +103,7 @@ public class Simulator {
 	private int assignedIds = 0;
 	private int time = 0;
 	private long spotsInTotal = 0;
-	private final List<Agent> agentsContainer = new ArrayList<>(5000000);
+	private final Map<Integer,Agent> agentsContainer = new LinkedHashMap<>(5000000);
 	private final List<Agent> newAgentsContainer = new ArrayList<>(2000000);
 	private final List<Agent> deadAgentsContainer = new ArrayList<>(2000000);
 
@@ -137,8 +139,8 @@ public class Simulator {
 
 	public void commitNewAndDeadAgents() {
 		final int expectedSize = agentsContainer.size() - deadAgentsContainer.size() + newAgentsContainer.size();
-		agentsContainer.removeAll(deadAgentsContainer);
-		agentsContainer.addAll(newAgentsContainer);
+		deadAgentsContainer.forEach(a -> agentsContainer.remove(a.getId(),a));
+		newAgentsContainer.forEach(a -> agentsContainer.put(a.getId(),a));
 		if (agentsContainer.size() != expectedSize) {
 			System.out.println("========== SIM: ERROR with updating the main lists of agents");
 		}
@@ -181,8 +183,8 @@ public class Simulator {
 				+ " from " + agentsContainer.size() + " agents ("
 				+ spotsInTotal + " in total, time is "
 				+ java.time.LocalTime.now() + ")");
-		agentsContainer.parallelStream().forEach(s -> s.progress(time));
-		agentsContainer.parallelStream().forEach(Agent::progressFinish);
+		agentsContainer.values().parallelStream().forEach(s -> s.progress(time));
+		agentsContainer.values().parallelStream().forEach(Agent::progressFinish);
 		commitNewAndDeadAgents();
 	}
 
@@ -198,7 +200,7 @@ public class Simulator {
 		sum_y[time] = 0;
 		sum_z[time] = 0;
 
-		agentsContainer.forEach( agent -> {
+		agentsContainer.values().forEach( agent -> {
 			coords[0] = agent.getX();
 			coords[1] = agent.getY();
 			coords[2] = agent.getZ();
