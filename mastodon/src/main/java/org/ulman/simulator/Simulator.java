@@ -175,6 +175,7 @@ public class Simulator {
 	}
 
 	public void doOneTime() {
+		System.out.println("========== SIM: clearing out...");
 		newAgentsContainer.clear();
 		deadAgentsContainer.clear();
 
@@ -184,7 +185,9 @@ public class Simulator {
 				+ spotsInTotal + " in total, time is "
 				+ java.time.LocalTime.now() + ")");
 		agentsContainer.values().parallelStream().forEach(s -> s.progress(time));
+		System.out.println("========== SIM: going for progressFinish...");
 		agentsContainer.values().parallelStream().forEach(Agent::progressFinish);
+		System.out.println("========== SIM: going to commitNewAndDeadAgents...");
 		commitNewAndDeadAgents();
 	}
 
