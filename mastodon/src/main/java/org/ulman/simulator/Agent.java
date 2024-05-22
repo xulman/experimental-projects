@@ -167,15 +167,17 @@ public class Agent {
 
 
 	// ============= "internal" API =============
-	final double[] nearbyCoordinates = new double[300];
+	//100-times: x,y,z,R
+	final double[] nearbySpheres = new double[400];
 	final int nearbySpheresStride = 4;
 
 	protected void doOneTime(boolean fromCurrentPos) {
 		final double oldX = fromCurrentPos ? this.x : this.nextX;
 		final double oldY = fromCurrentPos ? this.y : this.nextY;
 		final double oldZ = fromCurrentPos ? this.z : this.nextZ;
+		final double oldR = fromCurrentPos ? this.R : this.nextR;
 
-		final int neighborsMaxIdx = simulatorFrame.getListOfOccupiedCoords(this, interestRadius, nearbyCoordinates);
+		final int neighborsMaxIdx = simulatorFrame.getListOfOccupiedCoords(this, interestRadius, nearbySpheres);
 		final int neighborsCnt = neighborsMaxIdx / nearbySpheresStride;
 
 		if (Simulator.VERBOSE_AGENT_DEBUG) {
@@ -184,7 +186,6 @@ public class Agent {
 			System.out.println("  neighs cnt: " + neighborsCnt);
 		}
 
-		final double minDistanceSquared = minDistanceToNeighbor * minDistanceToNeighbor;
 		double dispX = 0,dispY = 0,dispZ = 0;
 		double newX = 0,newY = 0,newZ = 0;
 
@@ -215,11 +216,11 @@ public class Agent {
 
 			tooClose = false;
 			for (int off = 0; off < neighborsMaxIdx; off += nearbySpheresStride) {
-				double dx = nearbyCoordinates[off+0] - newX;
-				double dy = nearbyCoordinates[off+1] - newY;
-				double dz = nearbyCoordinates[off+2] - newZ;
-				double dist = dx * dx + dy * dy + dz * dz;
-				if (dist < minDistanceSquared) {
+				double dx = nearbySpheres[off+0] - newX;
+				double dy = nearbySpheres[off+1] - newY;
+				double dz = nearbySpheres[off+2] - newZ;
+				double dist = Math.sqrt(dx*dx + dy*dy + dz*dz) - oldR - nearbySpheres[off+3];
+				if (dist < minDistanceToNeighbor) {
 					tooClose = true;
 					break;
 				}
