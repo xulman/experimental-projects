@@ -146,32 +146,38 @@ public class Simulator {
 	}
 
 
-	/** returns how many coordinates it has put into the array 'nearbyCoordinates', and
-	 *  returns the actual last offset (so divide by three to learn how many neighbors are there */
-	int getListOfOccupiedCoords(Agent fromThisSpot, final double searchDistance, final double[] nearbyCoordinates) {
+	/** returns how many coordinates it has put into the array 'nearbySpheres', and
+	 *  returns the actual last offset (so divide by four to learn how many neighbors are there) */
+	int getListOfOccupiedCoords(final Agent fromThisAgent, final double searchDistance, final double[] nearbySpheres) {
 		//do no searching if the agent actually doesn't care...
 		if (searchDistance == 0) return 0;
+		final double radiusPlusSearchDistance = fromThisAgent.getR() + searchDistance;
 
 		//NB: should exist since this method is always called after this.pushToMastodonGraph()
-		final Spot thisSpot = fromThisSpot.getMostRecentMastodonSpotRepre();
+		final Spot thisSpot = fromThisAgent.getMostRecentMastodonSpotRepre();
 		final SpatialIndex< Spot > spatialIndex
 				= projectModel.getModel().getSpatioTemporalIndex().getSpatialIndex( thisSpot.getTimepoint() );
 		final IncrementalNearestNeighborSearch< Spot > search = spatialIndex.getIncrementalNearestNeighborSearch();
 
 		search.search( thisSpot );
 		int off = 0;
-		while ( search.hasNext() && off < nearbyCoordinates.length )
+		while ( search.hasNext() && off < nearbySpheres.length )
 		{
-			Spot neighbor = search.next();
-			if (neighbor.equals(thisSpot)) continue;
-			if (Util.distance(thisSpot,neighbor) > searchDistance) break;
+			final Spot neighborSpot = search.next();
+			if (neighborSpot.equals(thisSpot)) continue;
 
-			nearbyCoordinates[off++] = neighbor.getDoublePosition(0);
-			nearbyCoordinates[off++] = neighbor.getDoublePosition(1);
-			nearbyCoordinates[off++] = neighbor.getDoublePosition(2);
+			final double neighborSpotR = Math.sqrt(neighborSpot.getBoundingSphereRadiusSquared());
+			if ( Util.distance(thisSpot,neighborSpot) >
+					(radiusPlusSearchDistance+neighborSpotR) ) break;
+
+			nearbySpheres[off++] = neighborSpot.getDoublePosition(0);
+			nearbySpheres[off++] = neighborSpot.getDoublePosition(1);
+			nearbySpheres[off++] = neighborSpot.getDoublePosition(2);
+			nearbySpheres[off++] = neighborSpotR;
 		}
 		return off;
 	}
+
 
 	public void doOneTime() {
 		System.out.println("========== SIM: clearing out...");

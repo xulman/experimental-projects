@@ -29,12 +29,13 @@ public class Agent {
 
 	// ============= geometry (shape and position) =============
 	private int t;
-	private double x,y,z;
-	private double nextX,nextY,nextZ;
+	private double x,y,z,R;
+	private double nextX,nextY,nextZ,nextR;
 
 	public double getX() { return x; }
 	public double getY() { return y; }
 	public double getZ() { return z; }
+	public double getR() { return R; }
 
 
 	// ============= agents behaviour aka simulation parameters =============
@@ -167,6 +168,7 @@ public class Agent {
 
 	// ============= "internal" API =============
 	final double[] nearbyCoordinates = new double[300];
+	final int nearbySpheresStride = 4;
 
 	protected void doOneTime(boolean fromCurrentPos) {
 		final double oldX = fromCurrentPos ? this.x : this.nextX;
@@ -174,7 +176,7 @@ public class Agent {
 		final double oldZ = fromCurrentPos ? this.z : this.nextZ;
 
 		final int neighborsMaxIdx = simulatorFrame.getListOfOccupiedCoords(this, interestRadius, nearbyCoordinates);
-		final int neighborsCnt = neighborsMaxIdx / 3;
+		final int neighborsCnt = neighborsMaxIdx / nearbySpheresStride;
 
 		if (Simulator.VERBOSE_AGENT_DEBUG) {
 			System.out.printf("advancing agent id %d (%s):%n", this.id, this.name);
@@ -212,7 +214,7 @@ public class Agent {
 			newZ = oldZ + dispZ;
 
 			tooClose = false;
-			for (int off = 0; off < neighborsMaxIdx; off += 3) {
+			for (int off = 0; off < neighborsMaxIdx; off += nearbySpheresStride) {
 				double dx = nearbyCoordinates[off+0] - newX;
 				double dy = nearbyCoordinates[off+1] - newY;
 				double dz = nearbyCoordinates[off+2] - newZ;
