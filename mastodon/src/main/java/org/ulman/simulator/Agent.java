@@ -7,6 +7,7 @@ import java.util.*;
 public class Agent {
 	private final Simulator simulatorFrame;
 
+	// ============= names and IDs (incl. parentID) =============
 	private final String nameClean;
 	private final String nameBlocked;
 	private final String nameWantDivide;
@@ -25,6 +26,8 @@ public class Agent {
 
 	private final int parentId;
 
+
+	// ============= geometry (shape and position) =============
 	private int t;
 	private double x,y,z;
 	private double nextX,nextY,nextZ;
@@ -34,6 +37,8 @@ public class Agent {
 	public double getY() { return y; }
 	public double getZ() { return z; }
 
+
+	// ============= agents behaviour aka simulation parameters =============
 	private final double usualStepSize = Simulator.AGENT_USUAL_STEP_SIZE;
 	private final double minDistanceToNeighbor = Simulator.AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT;
 	private final double daughtersInitialDisplacement = Simulator.AGENT_DAUGHTERS_INITIAL_DISTANCE;
@@ -42,6 +47,13 @@ public class Agent {
 	private final int dontLiveBeyond;
 	private final int maxNeighborsForDivide = Simulator.AGENT_MAX_DENSITY_TO_ENABLE_DIVISION;
 
+	//one generator for all agents
+	static private final Random lifeSpanRndGenerator = new Random();
+	//per-agent generator of its own movements
+	private final Random moveRndGenerator = new Random();
+
+
+	// ============= reporting =============
 	private final List<String> reportLog = new ArrayList<>(100);
 	public List<String> getReportLog() {
 		return reportLog;
@@ -50,6 +62,8 @@ public class Agent {
 		reportLog.add(String.format("%d\t%f\t%f\t%f\t%d\t%d\t%s", this.t, this.x, this.y, this.z, this.id, this.parentId, this.name));
 	}
 
+
+	// ============= interaction with Mastodon =============
 	private Spot mostRecentMastodonSpotRepre = null;
 	public boolean isMostRecentMastodonSpotValid() {
 		return mostRecentMastodonSpotRepre != null;
@@ -71,11 +85,8 @@ public class Agent {
 		}
 	}
 
-	//one generator for all agents
-	static private final Random lifeSpanRndGenerator = new Random();
-	//per-agent generator of its own movements
-	private final Random moveRndGenerator = new Random();
 
+	// ============= "external" API =============
 	public Agent(Simulator simulator,
 	             int ID, int parentID, String label,
 	             double x, double y, double z, int time) {
@@ -150,9 +161,11 @@ public class Agent {
 		if (Simulator.COLLECT_INTERNAL_DATA) this.reportStatus();
 	}
 
+
+	// ============= "internal" API =============
 	final double[] nearbyCoordinates = new double[300];
 
-	public void doOneTime(boolean fromCurrentPos) {
+	protected void doOneTime(boolean fromCurrentPos) {
 		final double oldX = fromCurrentPos ? this.x : this.nextX;
 		final double oldY = fromCurrentPos ? this.y : this.nextY;
 		final double oldZ = fromCurrentPos ? this.z : this.nextZ;
@@ -251,7 +264,7 @@ public class Agent {
 		}
 	}
 
-	public void divideMe() {
+	protected void divideMe() {
 		final int d1Id = simulatorFrame.getNewId();
 		final int d2Id = simulatorFrame.getNewId();
 		final String d1Name = name + "a";
