@@ -31,7 +31,6 @@ public class Agent {
 	private int t;
 	private double x,y,z;
 	private double nextX,nextY,nextZ;
-	private final double interestRadius = Simulator.AGENT_SEARCH_RADIUS;
 
 	public double getX() { return x; }
 	public double getY() { return y; }
@@ -39,8 +38,12 @@ public class Agent {
 
 
 	// ============= agents behaviour aka simulation parameters =============
-	private final double usualStepSize = Simulator.AGENT_USUAL_STEP_SIZE;
+	//this is the distance _outside_ the agent's outer boundary
+	//that the agent cares about (where it looks for another agents)
+	private final double interestRadius = Simulator.AGENT_SEARCH_RADIUS;
+
 	private final double minDistanceToNeighbor = Simulator.AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT;
+	private final double usualStepSize = Simulator.AGENT_USUAL_STEP_SIZE;
 	private final double daughtersInitialDisplacement = Simulator.AGENT_DAUGHTERS_INITIAL_DISTANCE;
 
 	private final int dontDivideBefore;
