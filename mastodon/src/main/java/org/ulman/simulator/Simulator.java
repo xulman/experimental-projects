@@ -4,8 +4,10 @@ import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.util.Util;
 import org.mastodon.kdtree.IncrementalNearestNeighborSearch;
 import org.mastodon.mamut.ProjectModel;
+import org.mastodon.mamut.model.Link;
 import org.mastodon.mamut.model.ModelGraph;
 import org.mastodon.mamut.model.Spot;
+import org.mastodon.model.SelectionModel;
 import org.mastodon.spatial.SpatialIndex;
 
 import java.util.Iterator;
@@ -285,6 +287,7 @@ public class Simulator {
 	}
 
 	public void populate(final ProjectModel projectModel, final int timePoint) {
+		final SelectionModel<Spot,Link> currentSpotSelection = projectModel.getSelectionModel();
 		this.time = timePoint;
 		for (Spot s : projectModel.getModel().getSpatioTemporalIndex().getSpatialIndex(timePoint-1)) {
 			if (s.getLabel().equals(Simulator.MASTODON_CENTER_SPOT_NAME)) continue;
@@ -293,6 +296,7 @@ public class Simulator {
 					Math.sqrt(s.getBoundingSphereRadiusSquared()), this.time);
 			agent.setMostRecentMastodonSpotRepre(s);
 			this.registerAgent(agent);
+			if (!currentSpotSelection.isEmpty() && !currentSpotSelection.isSelected(s)) agent.setFrozen(true);
 		}
 		this.commitNewAndDeadAgents();
 		System.out.println("========== SIM: initiated at time point " + timePoint
