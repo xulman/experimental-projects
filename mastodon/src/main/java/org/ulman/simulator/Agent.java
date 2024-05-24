@@ -229,29 +229,28 @@ public class Agent {
 		//NB: if 'step' is a distance along one axis, the total length in the space is sqrt(spaceDim)-times larger
 		final double stepSizeDimensionalityCompensation = Simulator.AGENT_DO_2D_MOVES_ONLY ? 1.41 : 1.73;
 		final double stepSize = usualStepSize / stepSizeDimensionalityCompensation;
+		double slowDownFactor = 1.0;
+		final double sumOfWeights_heavyCollisionThreshold = 0.7;
 
-		int doneAttempts = 0;
+		int moveAttemptsCnt = 0;
 		boolean tooClose = true;
-		while (doneAttempts < Simulator.AGENT_NUMBER_OF_ATTEMPTS_TO_MAKE_A_MOVE && tooClose) {
-			doneAttempts += 1;
+		while (moveAttemptsCnt < Simulator.AGENT_NUMBER_OF_ATTEMPTS_TO_MAKE_A_MOVE && tooClose) {
+			slowDownFactor = 1.0 - (
+					(double)moveAttemptsCnt / (double)Simulator.AGENT_NUMBER_OF_ATTEMPTS_TO_MAKE_A_MOVE );
+			//if, however, there is "a lot of 'collision'", we additionally
+			//lower the contribution of the random step
+			if (sumOfWeights > sumOfWeights_heavyCollisionThreshold) slowDownFactor *= 0.5;
+			moveAttemptsCnt += 1;
 
-			boolean isOdd = (doneAttempts & 1) == 1;
-			//TODO: random step attenuated by the doneAttempts number.. like "/(double)doneAttempts",
-			//      and no "isOdd", and integrate dispAwayXs
-			if (isOdd) {
-				dispX = moveRndGenerator.nextGaussian() * stepSize;
-				dispY = moveRndGenerator.nextGaussian() * stepSize;
-				dispZ = moveRndGenerator.nextGaussian() * stepSize;
-			} else {
-				dispX /= 2.0;
-				dispY /= 2.0;
-				dispZ /= 2.0;
-			}
+			//the random step is attenuated increasingly more with the increasing moveAttemptsCnt
+			dispX = moveRndGenerator.nextGaussian() * stepSize * slowDownFactor;
+			dispY = moveRndGenerator.nextGaussian() * stepSize * slowDownFactor;
+			dispZ = moveRndGenerator.nextGaussian() * stepSize * slowDownFactor;
 			if (Simulator.AGENT_DO_2D_MOVES_ONLY) dispZ = 0.0;
 
-			newX = oldX + dispX;
-			newY = oldY + dispY;
-			newZ = oldZ + dispZ;
+			newX = oldX + dispX + dispAwayX;
+			newY = oldY + dispY + dispAwayY;
+			newZ = oldZ + dispZ + dispAwayZ;
 
 			tooClose = false;
 			for (int off = 0; off < neighborsMaxIdx; off += nearbySpheresStride) {
@@ -266,7 +265,10 @@ public class Agent {
 			}
 
 			if (Simulator.VERBOSE_AGENT_DEBUG) {
-				System.out.printf("  displacement = (%f,%f), isOdd=%b%n", dispX, dispY, isOdd);
+				System.out.printf("  random displacement = (%f,%f,%f), slowDownFactor = %f%n",
+						dispX, dispY, dispZ, slowDownFactor);
+				System.out.printf("   away  displacement = (%f,%f,%f), heavy collision = %b, sumOfWeights=%f%n",
+						dispAwayX, dispAwayY, dispAwayZ, sumOfWeights > sumOfWeights_heavyCollisionThreshold, sumOfWeights);
 				System.out.printf("  trying pos [%f,%f,%f], too_close=%b%n", newX, newY, newZ, tooClose);
 			}
 		}
@@ -285,7 +287,7 @@ public class Agent {
 		this.t += 1;
 
 		if (Simulator.VERBOSE_AGENT_DEBUG) {
-			System.out.printf("  established coords [%f,%f,%f] (required %d attempts)%n", this.nextX, this.nextY, this.nextZ, doneAttempts);
+			System.out.printf("  established coords [%f,%f,%f] (required %d attempts)%n", this.nextX, this.nextY, this.nextZ, moveAttemptsCnt);
 			System.out.printf("  when %d neighbors around, too_close=%b%n", neighborsCnt, tooClose);
 		}
 
