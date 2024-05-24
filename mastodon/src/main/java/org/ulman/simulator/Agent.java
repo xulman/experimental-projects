@@ -325,16 +325,19 @@ public class Agent {
 		final String d1Name = name + "a";
 		final String d2Name = name + "b";
 
-		double dz = moveRndGenerator.nextDouble();
-		final double stepSize = Simulator.AGENT_DO_2D_MOVES_ONLY ?
-				daughtersInitialDisplacement : (daughtersInitialDisplacement / Math.sqrt(1 + dz*dz));
-
 		double azimuth = Math.atan2(nextY-y, nextX-x);
 		azimuth += Math.PI / 2.0;
 		azimuth += moveRndGenerator.nextGaussian() * Simulator.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE / 3.0;
-		double dx = stepSize * Math.cos(azimuth);
-		double dy = stepSize * Math.sin(azimuth);
-		dz = Simulator.AGENT_DO_2D_MOVES_ONLY ? 0.0 : (dz*stepSize);
+		double dx = Math.cos(azimuth);
+		double dy = Math.sin(azimuth);
+		double dz = 0;
+		if (!Simulator.AGENT_DO_2D_MOVES_ONLY) {
+			dz = moveRndGenerator.nextDouble();
+		}
+		final double stepSize = (0.5*daughtersInitialDisplacement + nextR) / Math.sqrt(dx*dx + dy*dy + dz*dz);
+		dx *= stepSize;
+		dy *= stepSize;
+		dz *= stepSize;
 
 		Agent d1 = new Agent(simulatorFrame, d1Id, id, d1Name, nextX-dx, nextY-dy, nextZ-dz, nextR, t + 1);
 		Agent d2 = new Agent(simulatorFrame, d2Id, id, d2Name, nextX+dx, nextY+dy, nextZ+dz, nextR, t + 1);
