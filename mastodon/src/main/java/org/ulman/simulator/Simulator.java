@@ -27,9 +27,9 @@ public class Simulator {
 	/** Prints relative little reports about what the simulation framework was asked to do. */
 	public static boolean VERBOSE_SIMULATOR_DEBUG = false;
 
-	/** How far around shall an agent look for "nearby" agents to consider them for overlaps. */
-	public static double AGENT_SEARCH_RADIUS = 4.2;
-	/** How close two agents can come before they are considered overlapping. */
+	/** How far around shall an agent look for "nearby" agents to consider their positions for its own development. */
+	public static double AGENT_LOOK_AROUND_DISTANCE = 4.2;
+	/** How close two agents can come before they start repelling each other. */
 	public static double AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT = 3.2;
 	/** How far an agent can move between time points. */
 	public static double AGENT_USUAL_STEP_SIZE = 1.0;
@@ -43,7 +43,7 @@ public class Simulator {
 	/** Hard limit on the life span of an agent (cell). The cell dies, is removed from the simulation,
 	 *  whenever it's life exceeded this value. */
 	public static int AGENT_MAX_LIFESPAN_AND_DIES_AFTER = 30;
-	/** The maximum number of neighbors (within the {@link Simulator#AGENT_SEARCH_RADIUS} distance)
+	/** The maximum number of neighbors (within the {@link Simulator#AGENT_LOOK_AROUND_DISTANCE} distance)
 	 *  tolerated for a division to occur; if more neighbors are around, the system believes the space
 	 *  is too condensed and doesn't permit agents (cells) to divide. */
 	public static int AGENT_MAX_DENSITY_TO_ENABLE_DIVISION = 2;
@@ -67,7 +67,7 @@ public class Simulator {
 		COLLECT_INTERNAL_DATA = c.COLLECT_INTERNAL_DATA;
 		VERBOSE_AGENT_DEBUG = c.VERBOSE_AGENT_DEBUG;
 		VERBOSE_SIMULATOR_DEBUG = c.VERBOSE_SIMULATOR_DEBUG;
-		AGENT_SEARCH_RADIUS = c.AGENT_SEARCH_RADIUS;
+		AGENT_LOOK_AROUND_DISTANCE = c.AGENT_LOOK_AROUND_DISTANCE;
 		AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT = c.AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT;
 		AGENT_USUAL_STEP_SIZE = c.AGENT_USUAL_STEP_SIZE;
 		AGENT_NUMBER_OF_ATTEMPTS_TO_MAKE_A_MOVE = c.AGENT_NUMBER_OF_ATTEMPTS_TO_MAKE_A_MOVE;
@@ -84,7 +84,7 @@ public class Simulator {
 	@Override
 	public String toString() {
 		return "Simulation parameters:\n" + "  LABELS_NAMING_POLICY: " + LABELS_NAMING_POLICY +
-				"\n  AGENT_SEARCH_RADIUS: " + AGENT_SEARCH_RADIUS +
+				"\n  AGENT_LOOK_AROUND_DISTANCE: " + AGENT_LOOK_AROUND_DISTANCE +
 				"\n  AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT: " + AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT +
 				"\n  AGENT_USUAL_STEP_SIZE: " + AGENT_USUAL_STEP_SIZE +
 				"\n  AGENT_NUMBER_OF_ATTEMPTS_TO_MAKE_A_MOVE: " + AGENT_NUMBER_OF_ATTEMPTS_TO_MAKE_A_MOVE +

@@ -41,7 +41,7 @@ public class Agent {
 	// ============= agents behaviour aka simulation parameters =============
 	//this is the distance _outside_ the agent's outer boundary
 	//that the agent cares about (where it looks for another agents)
-	private final double interestRadius = Simulator.AGENT_SEARCH_RADIUS;
+	private final double lookAroundRadius = Simulator.AGENT_LOOK_AROUND_DISTANCE;
 
 	private final double minDistanceToNeighbor = Simulator.AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT;
 	private final double usualStepSize = Simulator.AGENT_USUAL_STEP_SIZE;
@@ -180,7 +180,7 @@ public class Agent {
 		final double oldZ = fromCurrentPos ? this.z : this.nextZ;
 		final double oldR = fromCurrentPos ? this.R : this.nextR;
 
-		final int neighborsMaxIdx = simulatorFrame.getListOfOccupiedCoords(this, interestRadius, nearbySpheres);
+		final int neighborsMaxIdx = simulatorFrame.getListOfOccupiedCoords(this, lookAroundRadius, nearbySpheres);
 		final int neighborsCnt = neighborsMaxIdx / nearbySpheresStride;
 
 		if (Simulator.VERBOSE_AGENT_DEBUG) {
