@@ -41,7 +41,7 @@ public class Agent {
 	// ============= agents behaviour aka simulation parameters =============
 	//this is the distance _outside_ the agent's outer boundary
 	//that the agent cares about (where it looks for another agents)
-	private final double interestRadius = Simulator.AGENT_SEARCH_RADIUS;
+	private final double lookAroundRadius = Simulator.AGENT_LOOK_AROUND_DISTANCE;
 
 	private final double minDistanceToNeighbor = Simulator.AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT;
 	private final double usualStepSize = Simulator.AGENT_USUAL_STEP_SIZE;
@@ -180,7 +180,7 @@ public class Agent {
 		final double oldZ = fromCurrentPos ? this.z : this.nextZ;
 		final double oldR = fromCurrentPos ? this.R : this.nextR;
 
-		final int neighborsMaxIdx = simulatorFrame.getListOfOccupiedCoords(this, interestRadius, nearbySpheres);
+		final int neighborsMaxIdx = simulatorFrame.getListOfOccupiedCoords(this, lookAroundRadius, nearbySpheres);
 		final int neighborsCnt = neighborsMaxIdx / nearbySpheresStride;
 
 		if (Simulator.VERBOSE_AGENT_DEBUG) {
@@ -192,30 +192,65 @@ public class Agent {
 		double dispX = 0,dispY = 0,dispZ = 0;
 		double newX = 0,newY = 0,newZ = 0;
 
-		//NB: if 'step' is a distance alone one axis, the total length in the space is sqrt(spaceDim)-times larger
+		//calculate displacement step that finds "dominant" way to get away from the nearby agents
+		double dispAwayX = 0,dispAwayY = 0,dispAwayZ = 0;
+		double sumOfWeights = 0;
+		for (int off = 0; off < neighborsMaxIdx; off += nearbySpheresStride) {
+			double dx = oldX - nearbySpheres[off+0];
+			double dy = oldY - nearbySpheres[off+1];
+			double dz = oldZ - nearbySpheres[off+2];
+			double dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+			dx /= dist; dy /= dist; dz /= dist;  //displacement vector is now normalized
+
+			dist -= oldR + nearbySpheres[off+3]; //the actual (surface) distance to the nearby agent
+			if (dist > minDistanceToNeighbor) continue; //too far to care...
+
+			//how much to move to get surfaces exactly "minDistance" far from each other
+			dist = minDistanceToNeighbor - dist;
+
+			dx *= 0.5 * dist; //displacement vector of the appropriate size
+			dy *= 0.5 * dist; //half is taken because the other agent will do the same move
+			dz *= 0.5 * dist;
+
+			dist = Math.min(dist,minDistanceToNeighbor); //NB: agents' overlap is not worse
+			                                             //than just touching surfaces
+			double weight = dist / minDistanceToNeighbor; //NB: [0:1] scale
+			weight *= weight;                             //quadratic -> longer moves get more attention
+
+			dispAwayX += weight * dx;
+			dispAwayY += weight * dy;
+			dispAwayZ += weight * dz;
+			sumOfWeights += weight;
+		}
+		dispAwayX /= sumOfWeights;
+		dispAwayY /= sumOfWeights;
+		dispAwayZ /= sumOfWeights;
+
+		//NB: if 'step' is a distance along one axis, the total length in the space is sqrt(spaceDim)-times larger
 		final double stepSizeDimensionalityCompensation = Simulator.AGENT_DO_2D_MOVES_ONLY ? 1.41 : 1.73;
 		final double stepSize = usualStepSize / stepSizeDimensionalityCompensation;
+		double slowDownFactor = 1.0;
+		final double sumOfWeights_heavyCollisionThreshold = 0.7;
 
-		int doneAttempts = 0;
+		int moveAttemptsCnt = 0;
 		boolean tooClose = true;
-		while (doneAttempts < Simulator.AGENT_NUMBER_OF_ATTEMPTS_TO_MAKE_A_MOVE && tooClose) {
-			doneAttempts += 1;
+		while (moveAttemptsCnt < Simulator.AGENT_NUMBER_OF_ATTEMPTS_TO_MAKE_A_MOVE && tooClose) {
+			slowDownFactor = 1.0 - (
+					(double)moveAttemptsCnt / (double)Simulator.AGENT_NUMBER_OF_ATTEMPTS_TO_MAKE_A_MOVE );
+			//if, however, there is "a lot of 'collision'", we additionally
+			//lower the contribution of the random step
+			if (sumOfWeights > sumOfWeights_heavyCollisionThreshold) slowDownFactor *= 0.5;
+			moveAttemptsCnt += 1;
 
-			boolean isOdd = (doneAttempts & 1) == 1;
-			if (isOdd) {
-				dispX = moveRndGenerator.nextGaussian() * stepSize;
-				dispY = moveRndGenerator.nextGaussian() * stepSize;
-				dispZ = moveRndGenerator.nextGaussian() * stepSize;
-			} else {
-				dispX /= 2.0;
-				dispY /= 2.0;
-				dispZ /= 2.0;
-			}
+			//the random step is attenuated increasingly more with the increasing moveAttemptsCnt
+			dispX = moveRndGenerator.nextGaussian() * stepSize * slowDownFactor;
+			dispY = moveRndGenerator.nextGaussian() * stepSize * slowDownFactor;
+			dispZ = moveRndGenerator.nextGaussian() * stepSize * slowDownFactor;
 			if (Simulator.AGENT_DO_2D_MOVES_ONLY) dispZ = 0.0;
 
-			newX = oldX + dispX;
-			newY = oldY + dispY;
-			newZ = oldZ + dispZ;
+			newX = oldX + dispX + dispAwayX;
+			newY = oldY + dispY + dispAwayY;
+			newZ = oldZ + dispZ + dispAwayZ;
 
 			tooClose = false;
 			for (int off = 0; off < neighborsMaxIdx; off += nearbySpheresStride) {
@@ -230,7 +265,10 @@ public class Agent {
 			}
 
 			if (Simulator.VERBOSE_AGENT_DEBUG) {
-				System.out.printf("  displacement = (%f,%f), isOdd=%b%n", dispX, dispY, isOdd);
+				System.out.printf("  random displacement = (%f,%f,%f), slowDownFactor = %f%n",
+						dispX, dispY, dispZ, slowDownFactor);
+				System.out.printf("   away  displacement = (%f,%f,%f), heavy collision = %b, sumOfWeights=%f%n",
+						dispAwayX, dispAwayY, dispAwayZ, sumOfWeights > sumOfWeights_heavyCollisionThreshold, sumOfWeights);
 				System.out.printf("  trying pos [%f,%f,%f], too_close=%b%n", newX, newY, newZ, tooClose);
 			}
 		}
@@ -249,7 +287,7 @@ public class Agent {
 		this.t += 1;
 
 		if (Simulator.VERBOSE_AGENT_DEBUG) {
-			System.out.printf("  established coords [%f,%f,%f] (required %d attempts)%n", this.nextX, this.nextY, this.nextZ, doneAttempts);
+			System.out.printf("  established coords [%f,%f,%f] (required %d attempts)%n", this.nextX, this.nextY, this.nextZ, moveAttemptsCnt);
 			System.out.printf("  when %d neighbors around, too_close=%b%n", neighborsCnt, tooClose);
 		}
 
@@ -279,8 +317,6 @@ public class Agent {
 		final String d1Name = name + "a";
 		final String d2Name = name + "b";
 
-		//NB: if 'step' is a distance alone one axis, the total length in the space is sqrt(spaceDim)-times larger
-		final double stepSizeDimensionalityCompensation = Simulator.AGENT_DO_2D_MOVES_ONLY ? (1.0/1.41) : (1.0/1.73);
 		double dz = moveRndGenerator.nextDouble();
 		final double stepSize = Simulator.AGENT_DO_2D_MOVES_ONLY ?
 				daughtersInitialDisplacement : (daughtersInitialDisplacement / Math.sqrt(1 + dz*dz));
