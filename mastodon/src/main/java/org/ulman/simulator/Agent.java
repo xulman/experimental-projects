@@ -12,6 +12,7 @@ public class Agent {
 	private final String nameBlocked;
 	private final String nameWantDivide;
 	private final String nameBlockedWantDivide;
+	private final String nameFrozen;
 	private String name;
 	public String getName() {
 		return name;
@@ -25,6 +26,18 @@ public class Agent {
 	}
 
 	private final int parentId;
+
+	private boolean isFrozen = false;
+	//
+	public boolean getFrozen() {
+		return isFrozen;
+	}
+	//
+	public void setFrozen(final boolean newFrozenState) {
+		isFrozen = newFrozenState;
+		if (isFrozen) this.name = this.nameFrozen;
+		//else: doOneTime() will reset the state...
+	}
 
 
 	// ============= geometry (shape and position) =============
@@ -103,6 +116,7 @@ public class Agent {
 			this.nameBlocked = ONE_AND_ONLY_NAME;
 			this.nameWantDivide = ONE_AND_ONLY_NAME;
 			this.nameBlockedWantDivide = ONE_AND_ONLY_NAME;
+			this.nameFrozen = ONE_AND_ONLY_NAME;
 			break;
 		case ENCODING_LABELS_AND_PREPENDING:
 			this.name = label;
@@ -110,6 +124,7 @@ public class Agent {
 			this.nameBlocked = "B_" + label;
 			this.nameWantDivide = "W_" + label;
 			this.nameBlockedWantDivide = "BW_" + label;
+			this.nameFrozen = "F_" + label;
 			break;
 		case ENCODING_LABELS_AND_APPENDING:
 			this.name = label;
@@ -117,6 +132,7 @@ public class Agent {
 			this.nameBlocked = label + "_B";
 			this.nameWantDivide = label + "_W";
 			this.nameBlockedWantDivide = label + "_BW";
+			this.nameFrozen = label + "_F";
 			break;
 		default: //NB: the same as ENCODING_LABELS
 			this.name = label;
@@ -124,6 +140,7 @@ public class Agent {
 			this.nameBlocked = label;
 			this.nameWantDivide = label;
 			this.nameBlockedWantDivide = label;
+			this.nameFrozen = label;
 		}
 
 		this.id = ID;
@@ -153,6 +170,12 @@ public class Agent {
 	}
 
 	public void progress(int tillThisTime) {
+		if (isFrozen) {
+			//emulates doOneTime() but actually don't move anything
+			this.t = tillThisTime;
+			return;
+		}
+
 		boolean firstGo = true;
 		while (this.t < tillThisTime) {
 			this.doOneTime(firstGo);
