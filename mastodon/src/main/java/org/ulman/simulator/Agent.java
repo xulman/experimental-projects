@@ -221,6 +221,10 @@ public class Agent {
 			dispAwayY += weight * dy;
 			dispAwayZ += weight * dz;
 			sumOfWeights += weight;
+
+			if (Simulator.VERBOSE_AGENT_DEBUG) {
+				System.out.printf("  detected away displacement = (%f,%f,%f) of weight = %f%n",dx,dy,dz,weight);
+			}
 		}
 		if (sumOfWeights > 0) {
 			dispAwayX /= sumOfWeights;
@@ -267,10 +271,10 @@ public class Agent {
 			}
 
 			if (Simulator.VERBOSE_AGENT_DEBUG) {
-				System.out.printf("  random displacement = (%f,%f,%f), slowDownFactor = %f%n",
-						dispX, dispY, dispZ, slowDownFactor);
-				System.out.printf("   away  displacement = (%f,%f,%f), heavy collision = %b, sumOfWeights=%f%n",
+				System.out.printf("  away   displacement = (%f,%f,%f), heavy collision = %b, sumOfWeights=%f%n",
 						dispAwayX, dispAwayY, dispAwayZ, sumOfWeights > sumOfWeights_heavyCollisionThreshold, sumOfWeights);
+				System.out.printf("  random displacement = (%f,%f,%f), toneDownFactor = %f%n",
+						dispX, dispY, dispZ, slowDownFactor);
 				System.out.printf("  trying pos [%f,%f,%f], too_close=%b%n", newX, newY, newZ, tooClose);
 			}
 		}
