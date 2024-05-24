@@ -192,7 +192,41 @@ public class Agent {
 		double dispX = 0,dispY = 0,dispZ = 0;
 		double newX = 0,newY = 0,newZ = 0;
 
-		//NB: if 'step' is a distance alone one axis, the total length in the space is sqrt(spaceDim)-times larger
+		//calculate displacement step that finds "dominant" way to get away from the nearby agents
+		double dispAwayX = 0,dispAwayY = 0,dispAwayZ = 0;
+		double sumOfWeights = 0;
+		for (int off = 0; off < neighborsMaxIdx; off += nearbySpheresStride) {
+			double dx = oldX - nearbySpheres[off+0];
+			double dy = oldY - nearbySpheres[off+1];
+			double dz = oldZ - nearbySpheres[off+2];
+			double dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+			dx /= dist; dy /= dist; dz /= dist;  //displacement vector is now normalized
+
+			dist -= oldR + nearbySpheres[off+3]; //the actual (surface) distance to the nearby agent
+			if (dist > minDistanceToNeighbor) continue; //too far to care...
+
+			//how much to move to get surfaces exactly "minDistance" far from each other
+			dist = minDistanceToNeighbor - dist;
+
+			dx *= 0.5 * dist; //displacement vector of the appropriate size
+			dy *= 0.5 * dist; //half is taken because the other agent will do the same move
+			dz *= 0.5 * dist;
+
+			dist = Math.min(dist,minDistanceToNeighbor); //NB: agents' overlap is not worse
+			                                             //than just touching surfaces
+			double weight = dist / minDistanceToNeighbor; //NB: [0:1] scale
+			weight *= weight;                             //quadratic -> longer moves get more attention
+
+			dispAwayX += weight * dx;
+			dispAwayY += weight * dy;
+			dispAwayZ += weight * dz;
+			sumOfWeights += weight;
+		}
+		dispAwayX /= sumOfWeights;
+		dispAwayY /= sumOfWeights;
+		dispAwayZ /= sumOfWeights;
+
+		//NB: if 'step' is a distance along one axis, the total length in the space is sqrt(spaceDim)-times larger
 		final double stepSizeDimensionalityCompensation = Simulator.AGENT_DO_2D_MOVES_ONLY ? 1.41 : 1.73;
 		final double stepSize = usualStepSize / stepSizeDimensionalityCompensation;
 
@@ -202,6 +236,8 @@ public class Agent {
 			doneAttempts += 1;
 
 			boolean isOdd = (doneAttempts & 1) == 1;
+			//TODO: random step attenuated by the doneAttempts number.. like "/(double)doneAttempts",
+			//      and no "isOdd", and integrate dispAwayXs
 			if (isOdd) {
 				dispX = moveRndGenerator.nextGaussian() * stepSize;
 				dispY = moveRndGenerator.nextGaussian() * stepSize;
