@@ -93,7 +93,7 @@ public class Agent {
 	// ============= "external" API =============
 	public Agent(Simulator simulator,
 	             int ID, int parentID, String label,
-	             double x, double y, double z, int time) {
+	             double x, double y, double z, double radius, int time) {
 		this.simulatorFrame = simulator;
 
 		switch (Simulator.LABELS_NAMING_POLICY) {
@@ -132,9 +132,11 @@ public class Agent {
 		this.x = x;
 		this.y = y;
 		this.z = z;
+		this.R = radius;
 		this.nextX = x;
 		this.nextY = y;
 		this.nextZ = z;
+		this.nextR = radius;
 
 		double meanLifePeriod = Simulator.AGENT_AVERAGE_LIFESPAN_BEFORE_DIVISION;
 		double sigma = (0.6 * meanLifePeriod) / 3.0;
@@ -162,6 +164,7 @@ public class Agent {
 		this.x = this.nextX;
 		this.y = this.nextY;
 		this.z = this.nextZ;
+		this.R = this.nextR;
 		if (Simulator.COLLECT_INTERNAL_DATA) this.reportStatus();
 	}
 
@@ -289,8 +292,8 @@ public class Agent {
 		double dy = stepSize * Math.sin(azimuth);
 		dz = Simulator.AGENT_DO_2D_MOVES_ONLY ? 0.0 : (dz*stepSize);
 
-		Agent d1 = new Agent(simulatorFrame, d1Id, id, d1Name, nextX-dx, nextY-dy, nextZ-dz, t + 1);
-		Agent d2 = new Agent(simulatorFrame, d2Id, id, d2Name, nextX+dx, nextY+dy, nextZ+dz, t + 1);
+		Agent d1 = new Agent(simulatorFrame, d1Id, id, d1Name, nextX-dx, nextY-dy, nextZ-dz, nextR, t + 1);
+		Agent d2 = new Agent(simulatorFrame, d2Id, id, d2Name, nextX+dx, nextY+dy, nextZ+dz, nextR, t + 1);
 		//NB: mother must have existed for at least one time point, and thus must exist its Mastodon representation
 		d1.setMostRecentMastodonSpotRepre(this.mostRecentMastodonSpotRepre);
 		d2.setMostRecentMastodonSpotRepre(this.mostRecentMastodonSpotRepre);

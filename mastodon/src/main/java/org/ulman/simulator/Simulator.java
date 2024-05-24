@@ -216,7 +216,7 @@ public class Simulator {
 			sum_y[time] += coords[1];
 			sum_z[time] += coords[2];
 			projectModel.getModel().getGraph().addVertex(auxSpot)
-					.init(time, coords, MASTODON_SPOT_RADIUS);
+					.init(time, coords, agent.getR());
 			auxSpot.setLabel(agent.getName());
 
 			if (agent.isMostRecentMastodonSpotValid()) {
@@ -252,7 +252,7 @@ public class Simulator {
 			coords[1] = sum_y[time];
 			coords[2] = sum_z[time];
 			projectModel.getModel().getGraph().addVertex(auxSpot)
-					.init(time, coords, MASTODON_SPOT_RADIUS);
+					.init(time, coords, 1.5);
 			auxSpot.setLabel(MASTODON_CENTER_SPOT_NAME);
 			if (isPrevCentreValid) {
 				projectModel.getModel().getGraph().addEdge(prevCentreSpot, auxSpot).init();
@@ -276,7 +276,7 @@ public class Simulator {
 			Agent agent = new Agent(this, this.getNewId(), 0, String.valueOf(i + 1),
 					dx + (i-iShift) * dxStep,
 					dy + 1.8 * dxStep * (new Random().nextDouble() - 0.5),
-					dz, this.time);
+					dz, MASTODON_SPOT_RADIUS, this.time);
 			this.registerAgent(agent);
 		}
 		this.commitNewAndDeadAgents();
@@ -289,7 +289,8 @@ public class Simulator {
 		for (Spot s : projectModel.getModel().getSpatioTemporalIndex().getSpatialIndex(timePoint-1)) {
 			if (s.getLabel().equals(Simulator.MASTODON_CENTER_SPOT_NAME)) continue;
 			Agent agent = new Agent(this, this.getNewId(), 0, s.getLabel()+"-",
-					s.getDoublePosition(0), s.getDoublePosition(1), s.getDoublePosition(2), this.time);
+					s.getDoublePosition(0), s.getDoublePosition(1), s.getDoublePosition(2),
+					Math.sqrt(s.getBoundingSphereRadiusSquared()), this.time);
 			agent.setMostRecentMastodonSpotRepre(s);
 			this.registerAgent(agent);
 		}
