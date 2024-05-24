@@ -51,8 +51,8 @@ public class SimulatorAdvancedDlg implements Command {
 	@Parameter(description = "Freshly \"born\" daughters are placed exactly this distance apart from one another.")
 	double AGENT_DAUGHTERS_INITIAL_DISTANCE = 1.6;
 
-	@Parameter(description = "Using this radius the new spots are introduced into Mastodon.")
-	double MASTODON_SPOT_RADIUS = 1.5;
+	@Parameter(description = "Using this radius the new spots are introduced into the simulation.")
+	double AGENT_INITIAL_RADIUS = 1.5;
 
 	@Parameter(description = "Produce a \"lineage\" that stays in the geometric centre of the generated data.")
 	boolean MASTODON_CENTER_SPOT = false;
@@ -83,7 +83,7 @@ public class SimulatorAdvancedDlg implements Command {
 		Simulator.AGENT_MAX_DENSITY_TO_ENABLE_DIVISION = AGENT_MAX_DENSITY_TO_ENABLE_DIVISION;
 		Simulator.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE = AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE;
 		Simulator.AGENT_DAUGHTERS_INITIAL_DISTANCE = AGENT_DAUGHTERS_INITIAL_DISTANCE;
-		Simulator.MASTODON_SPOT_RADIUS = MASTODON_SPOT_RADIUS;
+		Simulator.AGENT_INITIAL_RADIUS = AGENT_INITIAL_RADIUS;
 		Simulator.MASTODON_CENTER_SPOT = MASTODON_CENTER_SPOT;
 		if (basicDialog != null) basicDialog.runInsideMastodon();
 	}

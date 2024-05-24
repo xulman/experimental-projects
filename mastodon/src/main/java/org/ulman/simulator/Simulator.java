@@ -55,8 +55,8 @@ public class Simulator {
 	/** Freshly "born" daughters are placed exactly this distance apart from one another. */
 	public static double AGENT_DAUGHTERS_INITIAL_DISTANCE = 1.6;
 
-	/** Using this radius the new spots are introduced into Mastodon. */
-	public static double MASTODON_SPOT_RADIUS = 1.5;
+	/** Using this radius the new spots are introduced into the simulation. */
+	public static double AGENT_INITIAL_RADIUS = 1.5;
 	/** Produce a \"lineage\" that stays in the geometric centre of the generated data. */
 	public static boolean MASTODON_CENTER_SPOT = false;
 
@@ -77,7 +77,7 @@ public class Simulator {
 		AGENT_MAX_DENSITY_TO_ENABLE_DIVISION = c.AGENT_MAX_DENSITY_TO_ENABLE_DIVISION;
 		AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE = c.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE;
 		AGENT_DAUGHTERS_INITIAL_DISTANCE = c.AGENT_DAUGHTERS_INITIAL_DISTANCE;
-		MASTODON_SPOT_RADIUS = c.MASTODON_SPOT_RADIUS;
+		AGENT_INITIAL_RADIUS = c.AGENT_INITIAL_RADIUS;
 		MASTODON_CENTER_SPOT = c.MASTODON_CENTER_SPOT;
 	}
 
@@ -94,7 +94,7 @@ public class Simulator {
 				"\n  AGENT_MAX_DENSITY_TO_ENABLE_DIVISION: " + AGENT_MAX_DENSITY_TO_ENABLE_DIVISION +
 				"\n  AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE: " + AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE +
 				"\n  AGENT_DAUGHTERS_INITIAL_DISTANCE: " + AGENT_DAUGHTERS_INITIAL_DISTANCE +
-				"\n  MASTODON_SPOT_RADIUS: " + MASTODON_SPOT_RADIUS +
+				"\n  AGENT_INITIAL_RADIUS: " + AGENT_INITIAL_RADIUS +
 				"\n  MASTODON_CENTER_SPOT: " + MASTODON_CENTER_SPOT;
 	}
 
@@ -280,7 +280,7 @@ public class Simulator {
 			Agent agent = new Agent(this, this.getNewId(), 0, String.valueOf(i + 1),
 					dx + (i-iShift) * dxStep,
 					dy + 1.8 * dxStep * (new Random().nextDouble() - 0.5),
-					dz, MASTODON_SPOT_RADIUS, this.time);
+					dz, AGENT_INITIAL_RADIUS, this.time);
 			this.registerAgent(agent);
 		}
 		this.commitNewAndDeadAgents();
