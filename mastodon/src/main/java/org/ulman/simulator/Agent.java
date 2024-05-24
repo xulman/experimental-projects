@@ -279,14 +279,16 @@ public class Agent {
 			}
 		}
 
+		//always move...
+		this.nextX = newX;
+		this.nextY = newY;
+		this.nextZ = newZ;
+		//...and indicate if that move is good or not
 		if (!tooClose) {
-			this.nextX = newX;
-			this.nextY = newY;
-			this.nextZ = newZ;
 			this.name = this.nameClean;
 		} else {
 			if (Simulator.VERBOSE_AGENT_DEBUG) {
-				System.out.println("  couldn't move when " + neighborsCnt + " neighbors are around");
+				System.out.println("  collision move 'cause " + neighborsCnt + " neighbors are around");
 			}
 			this.name = this.nameBlocked;
 		}
