@@ -83,7 +83,7 @@ public class Simulator {
 
 	@Override
 	public String toString() {
-		String sb = "Simulation parameters:\n" + "  LABELS_NAMING_POLICY: " + LABELS_NAMING_POLICY +
+		return "Simulation parameters:\n" + "  LABELS_NAMING_POLICY: " + LABELS_NAMING_POLICY +
 				"\n  AGENT_SEARCH_RADIUS: " + AGENT_SEARCH_RADIUS +
 				"\n  AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT: " + AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT +
 				"\n  AGENT_USUAL_STEP_SIZE: " + AGENT_USUAL_STEP_SIZE +
@@ -96,7 +96,6 @@ public class Simulator {
 				"\n  AGENT_DAUGHTERS_INITIAL_DISTANCE: " + AGENT_DAUGHTERS_INITIAL_DISTANCE +
 				"\n  MASTODON_SPOT_RADIUS: " + MASTODON_SPOT_RADIUS +
 				"\n  MASTODON_CENTER_SPOT: " + MASTODON_CENTER_SPOT;
-		return sb;
 	}
 
 
