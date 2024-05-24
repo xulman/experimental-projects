@@ -208,9 +208,9 @@ public class Agent {
 			//how much to move to get surfaces exactly "minDistance" far from each other
 			dist = minDistanceToNeighbor - dist;
 
-			dx *= 0.5 * dist; //displacement vector of the appropriate size
-			dy *= 0.5 * dist; //half is taken because the other agent will do the same move
-			dz *= 0.5 * dist;
+			dx *= 0.7 * dist; //displacement vector of the appropriate size
+			dy *= 0.7 * dist; //half is taken because the other agent will do the same move
+			dz *= 0.7 * dist;
 
 			dist = Math.min(dist,minDistanceToNeighbor); //NB: agents' overlap is not worse
 			                                             //than just touching surfaces
