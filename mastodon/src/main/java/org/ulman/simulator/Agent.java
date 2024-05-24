@@ -222,9 +222,11 @@ public class Agent {
 			dispAwayZ += weight * dz;
 			sumOfWeights += weight;
 		}
-		dispAwayX /= sumOfWeights;
-		dispAwayY /= sumOfWeights;
-		dispAwayZ /= sumOfWeights;
+		if (sumOfWeights > 0) {
+			dispAwayX /= sumOfWeights;
+			dispAwayY /= sumOfWeights;
+			dispAwayZ /= sumOfWeights;
+		}
 
 		//NB: if 'step' is a distance along one axis, the total length in the space is sqrt(spaceDim)-times larger
 		final double stepSizeDimensionalityCompensation = Simulator.AGENT_DO_2D_MOVES_ONLY ? 1.41 : 1.73;
