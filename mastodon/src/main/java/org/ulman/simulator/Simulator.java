@@ -189,7 +189,11 @@ public class Simulator {
 				+ " from " + agentsContainer.size() + " agents ("
 				+ spotsInTotal + " in total, time is "
 				+ java.time.LocalTime.now() + ")");
-		agentsContainer.values().parallelStream().forEach(s -> s.progress(time));
+		if (VERBOSE_AGENT_DEBUG) {
+			agentsContainer.values().stream().forEach(s -> s.progress(time));
+		} else {
+			agentsContainer.values().parallelStream().forEach(s -> s.progress(time));
+		}
 		System.out.println("========== SIM: going for progressFinish...");
 		agentsContainer.values().parallelStream().forEach(Agent::progressFinish);
 		System.out.println("========== SIM: going to commitNewAndDeadAgents...");
