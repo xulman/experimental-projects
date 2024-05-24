@@ -317,8 +317,6 @@ public class Agent {
 		final String d1Name = name + "a";
 		final String d2Name = name + "b";
 
-		//NB: if 'step' is a distance alone one axis, the total length in the space is sqrt(spaceDim)-times larger
-		final double stepSizeDimensionalityCompensation = Simulator.AGENT_DO_2D_MOVES_ONLY ? (1.0/1.41) : (1.0/1.73);
 		double dz = moveRndGenerator.nextDouble();
 		final double stepSize = Simulator.AGENT_DO_2D_MOVES_ONLY ?
 				daughtersInitialDisplacement : (daughtersInitialDisplacement / Math.sqrt(1 + dz*dz));
