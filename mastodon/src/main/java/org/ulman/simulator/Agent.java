@@ -140,8 +140,9 @@ public class Agent {
 
 		double meanLifePeriod = Simulator.AGENT_AVERAGE_LIFESPAN_BEFORE_DIVISION;
 		double sigma = (0.6 * meanLifePeriod) / 3.0;
-		this.dontDivideBefore = time + (int)(lifeSpanRndGenerator.nextGaussian() * sigma + meanLifePeriod);
-		this.dontLiveBeyond = time + Simulator.AGENT_MAX_LIFESPAN_AND_DIES_AFTER;
+		this.dontDivideBefore = time + Math.max((int)(lifeSpanRndGenerator.nextGaussian() * sigma + meanLifePeriod),1);
+		this.dontLiveBeyond = time + Math.max(Simulator.AGENT_MAX_LIFESPAN_AND_DIES_AFTER,1);
+		//NB: make sure the lifespan is always at least one time point
 
 		if (parentID == 0 && Simulator.COLLECT_INTERNAL_DATA) {
 			this.reportStatus();
@@ -339,8 +340,8 @@ public class Agent {
 		dy *= stepSize;
 		dz *= stepSize;
 
-		Agent d1 = new Agent(simulatorFrame, d1Id, id, d1Name, nextX-dx, nextY-dy, nextZ-dz, nextR, t + 1);
-		Agent d2 = new Agent(simulatorFrame, d2Id, id, d2Name, nextX+dx, nextY+dy, nextZ+dz, nextR, t + 1);
+		Agent d1 = new Agent(simulatorFrame, d1Id, id, d1Name, nextX-dx, nextY-dy, nextZ-dz, nextR, t);
+		Agent d2 = new Agent(simulatorFrame, d2Id, id, d2Name, nextX+dx, nextY+dy, nextZ+dz, nextR, t);
 		//NB: mother must have existed for at least one time point, and thus must exist its Mastodon representation
 		d1.setMostRecentMastodonSpotRepre(this.mostRecentMastodonSpotRepre);
 		d2.setMostRecentMastodonSpotRepre(this.mostRecentMastodonSpotRepre);
