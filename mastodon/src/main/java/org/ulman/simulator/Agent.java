@@ -185,6 +185,8 @@ public class Agent {
 		final double oldZ = fromCurrentPos ? this.z : this.nextZ;
 		final double oldR = fromCurrentPos ? this.R : this.nextR;
 
+		if ( doBuldozering(oldX,oldY,oldZ) ) return;
+
 		final int neighborsMaxIdx = simulatorFrame.getListOfOccupiedCoords(this, lookAroundRadius, nearbySpheres);
 		final int neighborsCnt = neighborsMaxIdx / nearbySpheresStride;
 
@@ -374,5 +376,32 @@ public class Agent {
 		d2.divBuldozerDz =  this.divBuldozerDz;
 		d1.divBuldozerStopTP = t+daughtersInitialBuldozer;
 		d2.divBuldozerStopTP = t+daughtersInitialBuldozer;
+	}
+
+	protected boolean doBuldozering(final double fromHereX, final double fromHereY, final double fromHereZ) {
+		final int remainingTimePoints = this.divBuldozerStopTP - (this.t+1); //NB: as if already in the now-creating (future) time point
+		if (remainingTimePoints < 0) return false;
+
+		//NB: steps(x) = 0.5 * (x + x*x) -- the sum of arithmetic sequence 1...to...x
+		//when k-steps (where k = 0...N-1) is left from N-step plan, the current move shall be:
+		//    steps(k+1)/steps(N) - steps(k)/steps(N)
+		// which is massaged into:
+		//    2*(1+k)/(N+N*N)
+		//
+		final double currentStepLen =
+				(double)(2*(1+remainingTimePoints)) / (double)(daughtersInitialBuldozer*(1+daughtersInitialBuldozer));
+
+		this.nextX = fromHereX + currentStepLen*divBuldozerDx;
+		this.nextY = fromHereY + currentStepLen*divBuldozerDy;
+		this.nextZ = fromHereZ + currentStepLen*divBuldozerDz;
+		this.t += 1;
+
+		if (Simulator.VERBOSE_AGENT_DEBUG) {
+			System.out.printf("advancing agent id %d (%s) in buldozer-mode (%d/%d):%n", this.id, this.name, remainingTimePoints,daughtersInitialBuldozer);
+			System.out.printf("  from pos [%f,%f,%f] to [%f,%f,%f] using step proportion %f%n",
+					fromHereX, fromHereY, fromHereZ, nextX, nextY, nextZ, currentStepLen);
+		}
+
+		return true;
 	}
 }
