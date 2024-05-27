@@ -46,6 +46,10 @@ public class Agent {
 	private final double minDistanceToNeighbor = Simulator.AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT;
 	private final double usualStepSize = Simulator.AGENT_USUAL_STEP_SIZE;
 	private final double daughtersInitialDisplacement = Simulator.AGENT_DAUGHTERS_INITIAL_DISTANCE;
+	//
+	private final int daughtersInitialBuldozer = Simulator.AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS;
+	private double divBuldozerDx, divBuldozerDy, divBuldozerDz;
+	private int divBuldozerStopTP = -1; //-1 means not active
 
 	private final int dontDivideBefore;
 	private final int dontLiveBeyond;
@@ -350,5 +354,15 @@ public class Agent {
 		simulatorFrame.deregisterAgent(this);
 		simulatorFrame.registerAgent(d1);
 		simulatorFrame.registerAgent(d2);
+
+		//tell daughters the direction and the full distance to travel for the "buldozering":
+		d1.divBuldozerDx = -this.divBuldozerDx;
+		d1.divBuldozerDy = -this.divBuldozerDy;
+		d1.divBuldozerDz = -this.divBuldozerDz;
+		d2.divBuldozerDx =  this.divBuldozerDx;
+		d2.divBuldozerDy =  this.divBuldozerDy;
+		d2.divBuldozerDz =  this.divBuldozerDz;
+		d1.divBuldozerStopTP = t+daughtersInitialBuldozer;
+		d2.divBuldozerStopTP = t+daughtersInitialBuldozer;
 	}
 }
