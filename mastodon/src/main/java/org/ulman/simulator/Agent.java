@@ -330,6 +330,7 @@ public class Agent {
 		final String d1Name = name + "a";
 		final String d2Name = name + "b";
 
+		//division vector:
 		double azimuth = Math.atan2(nextY-y, nextX-x);
 		azimuth += Math.PI / 2.0;
 		azimuth += moveRndGenerator.nextGaussian() * Simulator.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE / 3.0;
@@ -339,10 +340,19 @@ public class Agent {
 		if (!Simulator.AGENT_DO_2D_MOVES_ONLY) {
 			dz = moveRndGenerator.nextDouble();
 		}
-		final double stepSize = (0.5*daughtersInitialDisplacement + nextR) / Math.sqrt(dx*dx + dy*dy + dz*dz);
-		dx *= stepSize;
-		dy *= stepSize;
-		dz *= stepSize;
+		final double dLen = Math.sqrt(dx*dx + dy*dy + dz*dz);
+
+		//memorize the direction and the full distance to travel for the "buldozering":
+		final double buldozeringLen = 0.5*(minDistanceToNeighbor - daughtersInitialDisplacement) / dLen;
+		divBuldozerDx = buldozeringLen * dx;
+		divBuldozerDy = buldozeringLen * dy;
+		divBuldozerDz = buldozeringLen * dz;
+
+		//direction and distance for the initial placement of both daughters:
+		final double nowStepLen = (0.5*daughtersInitialDisplacement + nextR) / dLen;
+		dx *= nowStepLen;
+		dy *= nowStepLen;
+		dz *= nowStepLen;
 
 		Agent d1 = new Agent(simulatorFrame, d1Id, id, d1Name, nextX-dx, nextY-dy, nextZ-dz, nextR, t);
 		Agent d2 = new Agent(simulatorFrame, d2Id, id, d2Name, nextX+dx, nextY+dy, nextZ+dz, nextR, t);
