@@ -64,7 +64,7 @@ public class Simulator {
 	/** Using this radius the new spots are introduced into the simulation. */
 	public static double AGENT_INITIAL_RADIUS = 1.5;
 	/** Produce a \"lineage\" that stays in the geometric centre of the generated data. */
-	public static boolean MASTODON_CENTER_SPOT = false;
+	public static boolean CREATE_MASTODON_CENTER_SPOT = false;
 
 	public final static String MASTODON_CENTER_SPOT_NAME = "centre";
 
@@ -85,7 +85,7 @@ public class Simulator {
 		AGENT_DAUGHTERS_INITIAL_DISTANCE = c.AGENT_DAUGHTERS_INITIAL_DISTANCE;
 		AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS = c.AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS;
 		AGENT_INITIAL_RADIUS = c.AGENT_INITIAL_RADIUS;
-		MASTODON_CENTER_SPOT = c.MASTODON_CENTER_SPOT;
+		CREATE_MASTODON_CENTER_SPOT = c.CREATE_MASTODON_CENTER_SPOT;
 	}
 
 	@Override
@@ -103,7 +103,7 @@ public class Simulator {
 				"\n  AGENT_DAUGHTERS_INITIAL_DISTANCE: " + AGENT_DAUGHTERS_INITIAL_DISTANCE +
 				"\n  AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS: " + AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS +
 				"\n  AGENT_INITIAL_RADIUS: " + AGENT_INITIAL_RADIUS +
-				"\n  MASTODON_CENTER_SPOT: " + MASTODON_CENTER_SPOT;
+				"\n  CREATE_MASTODON_CENTER_SPOT: " + CREATE_MASTODON_CENTER_SPOT;
 	}
 
 

@@ -58,7 +58,7 @@ public class SimulatorAdvancedDlg implements Command {
 	double AGENT_INITIAL_RADIUS = Simulator.AGENT_INITIAL_RADIUS;
 
 	@Parameter(description = "Produce a \"lineage\" that stays in the geometric centre of the generated data.")
-	boolean MASTODON_CENTER_SPOT = Simulator.MASTODON_CENTER_SPOT;
+	boolean CREATE_MASTODON_CENTER_SPOT = Simulator.CREATE_MASTODON_CENTER_SPOT;
 
 	@Parameter
 	SimulatorMainDlg basicDialog = null;
@@ -88,7 +88,7 @@ public class SimulatorAdvancedDlg implements Command {
 		Simulator.AGENT_DAUGHTERS_INITIAL_DISTANCE = AGENT_DAUGHTERS_INITIAL_DISTANCE;
 		Simulator.AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS = AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS;
 		Simulator.AGENT_INITIAL_RADIUS = AGENT_INITIAL_RADIUS;
-		Simulator.MASTODON_CENTER_SPOT = MASTODON_CENTER_SPOT;
+		Simulator.CREATE_MASTODON_CENTER_SPOT = CREATE_MASTODON_CENTER_SPOT;
 		if (basicDialog != null) basicDialog.runInsideMastodon();
 	}
 }
