@@ -12,6 +12,7 @@ public class Agent {
 	private final String nameBlocked;
 	private final String nameWantDivide;
 	private final String nameBlockedWantDivide;
+	private final String nameBuldozer;
 	private String name;
 	public String getName() {
 		return name;
@@ -107,6 +108,7 @@ public class Agent {
 			this.nameBlocked = ONE_AND_ONLY_NAME;
 			this.nameWantDivide = ONE_AND_ONLY_NAME;
 			this.nameBlockedWantDivide = ONE_AND_ONLY_NAME;
+			this.nameBuldozer = ONE_AND_ONLY_NAME;
 			break;
 		case ENCODING_LABELS_AND_PREPENDING:
 			this.name = label;
@@ -114,6 +116,7 @@ public class Agent {
 			this.nameBlocked = "B_" + label;
 			this.nameWantDivide = "W_" + label;
 			this.nameBlockedWantDivide = "BW_" + label;
+			this.nameBuldozer = "DZ_" + label;
 			break;
 		case ENCODING_LABELS_AND_APPENDING:
 			this.name = label;
@@ -121,6 +124,7 @@ public class Agent {
 			this.nameBlocked = label + "_B";
 			this.nameWantDivide = label + "_W";
 			this.nameBlockedWantDivide = label + "_BW";
+			this.nameBuldozer = label + "_DZ";
 			break;
 		default: //NB: the same as ENCODING_LABELS
 			this.name = label;
@@ -128,6 +132,7 @@ public class Agent {
 			this.nameBlocked = label;
 			this.nameWantDivide = label;
 			this.nameBlockedWantDivide = label;
+			this.nameBuldozer = label;
 		}
 
 		this.id = ID;
@@ -395,6 +400,7 @@ public class Agent {
 		this.nextY = fromHereY + currentStepLen*divBuldozerDy;
 		this.nextZ = fromHereZ + currentStepLen*divBuldozerDz;
 		this.t += 1;
+		this.name = this.nameBuldozer;
 
 		if (Simulator.VERBOSE_AGENT_DEBUG) {
 			System.out.printf("advancing agent id %d (%s) in buldozer-mode (%d/%d):%n", this.id, this.name, remainingTimePoints,daughtersInitialBuldozer);
