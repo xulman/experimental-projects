@@ -46,6 +46,7 @@ public class Simulator {
 	/** The maximum number of neighbors (within the {@link Simulator#AGENT_LOOK_AROUND_DISTANCE} distance)
 	 *  tolerated for a division to occur; if more neighbors are around, the system believes the space
 	 *  is too condensed and doesn't permit agents (cells) to divide. */
+
 	public static int AGENT_MAX_DENSITY_TO_ENABLE_DIVISION = 2;
 	/** Given the last move of a mother cell, project it onto an xy-plane, one can then imagine a perpendicular
 	 *  line in the xy-plane. A division line in the xy-plane is randomly picked such that it does not coincide
@@ -54,6 +55,11 @@ public class Simulator {
 	public static double AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE = 2.35;
 	/** Freshly "born" daughters are placed exactly this distance apart from one another. */
 	public static double AGENT_DAUGHTERS_INITIAL_DISTANCE = 1.6;
+	/** After the two daughters are born, they translate away from each other from their INITIAL_DISTANCE
+	 *  to MIN_DISTANCE_TO_ANOTHER_AGENT for this number of time points, during this the daughters are
+	 *  not influenced by any surrounding agents (even when they are in overlap), but the surrounding agents
+	 *  are influenced by these daughters (so the influence is asymmetrical). */
+	public static int AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS = 2;
 
 	/** Using this radius the new spots are introduced into the simulation. */
 	public static double AGENT_INITIAL_RADIUS = 1.5;
@@ -77,6 +83,7 @@ public class Simulator {
 		AGENT_MAX_DENSITY_TO_ENABLE_DIVISION = c.AGENT_MAX_DENSITY_TO_ENABLE_DIVISION;
 		AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE = c.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE;
 		AGENT_DAUGHTERS_INITIAL_DISTANCE = c.AGENT_DAUGHTERS_INITIAL_DISTANCE;
+		AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS = c.AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS;
 		AGENT_INITIAL_RADIUS = c.AGENT_INITIAL_RADIUS;
 		MASTODON_CENTER_SPOT = c.MASTODON_CENTER_SPOT;
 	}
@@ -94,6 +101,7 @@ public class Simulator {
 				"\n  AGENT_MAX_DENSITY_TO_ENABLE_DIVISION: " + AGENT_MAX_DENSITY_TO_ENABLE_DIVISION +
 				"\n  AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE: " + AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE +
 				"\n  AGENT_DAUGHTERS_INITIAL_DISTANCE: " + AGENT_DAUGHTERS_INITIAL_DISTANCE +
+				"\n  AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS: " + AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS +
 				"\n  AGENT_INITIAL_RADIUS: " + AGENT_INITIAL_RADIUS +
 				"\n  MASTODON_CENTER_SPOT: " + MASTODON_CENTER_SPOT;
 	}

@@ -51,6 +51,9 @@ public class SimulatorAdvancedDlg implements Command {
 	@Parameter(description = "Freshly \"born\" daughters are placed exactly this distance apart from one another.")
 	double AGENT_DAUGHTERS_INITIAL_DISTANCE = 1.6;
 
+	@Parameter(description = "After the two daughters are born, they translate away from each other from their INITIAL_DISTANCE to MIN_DISTANCE_TO_ANOTHER_AGENT for this number of time points, during this the daughters are not influenced by any surrounding agents (even when they are in overlap), but the surrounding agents are influenced by these daughters (so the influence is asymmetrical).")
+	int AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS = Simulator.AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS;
+
 	@Parameter(description = "Using this radius the new spots are introduced into the simulation.")
 	double AGENT_INITIAL_RADIUS = 1.5;
 
@@ -83,6 +86,7 @@ public class SimulatorAdvancedDlg implements Command {
 		Simulator.AGENT_MAX_DENSITY_TO_ENABLE_DIVISION = AGENT_MAX_DENSITY_TO_ENABLE_DIVISION;
 		Simulator.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE = AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE;
 		Simulator.AGENT_DAUGHTERS_INITIAL_DISTANCE = AGENT_DAUGHTERS_INITIAL_DISTANCE;
+		Simulator.AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS = AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS;
 		Simulator.AGENT_INITIAL_RADIUS = AGENT_INITIAL_RADIUS;
 		Simulator.MASTODON_CENTER_SPOT = MASTODON_CENTER_SPOT;
 		if (basicDialog != null) basicDialog.runInsideMastodon();
