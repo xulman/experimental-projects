@@ -80,7 +80,7 @@ public class Runner implements Runnable {
 	public void run() {
 		Simulator s = new Simulator(projectModel);
 		if (simConfig != null) {
-			s.setParamsFromConfig(simConfig);
+			Simulator.setParamsFromConfig(simConfig);
 		}
 		System.out.println(s);
 

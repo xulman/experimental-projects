@@ -70,7 +70,7 @@ public class Simulator {
 
 	public final static String MASTODON_CENTER_SPOT_NAME = "centre";
 
-	public void setParamsFromConfig(final SimulationConfig c) {
+	public static void setParamsFromConfig(final SimulationConfig c) {
 		LABELS_NAMING_POLICY = c.LABELS_NAMING_POLICY;
 		COLLECT_INTERNAL_DATA = c.COLLECT_INTERNAL_DATA;
 		VERBOSE_AGENT_DEBUG = c.VERBOSE_AGENT_DEBUG;

@@ -10,6 +10,7 @@ import org.scijava.command.Command;
 import org.scijava.command.CommandService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
+import org.scijava.prefs.PrefService;
 import org.ulman.simulator.Simulator;
 
 import javax.swing.WindowConstants;
@@ -35,21 +36,27 @@ public class SimulatorMainDlg implements Command {
 	boolean showAdvancedDlg = false;
 
 	@Parameter
+	PrefService prefService;
+
+	@Parameter
 	CommandService commandService;
 
 	@Override
 	public void run() {
-		Simulator.AGENT_DO_2D_MOVES_ONLY = do2D;
 		if (showAdvancedDlg) {
-			commandService.run(SimulatorAdvancedDlg.class,true,
-					"basicDialog",this);
+			//the advanced dialog will set some more params and will come back to this.runInsideMastodon()
+			commandService.run(SimulatorAdvancedDlg.class,true, "basicDialog",this);
 			return;
+		} else {
+			//retrieve (and set) the params that the advanced dialog would have set...
+			Simulator.setParamsFromConfig( SimulatorAdvancedDlg.loadSimConfigFromPrefStore(prefService) );
 		}
 
 		runInsideMastodon();
 	}
 
 	public void runInsideMastodon() {
+		Simulator.AGENT_DO_2D_MOVES_ONLY = do2D;
 		if (continueWithExisting) {
 			new Runner(projectModel, numTimepoints).run();
 		} else {
