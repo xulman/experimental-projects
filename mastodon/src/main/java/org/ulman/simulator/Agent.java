@@ -12,6 +12,7 @@ public class Agent {
 	private final String nameBlocked;
 	private final String nameWantDivide;
 	private final String nameBlockedWantDivide;
+	private final String nameBuldozer;
 	private String name;
 	public String getName() {
 		return name;
@@ -46,6 +47,10 @@ public class Agent {
 	private final double minDistanceToNeighbor = Simulator.AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT;
 	private final double usualStepSize = Simulator.AGENT_USUAL_STEP_SIZE;
 	private final double daughtersInitialDisplacement = Simulator.AGENT_DAUGHTERS_INITIAL_DISTANCE;
+	//
+	private final int daughtersInitialBuldozer = Simulator.AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS;
+	private double divBuldozerDx, divBuldozerDy, divBuldozerDz;
+	private int divBuldozerStopTP = -1; //-1 means not active
 
 	private final int dontDivideBefore;
 	private final int dontLiveBeyond;
@@ -103,6 +108,7 @@ public class Agent {
 			this.nameBlocked = ONE_AND_ONLY_NAME;
 			this.nameWantDivide = ONE_AND_ONLY_NAME;
 			this.nameBlockedWantDivide = ONE_AND_ONLY_NAME;
+			this.nameBuldozer = ONE_AND_ONLY_NAME;
 			break;
 		case ENCODING_LABELS_AND_PREPENDING:
 			this.name = label;
@@ -110,6 +116,7 @@ public class Agent {
 			this.nameBlocked = "B_" + label;
 			this.nameWantDivide = "W_" + label;
 			this.nameBlockedWantDivide = "BW_" + label;
+			this.nameBuldozer = "DZ_" + label;
 			break;
 		case ENCODING_LABELS_AND_APPENDING:
 			this.name = label;
@@ -117,6 +124,7 @@ public class Agent {
 			this.nameBlocked = label + "_B";
 			this.nameWantDivide = label + "_W";
 			this.nameBlockedWantDivide = label + "_BW";
+			this.nameBuldozer = label + "_DZ";
 			break;
 		default: //NB: the same as ENCODING_LABELS
 			this.name = label;
@@ -124,6 +132,7 @@ public class Agent {
 			this.nameBlocked = label;
 			this.nameWantDivide = label;
 			this.nameBlockedWantDivide = label;
+			this.nameBuldozer = label;
 		}
 
 		this.id = ID;
@@ -140,8 +149,9 @@ public class Agent {
 
 		double meanLifePeriod = Simulator.AGENT_AVERAGE_LIFESPAN_BEFORE_DIVISION;
 		double sigma = (0.6 * meanLifePeriod) / 3.0;
-		this.dontDivideBefore = time + (int)(lifeSpanRndGenerator.nextGaussian() * sigma + meanLifePeriod);
-		this.dontLiveBeyond = time + Simulator.AGENT_MAX_LIFESPAN_AND_DIES_AFTER;
+		this.dontDivideBefore = time + Math.max((int)(lifeSpanRndGenerator.nextGaussian() * sigma + meanLifePeriod),1);
+		this.dontLiveBeyond = time + Math.max(Simulator.AGENT_MAX_LIFESPAN_AND_DIES_AFTER,1);
+		//NB: make sure the lifespan is always at least one time point
 
 		if (parentID == 0 && Simulator.COLLECT_INTERNAL_DATA) {
 			this.reportStatus();
@@ -179,6 +189,8 @@ public class Agent {
 		final double oldY = fromCurrentPos ? this.y : this.nextY;
 		final double oldZ = fromCurrentPos ? this.z : this.nextZ;
 		final double oldR = fromCurrentPos ? this.R : this.nextR;
+
+		if ( doBuldozering(oldX,oldY,oldZ) ) return;
 
 		final int neighborsMaxIdx = simulatorFrame.getListOfOccupiedCoords(this, lookAroundRadius, nearbySpheres);
 		final int neighborsCnt = neighborsMaxIdx / nearbySpheresStride;
@@ -325,19 +337,32 @@ public class Agent {
 		final String d1Name = name + "a";
 		final String d2Name = name + "b";
 
-		double dz = moveRndGenerator.nextDouble();
-		final double stepSize = Simulator.AGENT_DO_2D_MOVES_ONLY ?
-				daughtersInitialDisplacement : (daughtersInitialDisplacement / Math.sqrt(1 + dz*dz));
-
+		//division vector:
 		double azimuth = Math.atan2(nextY-y, nextX-x);
 		azimuth += Math.PI / 2.0;
 		azimuth += moveRndGenerator.nextGaussian() * Simulator.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE / 3.0;
-		double dx = stepSize * Math.cos(azimuth);
-		double dy = stepSize * Math.sin(azimuth);
-		dz = Simulator.AGENT_DO_2D_MOVES_ONLY ? 0.0 : (dz*stepSize);
+		double dx = Math.cos(azimuth);
+		double dy = Math.sin(azimuth);
+		double dz = 0;
+		if (!Simulator.AGENT_DO_2D_MOVES_ONLY) {
+			dz = moveRndGenerator.nextDouble();
+		}
+		final double dLen = Math.sqrt(dx*dx + dy*dy + dz*dz);
 
-		Agent d1 = new Agent(simulatorFrame, d1Id, id, d1Name, nextX-dx, nextY-dy, nextZ-dz, nextR, t + 1);
-		Agent d2 = new Agent(simulatorFrame, d2Id, id, d2Name, nextX+dx, nextY+dy, nextZ+dz, nextR, t + 1);
+		//memorize the direction and the full distance to travel for the "buldozering":
+		final double buldozeringLen = 0.5*(minDistanceToNeighbor - daughtersInitialDisplacement) / dLen;
+		divBuldozerDx = buldozeringLen * dx;
+		divBuldozerDy = buldozeringLen * dy;
+		divBuldozerDz = buldozeringLen * dz;
+
+		//direction and distance for the initial placement of both daughters:
+		final double nowStepLen = (0.5*daughtersInitialDisplacement + nextR) / dLen;
+		dx *= nowStepLen;
+		dy *= nowStepLen;
+		dz *= nowStepLen;
+
+		Agent d1 = new Agent(simulatorFrame, d1Id, id, d1Name, nextX-dx, nextY-dy, nextZ-dz, nextR, t);
+		Agent d2 = new Agent(simulatorFrame, d2Id, id, d2Name, nextX+dx, nextY+dy, nextZ+dz, nextR, t);
 		//NB: mother must have existed for at least one time point, and thus must exist its Mastodon representation
 		d1.setMostRecentMastodonSpotRepre(this.mostRecentMastodonSpotRepre);
 		d2.setMostRecentMastodonSpotRepre(this.mostRecentMastodonSpotRepre);
@@ -346,5 +371,43 @@ public class Agent {
 		simulatorFrame.deregisterAgent(this);
 		simulatorFrame.registerAgent(d1);
 		simulatorFrame.registerAgent(d2);
+
+		//tell daughters the direction and the full distance to travel for the "buldozering":
+		d1.divBuldozerDx = -this.divBuldozerDx;
+		d1.divBuldozerDy = -this.divBuldozerDy;
+		d1.divBuldozerDz = -this.divBuldozerDz;
+		d2.divBuldozerDx =  this.divBuldozerDx;
+		d2.divBuldozerDy =  this.divBuldozerDy;
+		d2.divBuldozerDz =  this.divBuldozerDz;
+		d1.divBuldozerStopTP = t+daughtersInitialBuldozer;
+		d2.divBuldozerStopTP = t+daughtersInitialBuldozer;
+	}
+
+	protected boolean doBuldozering(final double fromHereX, final double fromHereY, final double fromHereZ) {
+		final int remainingTimePoints = this.divBuldozerStopTP - (this.t+1); //NB: as if already in the now-creating (future) time point
+		if (remainingTimePoints < 0) return false;
+
+		//NB: steps(x) = 0.5 * (x + x*x) -- the sum of arithmetic sequence 1...to...x
+		//when k-steps (where k = 0...N-1) is left from N-step plan, the current move shall be:
+		//    steps(k+1)/steps(N) - steps(k)/steps(N)
+		// which is massaged into:
+		//    2*(1+k)/(N+N*N)
+		//
+		final double currentStepLen =
+				(double)(2*(1+remainingTimePoints)) / (double)(daughtersInitialBuldozer*(1+daughtersInitialBuldozer));
+
+		this.nextX = fromHereX + currentStepLen*divBuldozerDx;
+		this.nextY = fromHereY + currentStepLen*divBuldozerDy;
+		this.nextZ = fromHereZ + currentStepLen*divBuldozerDz;
+		this.t += 1;
+		this.name = this.nameBuldozer;
+
+		if (Simulator.VERBOSE_AGENT_DEBUG) {
+			System.out.printf("advancing agent id %d (%s) in buldozer-mode (%d/%d):%n", this.id, this.name, remainingTimePoints,daughtersInitialBuldozer);
+			System.out.printf("  from pos [%f,%f,%f] to [%f,%f,%f] using step proportion %f%n",
+					fromHereX, fromHereY, fromHereZ, nextX, nextY, nextZ, currentStepLen);
+		}
+
+		return true;
 	}
 }
