@@ -1,5 +1,6 @@
 package org.ulman.simulator.ui;
 
+import org.scijava.ItemVisibility;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -8,6 +9,9 @@ import org.ulman.simulator.AgentNamingPolicy;
 
 @Plugin(type = Command.class)
 public class SimulatorAdvancedDlg implements Command {
+	@Parameter(visibility = ItemVisibility.MESSAGE)
+	final String sep1 = "----------- Simulation debug -----------";
+
 	@Parameter(description = "Spots labels can be either 'M' or can be encoding the lineage history, also optionally with debug hints _B,_W,_BW.",
 		choices = { "Lineage encoding labels (1aabba...)",
 		            "Prepend hints B_,W_,BW_ to encoding labels",
@@ -24,6 +28,15 @@ public class SimulatorAdvancedDlg implements Command {
 	@Parameter(description = "Prints relative little reports about what the simulation framework was asked to do.")
 	boolean VERBOSE_SIMULATOR_DEBUG = Simulator.VERBOSE_SIMULATOR_DEBUG;
 
+	@Parameter(description = "Produce a \"lineage\" that stays in the geometric centre of the generated data.")
+	boolean CREATE_MASTODON_CENTER_SPOT = Simulator.CREATE_MASTODON_CENTER_SPOT;
+
+	@Parameter(description = "Using this radius the new spots are introduced into the simulation.")
+	double AGENT_INITIAL_RADIUS = Simulator.AGENT_INITIAL_RADIUS;
+
+	@Parameter(visibility = ItemVisibility.MESSAGE)
+	final String sep2 = "----------- Agents mobility -----------";
+
 	@Parameter(description = "How far around shall an agent look for \"nearby\" agents to consider their positions for its own development.")
 	double AGENT_LOOK_AROUND_DISTANCE = Simulator.AGENT_LOOK_AROUND_DISTANCE;
 
@@ -35,6 +48,9 @@ public class SimulatorAdvancedDlg implements Command {
 
 	@Parameter(description = "How many attempts is an agent (cell) allowed to try to move randomly until it finds an non-colliding position.")
 	int AGENT_NUMBER_OF_ATTEMPTS_TO_MAKE_A_MOVE = Simulator.AGENT_NUMBER_OF_ATTEMPTS_TO_MAKE_A_MOVE;
+
+	@Parameter(visibility = ItemVisibility.MESSAGE)
+	final String sep3 = "----------- Agents life-cycle -----------";
 
 	@Parameter(description = "The mean life span of an agent (cell). Shorted means divisions occurs more often.")
 	int AGENT_AVERAGE_LIFESPAN_BEFORE_DIVISION = Simulator.AGENT_AVERAGE_LIFESPAN_BEFORE_DIVISION;
@@ -53,12 +69,6 @@ public class SimulatorAdvancedDlg implements Command {
 
 	@Parameter(description = "After the two daughters are born, they translate away from each other from their INITIAL_DISTANCE to MIN_DISTANCE_TO_ANOTHER_AGENT for this number of time points, during this the daughters are not influenced by any surrounding agents (even when they are in overlap), but the surrounding agents are influenced by these daughters (so the influence is asymmetrical).")
 	int AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS = Simulator.AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS;
-
-	@Parameter(description = "Using this radius the new spots are introduced into the simulation.")
-	double AGENT_INITIAL_RADIUS = Simulator.AGENT_INITIAL_RADIUS;
-
-	@Parameter(description = "Produce a \"lineage\" that stays in the geometric centre of the generated data.")
-	boolean CREATE_MASTODON_CENTER_SPOT = Simulator.CREATE_MASTODON_CENTER_SPOT;
 
 	@Parameter
 	SimulatorMainDlg basicDialog = null;
