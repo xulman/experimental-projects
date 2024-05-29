@@ -6,7 +6,9 @@ import org.mastodon.kdtree.IncrementalNearestNeighborSearch;
 import org.mastodon.mamut.ProjectModel;
 import org.mastodon.mamut.model.ModelGraph;
 import org.mastodon.mamut.model.Spot;
+import org.mastodon.mamut.model.Link;
 import org.mastodon.spatial.SpatialIndex;
+import org.mastodon.model.SelectionModel;
 
 import java.util.Iterator;
 import java.util.List;
@@ -297,9 +299,12 @@ public class Simulator {
 	}
 
 	public void populate(final ProjectModel projectModel, final int timePoint) {
+		final SelectionModel<Spot,Link> currentSpotSelection = projectModel.getSelectionModel();
+		final boolean someSpotsSelected = !currentSpotSelection.isEmpty();
 		this.time = timePoint;
 		for (Spot s : projectModel.getModel().getSpatioTemporalIndex().getSpatialIndex(timePoint-1)) {
 			if (s.getLabel().equals(Simulator.MASTODON_CENTER_SPOT_NAME)) continue;
+			if (someSpotsSelected && !currentSpotSelection.isSelected(s)) continue;
 			Agent agent = new Agent(this, this.getNewId(), 0, s.getLabel()+"-",
 					s.getDoublePosition(0), s.getDoublePosition(1), s.getDoublePosition(2),
 					Math.sqrt(s.getBoundingSphereRadiusSquared()), this.time);
