@@ -45,7 +45,7 @@ public class Runner implements Runnable {
 			final SpatialIndex<Spot> spots = projectModel.getModel().getSpatioTemporalIndex().getSpatialIndex(time);
 			if (spots.size() > 0) {
 				System.out.println("Found last non-empty time point "+time);
-				this.timeFrom = time+1;
+				this.timeFrom = time;
 				this.timeTill = Math.min(timeFrom+timepoints-1, projectModel.getMaxTimepoint());
 				return;
 			}
@@ -91,10 +91,11 @@ public class Runner implements Runnable {
 
 			if (initialNumberOfCells == -1) {
 				s.populate(projectModel, timeFrom);
+				//don't pushToMastodonGraph(), the spots are already there
 			} else {
 				s.populate(initialNumberOfCells, timeFrom);
+				s.pushToMastodonGraph();
 			}
-			s.pushToMastodonGraph();
 
 			int time = timeFrom+1;
 			if (outputProjectFilename == null && time < timeTill) {

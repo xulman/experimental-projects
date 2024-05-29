@@ -279,6 +279,7 @@ public class Simulator {
 	}
 
 	public void populate(int numberOfCells, final int timePoint) {
+		//generate a within-xy-plane stripe of quazi-regularly placed agents, at fixed z coordinate and given time point
 		this.time = timePoint;
 		RandomAccessibleInterval<?> pixelSource = projectModel.getSharedBdvData().getSources().get(0).getSpimSource().getSource(0, 0);
 		final double dx = 0.5 * (pixelSource.min(0) + pixelSource.max(0));
@@ -299,10 +300,11 @@ public class Simulator {
 	}
 
 	public void populate(final ProjectModel projectModel, final int timePoint) {
+		//pickup (possibly selected only) agents from the Mastodon project at the given time point
 		final SelectionModel<Spot,Link> currentSpotSelection = projectModel.getSelectionModel();
 		final boolean someSpotsSelected = !currentSpotSelection.isEmpty();
 		this.time = timePoint;
-		for (Spot s : projectModel.getModel().getSpatioTemporalIndex().getSpatialIndex(timePoint-1)) {
+		for (Spot s : projectModel.getModel().getSpatioTemporalIndex().getSpatialIndex(timePoint)) {
 			if (s.getLabel().equals(Simulator.MASTODON_CENTER_SPOT_NAME)) continue;
 			if (someSpotsSelected && !currentSpotSelection.isSelected(s)) continue;
 			Agent agent = new Agent(this, this.getNewId(), 0, s.getLabel()+"-",
