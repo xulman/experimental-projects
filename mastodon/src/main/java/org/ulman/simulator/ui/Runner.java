@@ -12,6 +12,8 @@ import org.ulman.simulator.SimulationConfig;
 import org.ulman.simulator.Simulator;
 import java.io.File;
 import java.io.IOException;
+import java.util.Set;
+import java.util.HashSet;
 
 /** This class hosts the main simulation loop. */
 public class Runner implements Runnable {
@@ -25,40 +27,48 @@ public class Runner implements Runnable {
 
 	/** intended for when full Mastodon is around, starts from the beginning */
 	public Runner(final ProjectModel projectModel,
-					  final int numberOfCells,
+	              final short numberOfCells,
 	              final int timepoints) {
 		this.projectModel = projectModel;
 		this.outputProjectFilename = null; //save nothing in the end
 		this.initialNumberOfCells = Math.max(numberOfCells,1);
 		this.timeFrom = projectModel.getMinTimepoint();
-		this.timeTill = Math.min(timeFrom+timepoints-1, projectModel.getMaxTimepoint());
+		this.timeTill = Math.min(timeFrom+timepoints, projectModel.getMaxTimepoint());
 	}
 
 	/** intended for when full Mastodon is around, starts from the last time point */
 	public Runner(final ProjectModel projectModel,
+	              final int fromThisTimepoint,
 	              final int timepoints) {
 		this.projectModel = projectModel;
 		this.outputProjectFilename = null; //save nothing in the end
 		this.initialNumberOfCells = -1;    //indicates to find them in the last time point of the projectModel
 
-		for (int time = projectModel.getMaxTimepoint()-1; time >= projectModel.getMinTimepoint(); --time) {
-			final SpatialIndex<Spot> spots = projectModel.getModel().getSpatioTemporalIndex().getSpatialIndex(time);
-			if (spots.size() > 0) {
-				System.out.println("Found last non-empty time point "+time);
-				this.timeFrom = time;
-				this.timeTill = Math.min(timeFrom+timepoints-1, projectModel.getMaxTimepoint());
-				return;
+		if (fromThisTimepoint < 0) {
+			//search for the last non-empty time point
+			for (int time = projectModel.getMaxTimepoint()-1; time >= projectModel.getMinTimepoint(); --time) {
+				final SpatialIndex<Spot> spots = projectModel.getModel().getSpatioTemporalIndex().getSpatialIndex(time);
+				if (spots.size() > 0) {
+					System.out.println("Found last non-empty time point "+time);
+					this.timeFrom = time;
+					this.timeTill = Math.min(timeFrom+timepoints, projectModel.getMaxTimepoint());
+					return;
+				}
 			}
+			throw new IllegalArgumentException("There are only empty time points in this Mastodon project.");
 		}
-		throw new IllegalArgumentException("There are only empty time points in this Mastodon project.");
+
+		System.out.println("Given this time point "+fromThisTimepoint);
+		this.timeFrom = fromThisTimepoint;
+		this.timeTill = Math.min(timeFrom+timepoints, projectModel.getMaxTimepoint());
 	}
 
 	/** intended for starts from a command line, from the very beginning */
 	public Runner(final String outputProjectFileName,
-					  final int numberOfCells,
+	              final short numberOfCells,
 	              final int timepoints) {
 		//setup a Mastodon project first
-		final String DUMMYXML="DUMMY x=100 y=100 z=100 t="+timepoints+".dummy";
+		final String DUMMYXML="DUMMY x=100 y=100 z=100 t="+(timepoints+1)+".dummy";
 		ImageJ ij = new ImageJ();
 		this.projectModel = ProjectModel.create(ij.getContext(),
 				new Model(),
@@ -69,7 +79,7 @@ public class Runner implements Runnable {
 		//
 		this.initialNumberOfCells = Math.max(numberOfCells,1);
 		this.timeFrom = 0;
-		this.timeTill = timepoints-1;
+		this.timeTill = timepoints;
 	}
 
 	public void changeConfigTo(final SimulationConfig c) {
@@ -80,7 +90,7 @@ public class Runner implements Runnable {
 	public void run() {
 		Simulator s = new Simulator(projectModel);
 		if (simConfig != null) {
-			s.setParamsFromConfig(simConfig);
+			Simulator.setParamsFromConfig(simConfig);
 		}
 		System.out.println(s);
 
@@ -115,6 +125,8 @@ public class Runner implements Runnable {
 					pb.updateLabel("Current time point: "+time);
 				}
 
+				if ( snapshotsTimepoints.contains(s.getTime()) ) saveSnapshot(s);
+
 				++time;
 			}
 			if (Simulator.CREATE_MASTODON_CENTER_SPOT) {
@@ -138,6 +150,34 @@ public class Runner implements Runnable {
 				System.out.println("Hmm... some issue saving the file "+outputProjectFilename);
 				System.out.println("Complaint was: "+e.getMessage());
 			}
+		}
+	}
+
+
+	private String snapshotsPath;
+	final private Set<Integer> snapshotsTimepoints = new HashSet<>();
+
+	public void setSnapshots(final String path, final Set timepoints) {
+		this.snapshotsPath = path;
+		this.snapshotsTimepoints.clear();
+		this.snapshotsTimepoints.addAll(timepoints);
+	}
+
+	public void addSnapshot(final String path, final int timepoint) {
+		this.snapshotsPath = path;
+		this.snapshotsTimepoints.add(timepoint);
+	}
+
+	private void saveSnapshot(Simulator s) {
+		if (snapshotsPath == null || snapshotsPath.isEmpty()) return;
+
+		int splitIdx = snapshotsPath.indexOf(".mastodon");
+		String path = snapshotsPath.substring(0,splitIdx) + "_tp"+s.getTime() + ".mastodon";
+		try {
+			System.out.println("Saving snapshot: "+path);
+			ProjectSaver.saveProject(new File(path), projectModel);
+		} catch (IOException e) {
+			System.out.println("Error saving snapshot: "+e.getMessage());
 		}
 	}
 }

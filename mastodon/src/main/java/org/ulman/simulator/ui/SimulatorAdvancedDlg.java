@@ -1,13 +1,19 @@
 package org.ulman.simulator.ui;
 
+import org.scijava.ItemVisibility;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
+import org.scijava.prefs.PrefService;
 import org.ulman.simulator.Simulator;
 import org.ulman.simulator.AgentNamingPolicy;
+import org.ulman.simulator.SimulationConfig;
 
 @Plugin(type = Command.class)
 public class SimulatorAdvancedDlg implements Command {
+	@Parameter(visibility = ItemVisibility.MESSAGE)
+	final String sep1 = "----------- Simulation debug -----------";
+
 	@Parameter(description = "Spots labels can be either 'M' or can be encoding the lineage history, also optionally with debug hints _B,_W,_BW.",
 		choices = { "Lineage encoding labels (1aabba...)",
 		            "Prepend hints B_,W_,BW_ to encoding labels",
@@ -24,6 +30,15 @@ public class SimulatorAdvancedDlg implements Command {
 	@Parameter(description = "Prints relative little reports about what the simulation framework was asked to do.")
 	boolean VERBOSE_SIMULATOR_DEBUG = Simulator.VERBOSE_SIMULATOR_DEBUG;
 
+	@Parameter(description = "Produce a \"lineage\" that stays in the geometric centre of the generated data.")
+	boolean CREATE_MASTODON_CENTER_SPOT = Simulator.CREATE_MASTODON_CENTER_SPOT;
+
+	@Parameter(description = "Using this radius the new spots are introduced into the simulation.")
+	double AGENT_INITIAL_RADIUS = Simulator.AGENT_INITIAL_RADIUS;
+
+	@Parameter(visibility = ItemVisibility.MESSAGE)
+	final String sep2 = "----------- Agents mobility -----------";
+
 	@Parameter(description = "How far around shall an agent look for \"nearby\" agents to consider their positions for its own development.")
 	double AGENT_LOOK_AROUND_DISTANCE = Simulator.AGENT_LOOK_AROUND_DISTANCE;
 
@@ -35,6 +50,9 @@ public class SimulatorAdvancedDlg implements Command {
 
 	@Parameter(description = "How many attempts is an agent (cell) allowed to try to move randomly until it finds an non-colliding position.")
 	int AGENT_NUMBER_OF_ATTEMPTS_TO_MAKE_A_MOVE = Simulator.AGENT_NUMBER_OF_ATTEMPTS_TO_MAKE_A_MOVE;
+
+	@Parameter(visibility = ItemVisibility.MESSAGE)
+	final String sep3 = "----------- Agents life-cycle -----------";
 
 	@Parameter(description = "The mean life span of an agent (cell). Shorted means divisions occurs more often.")
 	int AGENT_AVERAGE_LIFESPAN_BEFORE_DIVISION = Simulator.AGENT_AVERAGE_LIFESPAN_BEFORE_DIVISION;
@@ -54,26 +72,12 @@ public class SimulatorAdvancedDlg implements Command {
 	@Parameter(description = "After the two daughters are born, they translate away from each other from their INITIAL_DISTANCE to MIN_DISTANCE_TO_ANOTHER_AGENT for this number of time points, during this the daughters are not influenced by any surrounding agents (even when they are in overlap), but the surrounding agents are influenced by these daughters (so the influence is asymmetrical).")
 	int AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS = Simulator.AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS;
 
-	@Parameter(description = "Using this radius the new spots are introduced into the simulation.")
-	double AGENT_INITIAL_RADIUS = Simulator.AGENT_INITIAL_RADIUS;
-
-	@Parameter(description = "Produce a \"lineage\" that stays in the geometric centre of the generated data.")
-	boolean CREATE_MASTODON_CENTER_SPOT = Simulator.CREATE_MASTODON_CENTER_SPOT;
-
 	@Parameter
 	SimulatorMainDlg basicDialog = null;
 
 	@Override
 	public void run() {
-		if (this.LABELS_NAMING_POLICY.startsWith("Always")) {
-			Simulator.LABELS_NAMING_POLICY = AgentNamingPolicy.USE_ALWAYS_M;
-		} else if (this.LABELS_NAMING_POLICY.startsWith("Prepend")) {
-			Simulator.LABELS_NAMING_POLICY = AgentNamingPolicy.ENCODING_LABELS_AND_PREPENDING;
-		} else if (this.LABELS_NAMING_POLICY.startsWith("Append")) {
-			Simulator.LABELS_NAMING_POLICY = AgentNamingPolicy.ENCODING_LABELS_AND_APPENDING;
-		} else {
-			Simulator.LABELS_NAMING_POLICY = AgentNamingPolicy.ENCODING_LABELS;
-		}
+		Simulator.LABELS_NAMING_POLICY = getAgentNamingPolicyFrom(this.LABELS_NAMING_POLICY);
 		Simulator.COLLECT_INTERNAL_DATA = COLLECT_INTERNAL_DATA;
 		Simulator.VERBOSE_AGENT_DEBUG = VERBOSE_AGENT_DEBUG;
 		Simulator.VERBOSE_SIMULATOR_DEBUG = VERBOSE_SIMULATOR_DEBUG;
@@ -90,5 +94,41 @@ public class SimulatorAdvancedDlg implements Command {
 		Simulator.AGENT_INITIAL_RADIUS = AGENT_INITIAL_RADIUS;
 		Simulator.CREATE_MASTODON_CENTER_SPOT = CREATE_MASTODON_CENTER_SPOT;
 		if (basicDialog != null) basicDialog.runInsideMastodon();
+	}
+
+
+	static AgentNamingPolicy getAgentNamingPolicyFrom(final String policyStr) {
+		if (policyStr == null) return AgentNamingPolicy.ENCODING_LABELS;
+
+		if (policyStr.startsWith("Always")) {
+			return AgentNamingPolicy.USE_ALWAYS_M;
+		} else if (policyStr.startsWith("Prepend")) {
+			return AgentNamingPolicy.ENCODING_LABELS_AND_PREPENDING;
+		} else if (policyStr.startsWith("Append")) {
+			return AgentNamingPolicy.ENCODING_LABELS_AND_APPENDING;
+		} else {
+			return AgentNamingPolicy.ENCODING_LABELS;
+		}
+	}
+
+	static SimulationConfig loadSimConfigFromPrefStore(final PrefService prefService) {
+		final SimulationConfig cfg = new SimulationConfig();
+		cfg.LABELS_NAMING_POLICY = getAgentNamingPolicyFrom(            prefService.get(SimulatorAdvancedDlg.class, "LABELS_NAMING_POLICY", "encoding labels") );
+		cfg.COLLECT_INTERNAL_DATA =                                     prefService.getBoolean(SimulatorAdvancedDlg.class, "COLLECT_INTERNAL_DATA", Simulator.COLLECT_INTERNAL_DATA);
+		cfg.VERBOSE_AGENT_DEBUG =                                       prefService.getBoolean(SimulatorAdvancedDlg.class, "VERBOSE_AGENT_DEBUG", Simulator.VERBOSE_AGENT_DEBUG);
+		cfg.VERBOSE_SIMULATOR_DEBUG =                                   prefService.getBoolean(SimulatorAdvancedDlg.class, "VERBOSE_SIMULATOR_DEBUG", Simulator.VERBOSE_SIMULATOR_DEBUG);
+		cfg.AGENT_LOOK_AROUND_DISTANCE =                                prefService.getDouble(SimulatorAdvancedDlg.class, "AGENT_LOOK_AROUND_DISTANCE", Simulator.AGENT_LOOK_AROUND_DISTANCE);
+		cfg.AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT =                       prefService.getDouble(SimulatorAdvancedDlg.class, "AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT", Simulator.AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT);
+		cfg.AGENT_USUAL_STEP_SIZE =                                     prefService.getDouble(SimulatorAdvancedDlg.class, "AGENT_USUAL_STEP_SIZE", Simulator.AGENT_USUAL_STEP_SIZE);
+		cfg.AGENT_NUMBER_OF_ATTEMPTS_TO_MAKE_A_MOVE =                   prefService.getInt(SimulatorAdvancedDlg.class, "AGENT_NUMBER_OF_ATTEMPTS_TO_MAKE_A_MOVE", Simulator.AGENT_NUMBER_OF_ATTEMPTS_TO_MAKE_A_MOVE);
+		cfg.AGENT_AVERAGE_LIFESPAN_BEFORE_DIVISION =                    prefService.getInt(SimulatorAdvancedDlg.class, "AGENT_AVERAGE_LIFESPAN_BEFORE_DIVISION", Simulator.AGENT_AVERAGE_LIFESPAN_BEFORE_DIVISION);
+		cfg.AGENT_MAX_LIFESPAN_AND_DIES_AFTER =                         prefService.getInt(SimulatorAdvancedDlg.class, "AGENT_MAX_LIFESPAN_AND_DIES_AFTER", Simulator.AGENT_MAX_LIFESPAN_AND_DIES_AFTER);
+		cfg.AGENT_MAX_DENSITY_TO_ENABLE_DIVISION =                      prefService.getInt(SimulatorAdvancedDlg.class, "AGENT_MAX_DENSITY_TO_ENABLE_DIVISION", Simulator.AGENT_MAX_DENSITY_TO_ENABLE_DIVISION);
+		cfg.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE = prefService.getDouble(SimulatorAdvancedDlg.class, "AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE", Simulator.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE);
+		cfg.AGENT_DAUGHTERS_INITIAL_DISTANCE =                          prefService.getDouble(SimulatorAdvancedDlg.class, "AGENT_DAUGHTERS_INITIAL_DISTANCE", Simulator.AGENT_DAUGHTERS_INITIAL_DISTANCE);
+		cfg.AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS =            prefService.getInt(SimulatorAdvancedDlg.class, "AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS", Simulator.AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS);
+		cfg.AGENT_INITIAL_RADIUS =                                      prefService.getDouble(SimulatorAdvancedDlg.class, "AGENT_INITIAL_RADIUS", Simulator.AGENT_INITIAL_RADIUS);
+		cfg.CREATE_MASTODON_CENTER_SPOT =                               prefService.getBoolean(SimulatorAdvancedDlg.class, "CREATE_MASTODON_CENTER_SPOT", Simulator.CREATE_MASTODON_CENTER_SPOT);
+		return cfg;
 	}
 }
