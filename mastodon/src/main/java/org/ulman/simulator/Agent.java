@@ -338,39 +338,63 @@ public class Agent {
 	}
 
 	protected boolean divideMe() {
-		final int d1Id = simulatorFrame.getNewId();
-		final int d2Id = simulatorFrame.getNewId();
-		final String d1Name = name + "a";
-		final String d2Name = name + "b";
-
 		final double d1Radius = this.R;
 		final double d2Radius = this.R;
 		final double daughtersCentresHalfDistance = 0.5*(d1Radius + daughtersInitialDisplacement + d2Radius);
 
-		//division vector:
-		double azimuth = Math.atan2(nextY-y, nextX-x);
-		azimuth += Math.PI / 2.0;
-		azimuth += moveRndGenerator.nextGaussian() * Simulator.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE / 3.0;
-		double dx = Math.cos(azimuth);
-		double dy = Math.sin(azimuth);
-		double dz = 0;
-		if (!Simulator.AGENT_DO_2D_MOVES_ONLY) {
-			dz = moveRndGenerator.nextDouble();
+		//look just enough (and often further than normally) around to see enough to host two daughters side-by-side;
+		//so, the furtherest surface of the bigger daughter from mother's centre, minus mother's radius:
+		final double lookAroundDist = daughtersCentresHalfDistance + Math.max(d1Radius,d2Radius) - this.R;
+		final int neighborsMaxIdx = simulatorFrame.getListOfOccupiedCoords(this, lookAroundDist, nearbySpheres);
+
+		int remainingTries = 20;
+		int proximityCounter = 9999;
+
+		double dx = 0, dy = 0, dz = 0;
+		while (remainingTries > 0 && proximityCounter > 0) {
+			--remainingTries;
+
+			//division vector:
+			double azimuth = Math.atan2(nextY-y, nextX-x);
+			azimuth += Math.PI / 2.0;
+			azimuth += moveRndGenerator.nextGaussian() * Simulator.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE / 3.0;
+			dx = Math.cos(azimuth);
+			dy = Math.sin(azimuth);
+			dz = Simulator.AGENT_DO_2D_MOVES_ONLY ? 0.0 : moveRndGenerator.nextDouble();
+			final double dLen = Math.sqrt(dx*dx + dy*dy + dz*dz);
+
+			//memorize the direction and the full distance to travel for the "buldozering":
+			final double buldozeringLen = 0.5*(minDistanceToNeighbor - daughtersInitialDisplacement) / dLen;
+			divBuldozerDx = buldozeringLen * dx;
+			divBuldozerDy = buldozeringLen * dy;
+			divBuldozerDz = buldozeringLen * dz;
+
+			//direction and distance for the initial placement of both daughters:
+			//(since both will move, it is enough to move each only by half of the total needed displacement)
+			final double nowStepLen = daughtersCentresHalfDistance / dLen;
+			dx *= nowStepLen;
+			dy *= nowStepLen;
+			dz *= nowStepLen;
+
+			//check now the future placement of both daughters:
+			//  if bad, try again... if still bad, we don't divide now
+			//  else we continue below...
+			proximityCounter = 0;
+			for (int off = 0; off < neighborsMaxIdx; off += nearbySpheresStride) {
+				proximityCounter += isSphereTooCloseToNeigh(nextX-dx, nextY-dy, nextZ-dz, d1Radius, off) ? 1 : 0;
+				proximityCounter += isSphereTooCloseToNeigh(nextX+dx, nextY+dy, nextZ+dz, d2Radius, off) ? 1 : 0;
+			}
+			if (Simulator.VERBOSE_AGENT_DEBUG && proximityCounter > 0) {
+				System.out.println("  daughters placement found in "+proximityCounter+" collisions, trying again");
+			}
 		}
-		final double dLen = Math.sqrt(dx*dx + dy*dy + dz*dz);
+		if (proximityCounter > 0) return false;
 
-		//memorize the direction and the full distance to travel for the "buldozering":
-		final double buldozeringLen = 0.5*(minDistanceToNeighbor - daughtersInitialDisplacement) / dLen;
-		divBuldozerDx = buldozeringLen * dx;
-		divBuldozerDy = buldozeringLen * dy;
-		divBuldozerDz = buldozeringLen * dz;
-
-		//direction and distance for the initial placement of both daughters:
-		//(since both will move, it is enough to move each only by half of the total needed displacement)
-		final double nowStepLen = daughtersCentresHalfDistance / dLen;
-		dx *= nowStepLen;
-		dy *= nowStepLen;
-		dz *= nowStepLen;
+		//all seems well incl. where to place the daughters, let's introduce them to the Simulator (and deregister this mother)
+		final int d1Id = simulatorFrame.getNewId();
+		final int d2Id = simulatorFrame.getNewId();
+		final String d1Name = name + "a";
+		final String d2Name = name + "b";
 
 		Agent d1 = new Agent(simulatorFrame, d1Id, id, d1Name, nextX-dx, nextY-dy, nextZ-dz, d1Radius, t);
 		Agent d2 = new Agent(simulatorFrame, d2Id, id, d2Name, nextX+dx, nextY+dy, nextZ+dz, d2Radius, t);
@@ -395,6 +419,16 @@ public class Agent {
 
 		return true; //division has happened
 	}
+
+	private boolean isSphereTooCloseToNeigh(double posx, double posy, double posz, double R, int neighOffset) {
+			double dx = posx - nearbySpheres[neighOffset+0];
+			double dy = posy - nearbySpheres[neighOffset+1];
+			double dz = posz - nearbySpheres[neighOffset+2];
+			double dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+			dist -= R + nearbySpheres[neighOffset+3]; //the actual (surface) distance to the nearby agent
+			return dist < daughtersInitialDisplacement;
+	}
+
 
 	protected boolean doBuldozering(final double fromHereX, final double fromHereY, final double fromHereZ) {
 		final int remainingTimePoints = this.divBuldozerStopTP - (this.t+1); //NB: as if already in the now-creating (future) time point
