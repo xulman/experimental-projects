@@ -10,7 +10,7 @@
 
 	<groupId>org.mastodon</groupId>
 	<artifactId>mastodon-xulman-experimental</artifactId>
-	<version>0.0.3</version>
+	<version>0.0.5</version>
 
 	<name>Experimental Mastodon Plugins by Vladimir Ulman</name>
 	<description>Various Mastodon plugins inspired mainly by Tomancak lab projects</description>
@@ -76,7 +76,7 @@
 		<license.organizationName>Mastodon authors</license.organizationName>
 		<license.copyrightOwners>Vladimir Ulman</license.copyrightOwners>
 
-		<mastodon.version>1.0.0-beta-28</mastodon.version>
+		<mastodon.version>1.0.0-beta-30-SNAPSHOT-VladoBigSimulation</mastodon.version>
 	</properties>
 
 	<developers>

@@ -32,9 +32,8 @@ import org.mastodon.mamut.model.ModelGraph;
 import org.mastodon.mamut.model.Spot;
 import org.mastodon.mamut.experimental.spots.util.CopyTagsBetweenSpots;
 
-import java.util.Iterator;
-import java.util.Set;
-import java.util.HashSet;
+import java.text.ParseException;
+import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
 
@@ -44,31 +43,26 @@ import org.scijava.log.LogService;
 import org.scijava.log.Logger;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
+import org.ulman.util.NumberSequenceHandler;
 
-@Plugin( type = Command.class, name = "Move spots in space and time" )
-public class ShiftSpots implements Command {
+@Plugin( type = Command.class, name = "Duplicate spots in time" )
+public class DuplicateSpots implements Command {
 
 	@Parameter(visibility = ItemVisibility.MESSAGE)
 	private final String selectionInfoMsg = "...also only selected ones.";
 
-	@Parameter
-	double multiply_x = 1;
-	@Parameter
-	double multiply_y = 1;
-	@Parameter
-	double multiply_z = 1;
+	@Parameter(label = "Select spots from this time point:")
+	int sourceTimePoint = 0;
 
-	@Parameter
-	double delta_x = 0;
-	@Parameter
-	double delta_y = 0;
-	@Parameter
-	double delta_z = 0;
+	@Parameter(label = "Link the added spots with the source Spot:")
+	boolean doLinkSource = true;
 
-	@Parameter(min = "1")
-	int multiply_t = 1;
-	@Parameter
-	int delta_t = 0;
+	@Parameter(label = "Link the added spots themselves:")
+	boolean doLink = true;
+
+	@Parameter(label = "Target time points as, e.g., 1,2,5-8,10:")
+	String targetTPsSpecification = "0";
+	final SortedSet<Integer> timePoints = new TreeSet<>(); //to be filled in run() from the String above
 
 	@Parameter(persist = false)
 	ProjectModel appModel;
@@ -78,11 +72,18 @@ public class ShiftSpots implements Command {
 
 	@Override
 	public void run() {
-		final Logger log = logService.subLogger("ShiftAndRotateMastodonPoints");
+		final Logger log = logService.subLogger("DuplicateMastodonPoints");
 
 		graph = appModel.getModel().getGraph();
-		curSpot = graph.vertexRef();
+		prevSpot = graph.vertexRef();
 		newSpot = graph.vertexRef();
+
+		try {
+			NumberSequenceHandler.parseSequenceOfNumbers(targetTPsSpecification, timePoints);
+		} catch (ParseException e) {
+			logService.error("Don't understand the target time points: "+e.getMessage());
+			return;
+		}
 
 		tagsUtil = new CopyTagsBetweenSpots(appModel);
 
@@ -90,7 +91,7 @@ public class ShiftSpots implements Command {
 		lock.writeLock().lock();
 		try {
 			if (appModel.getSelectionModel().isEmpty()) {
-				processSpots((o) -> appModel.getModel().getSpatioTemporalIndex().iterator(), log);
+				processSpots((o) -> appModel.getModel().getSpatioTemporalIndex().getSpatialIndex(sourceTimePoint).iterator(), log);
 			} else {
 				processSpots((o) -> appModel.getSelectionModel().getSelectedVertices().iterator(), log);
 			}
@@ -98,45 +99,50 @@ public class ShiftSpots implements Command {
 			lock.writeLock().unlock();
 		}
 
-		graph.releaseRef(curSpot);
+		graph.releaseRef(prevSpot);
 		graph.releaseRef(newSpot);
 
-		log.info("Shifting done.");
+		log.info("Duplicating done.");
 		appModel.getModel().getGraph().notifyGraphChanged();
 	}
 
 	ModelGraph graph;
-	Spot curSpot, newSpot;
+	Spot prevSpot, newSpot;
 	final double[] pos = new double[3];
 	final double[][] cov = new double[3][3];
 	CopyTagsBetweenSpots tagsUtil;
 
-	/* int counter = 0; */
 	public void processSpots(final Function<?,Iterator<Spot>> iterFactory, final Logger log) {
 		final Set<Integer> toBeProcessedIDs = new HashSet<>(100000);
-		iterFactory.apply(null).forEachRemaining( s -> toBeProcessedIDs.add(s.getInternalPoolIndex()) );
+		iterFactory.apply(null).forEachRemaining( s -> {
+			if (s.getTimepoint() == sourceTimePoint) toBeProcessedIDs.add(s.getInternalPoolIndex());
+		} );
 
 		while (!toBeProcessedIDs.isEmpty()) {
-			log.info("There are "+toBeProcessedIDs.size()+" spots to be moved...");
+			log.info("There are "+toBeProcessedIDs.size()+" spots to be cloned...");
 			Iterator<Spot> iter = iterFactory.apply(null);
 			while (iter.hasNext()) {
 				Spot s = iter.next();
 				final int sId = s.getInternalPoolIndex();
 				if (!toBeProcessedIDs.contains( sId )) continue;
 
-				//progress bar...
-				/*
-				if (counter == 0) System.out.print("Shifting spot with label ");
-				System.out.print( s.getLabel() + "," );
-				++counter;
-				if (counter == 50) {
-					System.out.println();
-					counter = 0;
+				//add the past vertices first
+				boolean firstAddition = true;
+				for (int t : timePoints) { //assuming 't's are provided sorted
+					if (t >= s.getTimepoint()) break;
+					cloneToTime(s,t, !firstAddition && doLink);
+					firstAddition = false;
 				}
-				*/
+				if (!firstAddition && doLinkSource) graph.addEdge(prevSpot, s).init();
 
-				if (delta_t == 0) shiftSpatially(s);
-				else shiftSpatiallyAndTemporarily(s);
+				//now add the future vertices
+				prevSpot.refTo(s);
+				firstAddition = true;
+				for (int t : timePoints) { //assuming 't's are provided sorted
+					if (t <= s.getTimepoint()) continue;
+					cloneToTime(s,t, (firstAddition && doLinkSource) || (!firstAddition && doLink));
+					firstAddition = false;
+				}
 
 				toBeProcessedIDs.remove( sId );
 			}
@@ -144,37 +150,18 @@ public class ShiftSpots implements Command {
 		}
 	}
 
+	private boolean cloneToTime(final Spot s, final int t, final boolean linkWithPrevSpot) {
+		if (t < appModel.getMinTimepoint() || t > appModel.getMaxTimepoint()) return false;
 
-	private void shiftPosition(final double[] pos) {
-		pos[0] = multiply_x * pos[0] + delta_x;
-		pos[1] = multiply_y * pos[1] + delta_y;
-		pos[2] = multiply_z * pos[2] + delta_z;
-	}
-
-	private Spot shiftSpatially(final Spot s) {
 		s.localize(pos);
-		shiftPosition(pos);
-		s.setPosition(pos);
-		return s;
-	}
-
-	private Spot shiftSpatiallyAndTemporarily(final Spot s) {
-		s.localize(pos);
-		shiftPosition(pos);
 		s.getCovariance(cov);
-		int newtime = Math.max(appModel.getMinTimepoint(),
-				Math.min(multiply_t * s.getTimepoint() + delta_t, appModel.getMaxTimepoint()));
-
-		graph.addVertex(newSpot).init(newtime, pos, cov);
+		graph.addVertex(newSpot).init(t, pos, cov);
 		newSpot.setLabel(s.getLabel());
-		s.incomingEdges().forEach(l -> graph.addEdge(l.getSource(), newSpot).init());
-		s.outgoingEdges().forEach(l -> graph.addEdge(newSpot, l.getTarget()).init());
-
 		tagsUtil.insertSpotIntoSameTSAs(newSpot, s);
-		tagsUtil.deleteSpotFromAllTS(s);
 
-		graph.remove(s);
+		if (linkWithPrevSpot) graph.addEdge(prevSpot, newSpot).init();
+		prevSpot.refTo(newSpot);
 
-		return newSpot;
+		return true;
 	}
 }
