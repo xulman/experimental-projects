@@ -24,10 +24,10 @@ public class SimulatorAdvancedDlg implements Command {
 	@Parameter(description = "Prints relative little reports about what the simulation framework was asked to do.")
 	boolean VERBOSE_SIMULATOR_DEBUG = false;
 
-	@Parameter(description = "How far around shall an agent look for \"nearby\" agents to consider them for overlaps.")
-	double AGENT_SEARCH_RADIUS = 4.2;
+	@Parameter(description = "How far around shall an agent look for \"nearby\" agents to consider their positions for its own development.")
+	double AGENT_LOOK_AROUND_DISTANCE = 4.2;
 
-	@Parameter(description = "How close two agents can come before they are considered overlapping.")
+	@Parameter(description = "How close two agents can come before they start repelling each other.")
 	double AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT = 3.2;
 
 	@Parameter(description = "How far an agent can move between time points.")
@@ -51,8 +51,11 @@ public class SimulatorAdvancedDlg implements Command {
 	@Parameter(description = "Freshly \"born\" daughters are placed exactly this distance apart from one another.")
 	double AGENT_DAUGHTERS_INITIAL_DISTANCE = 1.6;
 
-	@Parameter(description = "Using this radius the new spots are introduced into Mastodon.")
-	double MASTODON_SPOT_RADIUS = 1.5;
+	@Parameter(description = "After the two daughters are born, they translate away from each other from their INITIAL_DISTANCE to MIN_DISTANCE_TO_ANOTHER_AGENT for this number of time points, during this the daughters are not influenced by any surrounding agents (even when they are in overlap), but the surrounding agents are influenced by these daughters (so the influence is asymmetrical).")
+	int AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS = Simulator.AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS;
+
+	@Parameter(description = "Using this radius the new spots are introduced into the simulation.")
+	double AGENT_INITIAL_RADIUS = 1.5;
 
 	@Parameter(description = "Produce a \"lineage\" that stays in the geometric centre of the generated data.")
 	boolean MASTODON_CENTER_SPOT = false;
@@ -74,7 +77,7 @@ public class SimulatorAdvancedDlg implements Command {
 		Simulator.COLLECT_INTERNAL_DATA = COLLECT_INTERNAL_DATA;
 		Simulator.VERBOSE_AGENT_DEBUG = VERBOSE_AGENT_DEBUG;
 		Simulator.VERBOSE_SIMULATOR_DEBUG = VERBOSE_SIMULATOR_DEBUG;
-		Simulator.AGENT_SEARCH_RADIUS = AGENT_SEARCH_RADIUS;
+		Simulator.AGENT_LOOK_AROUND_DISTANCE = AGENT_LOOK_AROUND_DISTANCE;
 		Simulator.AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT = AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT;
 		Simulator.AGENT_USUAL_STEP_SIZE = AGENT_USUAL_STEP_SIZE;
 		Simulator.AGENT_NUMBER_OF_ATTEMPTS_TO_MAKE_A_MOVE = AGENT_NUMBER_OF_ATTEMPTS_TO_MAKE_A_MOVE;
@@ -83,7 +86,8 @@ public class SimulatorAdvancedDlg implements Command {
 		Simulator.AGENT_MAX_DENSITY_TO_ENABLE_DIVISION = AGENT_MAX_DENSITY_TO_ENABLE_DIVISION;
 		Simulator.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE = AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE;
 		Simulator.AGENT_DAUGHTERS_INITIAL_DISTANCE = AGENT_DAUGHTERS_INITIAL_DISTANCE;
-		Simulator.MASTODON_SPOT_RADIUS = MASTODON_SPOT_RADIUS;
+		Simulator.AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS = AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS;
+		Simulator.AGENT_INITIAL_RADIUS = AGENT_INITIAL_RADIUS;
 		Simulator.MASTODON_CENTER_SPOT = MASTODON_CENTER_SPOT;
 		if (basicDialog != null) basicDialog.runInsideMastodon();
 	}
