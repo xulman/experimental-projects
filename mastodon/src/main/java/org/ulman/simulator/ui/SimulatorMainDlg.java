@@ -21,10 +21,17 @@ public class SimulatorMainDlg implements Command {
 	@Parameter
 	ProjectModel projectModel;
 
-	@Parameter(label = "Number of seeds:", min="1")
-	int numCells = 2;
-	@Parameter(label = "OR, Use the last non-empty time point instead:")
-	boolean continueWithExisting = false;
+	@Parameter(label = "How to start a simulation:",
+		choices = {"From the scratch from the seeds, see below",
+		           "From the existing spots in the time point GIVEN below",
+		           "From the existing spots in the LAST non-empty time point"})
+	String initMode = "From the scratch";
+
+	@Parameter(label = "From the scratch: Number of seeds:", min="1")
+	short numCells = 2;
+
+	@Parameter(label = "From existing spots in this time point:", min="0")
+	int existingSpotsAtTP = 0;
 
 	@Parameter(label = "Number of time points to be created:", min="1")
 	int numTimepoints = 10;
@@ -57,8 +64,10 @@ public class SimulatorMainDlg implements Command {
 
 	public void runInsideMastodon() {
 		Simulator.AGENT_DO_2D_MOVES_ONLY = do2D;
-		if (continueWithExisting) {
-			new Runner(projectModel, numTimepoints).run();
+
+		if (initMode.startsWith("From the existing spots")) {
+			if (initMode.contains("LAST")) existingSpotsAtTP = -1;
+			new Runner(projectModel, existingSpotsAtTP, numTimepoints).run();
 		} else {
 			new Runner(projectModel, numCells, numTimepoints).run();
 		}
@@ -88,6 +97,6 @@ public class SimulatorMainDlg implements Command {
 	}
 
 	public static void runHeadless(final String projectFileName) {
-		new Runner(projectFileName,5,10).run();
+		new Runner(projectFileName,(short)5,10).run();
 	}
 }

@@ -25,7 +25,7 @@ public class Runner implements Runnable {
 
 	/** intended for when full Mastodon is around, starts from the beginning */
 	public Runner(final ProjectModel projectModel,
-					  final int numberOfCells,
+	              final short numberOfCells,
 	              final int timepoints) {
 		this.projectModel = projectModel;
 		this.outputProjectFilename = null; //save nothing in the end
@@ -36,26 +36,34 @@ public class Runner implements Runnable {
 
 	/** intended for when full Mastodon is around, starts from the last time point */
 	public Runner(final ProjectModel projectModel,
+	              final int fromThisTimepoint,
 	              final int timepoints) {
 		this.projectModel = projectModel;
 		this.outputProjectFilename = null; //save nothing in the end
 		this.initialNumberOfCells = -1;    //indicates to find them in the last time point of the projectModel
 
-		for (int time = projectModel.getMaxTimepoint()-1; time >= projectModel.getMinTimepoint(); --time) {
-			final SpatialIndex<Spot> spots = projectModel.getModel().getSpatioTemporalIndex().getSpatialIndex(time);
-			if (spots.size() > 0) {
-				System.out.println("Found last non-empty time point "+time);
-				this.timeFrom = time;
-				this.timeTill = Math.min(timeFrom+timepoints-1, projectModel.getMaxTimepoint());
-				return;
+		if (fromThisTimepoint < 0) {
+			//search for the last non-empty time point
+			for (int time = projectModel.getMaxTimepoint()-1; time >= projectModel.getMinTimepoint(); --time) {
+				final SpatialIndex<Spot> spots = projectModel.getModel().getSpatioTemporalIndex().getSpatialIndex(time);
+				if (spots.size() > 0) {
+					System.out.println("Found last non-empty time point "+time);
+					this.timeFrom = time;
+					this.timeTill = Math.min(timeFrom+timepoints-1, projectModel.getMaxTimepoint());
+					return;
+				}
 			}
+			throw new IllegalArgumentException("There are only empty time points in this Mastodon project.");
 		}
-		throw new IllegalArgumentException("There are only empty time points in this Mastodon project.");
+
+		System.out.println("Given this time point "+fromThisTimepoint);
+		this.timeFrom = fromThisTimepoint;
+		this.timeTill = Math.min(timeFrom+timepoints-1, projectModel.getMaxTimepoint());
 	}
 
 	/** intended for starts from a command line, from the very beginning */
 	public Runner(final String outputProjectFileName,
-					  final int numberOfCells,
+	              final short numberOfCells,
 	              final int timepoints) {
 		//setup a Mastodon project first
 		final String DUMMYXML="DUMMY x=100 y=100 z=100 t="+timepoints+".dummy";
