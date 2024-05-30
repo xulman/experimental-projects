@@ -30,6 +30,7 @@ package org.mastodon.mamut.experimental.spots;
 import org.mastodon.mamut.ProjectModel;
 import org.mastodon.mamut.model.ModelGraph;
 import org.mastodon.mamut.model.Spot;
+import org.mastodon.mamut.experimental.spots.util.CopyTagsBetweenSpots;
 
 import java.text.ParseException;
 import java.util.*;
@@ -84,6 +85,8 @@ public class DuplicateSpots implements Command {
 			return;
 		}
 
+		tagsUtil = new CopyTagsBetweenSpots(appModel);
+
 		final ReentrantReadWriteLock lock = graph.getLock();
 		lock.writeLock().lock();
 		try {
@@ -107,6 +110,7 @@ public class DuplicateSpots implements Command {
 	Spot prevSpot, newSpot;
 	final double[] pos = new double[3];
 	final double[][] cov = new double[3][3];
+	CopyTagsBetweenSpots tagsUtil;
 
 	public void processSpots(final Function<?,Iterator<Spot>> iterFactory, final Logger log) {
 		final Set<Integer> toBeProcessedIDs = new HashSet<>(100000);
@@ -153,6 +157,7 @@ public class DuplicateSpots implements Command {
 		s.getCovariance(cov);
 		graph.addVertex(newSpot).init(t, pos, cov);
 		newSpot.setLabel(s.getLabel());
+		tagsUtil.insertSpotIntoSameTSAs(newSpot, s);
 
 		if (linkWithPrevSpot) graph.addEdge(prevSpot, newSpot).init();
 		prevSpot.refTo(newSpot);

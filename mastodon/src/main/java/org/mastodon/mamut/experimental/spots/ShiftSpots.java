@@ -30,6 +30,7 @@ package org.mastodon.mamut.experimental.spots;
 import org.mastodon.mamut.ProjectModel;
 import org.mastodon.mamut.model.ModelGraph;
 import org.mastodon.mamut.model.Spot;
+import org.mastodon.mamut.experimental.spots.util.CopyTagsBetweenSpots;
 
 import java.util.Iterator;
 import java.util.Set;
@@ -83,6 +84,8 @@ public class ShiftSpots implements Command {
 		curSpot = graph.vertexRef();
 		newSpot = graph.vertexRef();
 
+		tagsUtil = new CopyTagsBetweenSpots(appModel);
+
 		final ReentrantReadWriteLock lock = graph.getLock();
 		lock.writeLock().lock();
 		try {
@@ -106,6 +109,7 @@ public class ShiftSpots implements Command {
 	Spot curSpot, newSpot;
 	final double[] pos = new double[3];
 	final double[][] cov = new double[3][3];
+	CopyTagsBetweenSpots tagsUtil;
 
 	/* int counter = 0; */
 	public void processSpots(final Function<?,Iterator<Spot>> iterFactory, final Logger log) {
@@ -165,6 +169,10 @@ public class ShiftSpots implements Command {
 		newSpot.setLabel(s.getLabel());
 		s.incomingEdges().forEach(l -> graph.addEdge(l.getSource(), newSpot).init());
 		s.outgoingEdges().forEach(l -> graph.addEdge(newSpot, l.getTarget()).init());
+
+		tagsUtil.insertSpotIntoSameTSAs(newSpot, s);
+		tagsUtil.deleteSpotFromAllTS(s);
+
 		graph.remove(s);
 
 		return newSpot;
