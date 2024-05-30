@@ -6,20 +6,29 @@ import org.mastodon.mamut.ProjectModel;
 import org.mastodon.mamut.io.project.MamutProject;
 import org.mastodon.mamut.model.Model;
 import org.mastodon.views.bdv.SharedBigDataViewerData;
+import org.scijava.ItemVisibility;
 import org.scijava.command.Command;
 import org.scijava.command.CommandService;
+import org.scijava.log.LogService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
 import org.ulman.simulator.Simulator;
-
+import org.ulman.util.NumberSequenceHandler;
 import javax.swing.WindowConstants;
-
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashSet;
+import java.util.Set;
 
 @Plugin(type = Command.class)
 public class SimulatorMainDlg implements Command {
 	@Parameter
 	ProjectModel projectModel;
+
+	@Parameter(visibility = ItemVisibility.MESSAGE)
+	final String sep1 = "----------- Input -----------";
 
 	@Parameter(label = "How to start a simulation:",
 		choices = {"From the scratch from the seeds, see below",
@@ -36,6 +45,18 @@ public class SimulatorMainDlg implements Command {
 	@Parameter(label = "Number of time points to be created:", min="1")
 	int numTimepoints = 10;
 
+	@Parameter(visibility = ItemVisibility.MESSAGE)
+	final String sep2 = "----------- Output -----------";
+
+	@Parameter(label = "Save snapshots at these time points, e.g. 10,20,30:", min="0")
+	String snapShotsTPs = "don't save";
+
+	@Parameter(label = "Save snapshots into files based on this name: ")
+	String snapShotsPath = "/temp/snapshots.mastodon";
+
+	@Parameter(visibility = ItemVisibility.MESSAGE)
+	final String sep3 = "----------- Parameters -----------";
+
 	@Parameter(label = "Restrict to 2D simulation in xy-plane:")
 	boolean do2D = Simulator.AGENT_DO_2D_MOVES_ONLY;
 
@@ -44,6 +65,9 @@ public class SimulatorMainDlg implements Command {
 
 	@Parameter
 	PrefService prefService;
+
+	@Parameter
+	LogService logService;
 
 	@Parameter
 	CommandService commandService;
@@ -65,12 +89,35 @@ public class SimulatorMainDlg implements Command {
 	public void runInsideMastodon() {
 		Simulator.AGENT_DO_2D_MOVES_ONLY = do2D;
 
+		Runner r;
 		if (initMode.startsWith("From the existing spots")) {
 			if (initMode.contains("LAST")) existingSpotsAtTP = -1;
-			new Runner(projectModel, existingSpotsAtTP, numTimepoints).run();
+			r = new Runner(projectModel, existingSpotsAtTP, numTimepoints);
 		} else {
-			new Runner(projectModel, numCells, numTimepoints).run();
+			r = new Runner(projectModel, numCells, numTimepoints);
 		}
+
+		//resolve snapshots before the simulation starts...
+		final Set<Integer> ssTimepoints = new HashSet<>(20);
+		try {
+			if (snapShotsPath != null && !snapShotsPath.isEmpty()) {
+				Path ssp = Paths.get(snapShotsPath);
+				if (Files.isDirectory(ssp)) ssp = ssp.resolve("snapshots.mastodon");
+				snapShotsPath = ssp.toAbsolutePath().toString();
+				if (!snapShotsPath.endsWith(".mastodon")) snapShotsPath = snapShotsPath + ".mastodon";
+				logService.info("Snapshots file template: " + snapShotsPath);
+
+				ssTimepoints.addAll( NumberSequenceHandler.toSet(snapShotsTPs) );
+
+				//if all went well, tell Runner about the snapshots
+				r.setSnapshots(snapShotsPath, ssTimepoints);
+			}
+		} catch (RuntimeException e) {
+			logService.info("Issue extracting snapshot time points: "+e.getMessage());
+			logService.info("Managed to extract and thus will use : "+ssTimepoints);
+		}
+
+		r.run();
 	}
 
 	// ===============================================================================================

@@ -12,6 +12,8 @@ import org.ulman.simulator.SimulationConfig;
 import org.ulman.simulator.Simulator;
 import java.io.File;
 import java.io.IOException;
+import java.util.Set;
+import java.util.HashSet;
 
 /** This class hosts the main simulation loop. */
 public class Runner implements Runnable {
@@ -123,6 +125,8 @@ public class Runner implements Runnable {
 					pb.updateLabel("Current time point: "+time);
 				}
 
+				if ( snapshotsTimepoints.contains(s.getTime()) ) saveSnapshot(s);
+
 				++time;
 			}
 			if (Simulator.CREATE_MASTODON_CENTER_SPOT) {
@@ -146,6 +150,34 @@ public class Runner implements Runnable {
 				System.out.println("Hmm... some issue saving the file "+outputProjectFilename);
 				System.out.println("Complaint was: "+e.getMessage());
 			}
+		}
+	}
+
+
+	private String snapshotsPath;
+	final private Set<Integer> snapshotsTimepoints = new HashSet<>();
+
+	public void setSnapshots(final String path, final Set timepoints) {
+		this.snapshotsPath = path;
+		this.snapshotsTimepoints.clear();
+		this.snapshotsTimepoints.addAll(timepoints);
+	}
+
+	public void addSnapshot(final String path, final int timepoint) {
+		this.snapshotsPath = path;
+		this.snapshotsTimepoints.add(timepoint);
+	}
+
+	private void saveSnapshot(Simulator s) {
+		if (snapshotsPath == null || snapshotsPath.isEmpty()) return;
+
+		int splitIdx = snapshotsPath.indexOf(".mastodon");
+		String path = snapshotsPath.substring(0,splitIdx) + "_tp"+s.getTime() + ".mastodon";
+		try {
+			System.out.println("Saving snapshot: "+path);
+			ProjectSaver.saveProject(new File(path), projectModel);
+		} catch (IOException e) {
+			System.out.println("Error saving snapshot: "+e.getMessage());
 		}
 	}
 }

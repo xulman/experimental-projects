@@ -130,6 +130,10 @@ public class Simulator {
 		return this.assignedIds;
 	}
 
+	public int getTime() {
+		return time;
+	}
+
 	synchronized
 	public void registerAgent(Agent spot) {
 		if (VERBOSE_SIMULATOR_DEBUG) {
