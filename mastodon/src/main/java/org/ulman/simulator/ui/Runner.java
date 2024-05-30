@@ -31,7 +31,7 @@ public class Runner implements Runnable {
 		this.outputProjectFilename = null; //save nothing in the end
 		this.initialNumberOfCells = Math.max(numberOfCells,1);
 		this.timeFrom = projectModel.getMinTimepoint();
-		this.timeTill = Math.min(timeFrom+timepoints-1, projectModel.getMaxTimepoint());
+		this.timeTill = Math.min(timeFrom+timepoints, projectModel.getMaxTimepoint());
 	}
 
 	/** intended for when full Mastodon is around, starts from the last time point */
@@ -49,7 +49,7 @@ public class Runner implements Runnable {
 				if (spots.size() > 0) {
 					System.out.println("Found last non-empty time point "+time);
 					this.timeFrom = time;
-					this.timeTill = Math.min(timeFrom+timepoints-1, projectModel.getMaxTimepoint());
+					this.timeTill = Math.min(timeFrom+timepoints, projectModel.getMaxTimepoint());
 					return;
 				}
 			}
@@ -58,7 +58,7 @@ public class Runner implements Runnable {
 
 		System.out.println("Given this time point "+fromThisTimepoint);
 		this.timeFrom = fromThisTimepoint;
-		this.timeTill = Math.min(timeFrom+timepoints-1, projectModel.getMaxTimepoint());
+		this.timeTill = Math.min(timeFrom+timepoints, projectModel.getMaxTimepoint());
 	}
 
 	/** intended for starts from a command line, from the very beginning */
@@ -66,7 +66,7 @@ public class Runner implements Runnable {
 	              final short numberOfCells,
 	              final int timepoints) {
 		//setup a Mastodon project first
-		final String DUMMYXML="DUMMY x=100 y=100 z=100 t="+timepoints+".dummy";
+		final String DUMMYXML="DUMMY x=100 y=100 z=100 t="+(timepoints+1)+".dummy";
 		ImageJ ij = new ImageJ();
 		this.projectModel = ProjectModel.create(ij.getContext(),
 				new Model(),
@@ -77,7 +77,7 @@ public class Runner implements Runnable {
 		//
 		this.initialNumberOfCells = Math.max(numberOfCells,1);
 		this.timeFrom = 0;
-		this.timeTill = timepoints-1;
+		this.timeTill = timepoints;
 	}
 
 	public void changeConfigTo(final SimulationConfig c) {
