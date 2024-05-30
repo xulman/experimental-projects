@@ -10,7 +10,7 @@
 
 	<groupId>org.mastodon</groupId>
 	<artifactId>mastodon-xulman-experimental</artifactId>
-	<version>0.0.5</version>
+	<version>0.0.6</version>
 
 	<name>Experimental Mastodon Plugins by Vladimir Ulman</name>
 	<description>Various Mastodon plugins inspired mainly by Tomancak lab projects</description>
