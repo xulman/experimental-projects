@@ -52,7 +52,7 @@ public class Agent {
 	private double divBuldozerDx, divBuldozerDy, divBuldozerDz;
 	private int divBuldozerStopTP = -1; //-1 means not active
 
-	private final int dontDivideBefore;
+	private int dontDivideBefore;
 	private final int dontLiveBeyond;
 	private final int maxNeighborsForDivide = Simulator.AGENT_MAX_DENSITY_TO_ENABLE_DIVISION;
 
@@ -321,17 +321,23 @@ public class Agent {
 				if (Simulator.VERBOSE_AGENT_DEBUG) {
 					System.out.println("  dividing!");
 				}
-				this.divideMe();
+				//
+				final boolean managedToDivide = this.divideMe();
+				//
+				this.dontDivideBefore += 2;
+				if (Simulator.VERBOSE_AGENT_DEBUG && !managedToDivide) {
+					System.out.println("  FAILED dividing! will try again at time point "+(dontDivideBefore+1));
+				}
 			} else {
 				if (Simulator.VERBOSE_AGENT_DEBUG) {
 					System.out.printf("  should divide but space seems to be full... (%d neighbors, too_close=%b)%n", neighborsCnt, tooClose);
 				}
-				this.name = tooClose ? this.nameBlockedWantDivide : this.nameWantDivide;
 			}
+			this.name = tooClose ? this.nameBlockedWantDivide : this.nameWantDivide;
 		}
 	}
 
-	protected void divideMe() {
+	protected boolean divideMe() {
 		final int d1Id = simulatorFrame.getNewId();
 		final int d2Id = simulatorFrame.getNewId();
 		final String d1Name = name + "a";
@@ -381,6 +387,8 @@ public class Agent {
 		d2.divBuldozerDz =  this.divBuldozerDz;
 		d1.divBuldozerStopTP = t+daughtersInitialBuldozer;
 		d2.divBuldozerStopTP = t+daughtersInitialBuldozer;
+
+		return true; //division has happened
 	}
 
 	protected boolean doBuldozering(final double fromHereX, final double fromHereY, final double fromHereZ) {
