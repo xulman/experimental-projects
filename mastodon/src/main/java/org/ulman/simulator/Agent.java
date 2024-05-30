@@ -343,6 +343,10 @@ public class Agent {
 		final String d1Name = name + "a";
 		final String d2Name = name + "b";
 
+		final double d1Radius = this.R;
+		final double d2Radius = this.R;
+		final double daughtersCentresHalfDistance = 0.5*(d1Radius + daughtersInitialDisplacement + d2Radius);
+
 		//division vector:
 		double azimuth = Math.atan2(nextY-y, nextX-x);
 		azimuth += Math.PI / 2.0;
@@ -362,13 +366,14 @@ public class Agent {
 		divBuldozerDz = buldozeringLen * dz;
 
 		//direction and distance for the initial placement of both daughters:
-		final double nowStepLen = (0.5*daughtersInitialDisplacement + nextR) / dLen;
+		//(since both will move, it is enough to move each only by half of the total needed displacement)
+		final double nowStepLen = daughtersCentresHalfDistance / dLen;
 		dx *= nowStepLen;
 		dy *= nowStepLen;
 		dz *= nowStepLen;
 
-		Agent d1 = new Agent(simulatorFrame, d1Id, id, d1Name, nextX-dx, nextY-dy, nextZ-dz, nextR, t);
-		Agent d2 = new Agent(simulatorFrame, d2Id, id, d2Name, nextX+dx, nextY+dy, nextZ+dz, nextR, t);
+		Agent d1 = new Agent(simulatorFrame, d1Id, id, d1Name, nextX-dx, nextY-dy, nextZ-dz, d1Radius, t);
+		Agent d2 = new Agent(simulatorFrame, d2Id, id, d2Name, nextX+dx, nextY+dy, nextZ+dz, d2Radius, t);
 		//NB: mother must have existed for at least one time point, and thus must exist its Mastodon representation
 		d1.setMostRecentMastodonSpotRepre(this.mostRecentMastodonSpotRepre);
 		d2.setMostRecentMastodonSpotRepre(this.mostRecentMastodonSpotRepre);
