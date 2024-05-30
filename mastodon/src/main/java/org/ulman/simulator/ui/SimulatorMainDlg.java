@@ -29,7 +29,7 @@ public class SimulatorMainDlg implements Command {
 	int numTimepoints = 10;
 
 	@Parameter(label = "Restrict to 2D simulation in xy-plane:")
-	boolean do2D = false;
+	boolean do2D = Simulator.AGENT_DO_2D_MOVES_ONLY;
 
 	@Parameter(label = "Show the advanced dialog:")
 	boolean showAdvancedDlg = false;

@@ -30,11 +30,11 @@ public class Simulator {
 	/** How far around shall an agent look for "nearby" agents to consider their positions for its own development. */
 	public static double AGENT_LOOK_AROUND_DISTANCE = 4.2;
 	/** How close two agents can come before they start repelling each other. */
-	public static double AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT = 3.2;
+	public static double AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT = 2.6;
 	/** How far an agent can move between time points. */
 	public static double AGENT_USUAL_STEP_SIZE = 1.0;
 	/** How many attempts is an agent (cell) allowed to try to move randomly until it finds an non-colliding position. */
-	public static int AGENT_NUMBER_OF_ATTEMPTS_TO_MAKE_A_MOVE = 6;
+	public static int AGENT_NUMBER_OF_ATTEMPTS_TO_MAKE_A_MOVE = 4;
 	/** Prohibit any changes in the z-coordinate of agents (cells). */
 	public static boolean AGENT_DO_2D_MOVES_ONLY = false;
 
@@ -54,7 +54,7 @@ public class Simulator {
 	 *  for the x,y coords, the z-coord is randomized. */
 	public static double AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE = 2.35;
 	/** Freshly "born" daughters are placed exactly this distance apart from one another. */
-	public static double AGENT_DAUGHTERS_INITIAL_DISTANCE = 1.6;
+	public static double AGENT_DAUGHTERS_INITIAL_DISTANCE = 0.4;
 	/** After the two daughters are born, they translate away from each other from their INITIAL_DISTANCE
 	 *  to MIN_DISTANCE_TO_ANOTHER_AGENT for this number of time points, during this the daughters are
 	 *  not influenced by any surrounding agents (even when they are in overlap), but the surrounding agents
@@ -64,7 +64,7 @@ public class Simulator {
 	/** Using this radius the new spots are introduced into the simulation. */
 	public static double AGENT_INITIAL_RADIUS = 1.5;
 	/** Produce a \"lineage\" that stays in the geometric centre of the generated data. */
-	public static boolean MASTODON_CENTER_SPOT = false;
+	public static boolean CREATE_MASTODON_CENTER_SPOT = false;
 
 	public final static String MASTODON_CENTER_SPOT_NAME = "centre";
 
@@ -85,7 +85,7 @@ public class Simulator {
 		AGENT_DAUGHTERS_INITIAL_DISTANCE = c.AGENT_DAUGHTERS_INITIAL_DISTANCE;
 		AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS = c.AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS;
 		AGENT_INITIAL_RADIUS = c.AGENT_INITIAL_RADIUS;
-		MASTODON_CENTER_SPOT = c.MASTODON_CENTER_SPOT;
+		CREATE_MASTODON_CENTER_SPOT = c.CREATE_MASTODON_CENTER_SPOT;
 	}
 
 	@Override
@@ -103,7 +103,7 @@ public class Simulator {
 				"\n  AGENT_DAUGHTERS_INITIAL_DISTANCE: " + AGENT_DAUGHTERS_INITIAL_DISTANCE +
 				"\n  AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS: " + AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS +
 				"\n  AGENT_INITIAL_RADIUS: " + AGENT_INITIAL_RADIUS +
-				"\n  MASTODON_CENTER_SPOT: " + MASTODON_CENTER_SPOT;
+				"\n  CREATE_MASTODON_CENTER_SPOT: " + CREATE_MASTODON_CENTER_SPOT;
 	}
 
 

@@ -116,7 +116,7 @@ public class Runner implements Runnable {
 
 				++time;
 			}
-			if (Simulator.MASTODON_CENTER_SPOT) {
+			if (Simulator.CREATE_MASTODON_CENTER_SPOT) {
 				System.out.println("SIMULATOR ADDING CENTRE SPOTS");
 				s.pushCenterSpotsToMastodonGraph(timeFrom, timeTill);
 			}
