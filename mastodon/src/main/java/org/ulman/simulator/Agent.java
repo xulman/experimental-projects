@@ -499,12 +499,48 @@ public class Agent {
 	                           final double newX,
 	                           final double newY,
 	                           final double newZ) {
+		for (int off = 0; off < simulatorFrame.stayInsideSpheresSharedArrayMaxUsedIdx; off += nearbySpheresStride) {
+			double dx = oldX - simulatorFrame.stayInsideSpheresSharedArray[off+0]; //NB: direction doesn't matter now
+			double dy = oldY - simulatorFrame.stayInsideSpheresSharedArray[off+1];
+			double dz = oldZ - simulatorFrame.stayInsideSpheresSharedArray[off+2];
+			double dLen = Math.sqrt(dx*dx + dy*dy + dz*dz);
+			if (dLen < simulatorFrame.stayInsideSpheresSharedArray[off+3]) {
+				//old pos was inside this hinting sphere, then: make sure the new pos is not outside
+				dx = simulatorFrame.stayInsideSpheresSharedArray[off+0] - newX;
+				dy = simulatorFrame.stayInsideSpheresSharedArray[off+1] - newY;
+				dz = simulatorFrame.stayInsideSpheresSharedArray[off+2] - newZ;
+				dLen = Math.sqrt(dx*dx + dy*dy + dz*dz);
+				double dist = dLen - simulatorFrame.stayInsideSpheresSharedArray[off+3];
+				if (dist > 0) {
+					//new pos is outside
+					dist = Math.min(1.1 * dist, this.usualStepSize);
+					dispHintingSpheres[0] += dx * dist / dLen;
+					dispHintingSpheres[1] += dy * dist / dLen;
+					dispHintingSpheres[2] += dz * dist / dLen;
+					dispHintingCnt++;
+				}
+			}
+		}
 	}
 
 	protected void suggestMoveBasedOnKeepOutSpheres(
 	                           final double newX,
 	                           final double newY,
 	                           final double newZ) {
+		for (int off = 0; off < simulatorFrame.keepOutSpheresSharedArrayMaxUsedIdx; off += nearbySpheresStride) {
+			double dx = newX - simulatorFrame.keepOutSpheresSharedArray[off+0];
+			double dy = newY - simulatorFrame.keepOutSpheresSharedArray[off+1];
+			double dz = newZ - simulatorFrame.keepOutSpheresSharedArray[off+2];
+			double dLen = Math.sqrt(dx*dx + dy*dy + dz*dz);
+			double dist = simulatorFrame.keepOutSpheresSharedArray[off+3] - dLen;
+			if (dist > 0) {
+				dist = Math.min(dist, this.usualStepSize);
+				dispHintingSpheres[0] += dx * dist / dLen;
+				dispHintingSpheres[1] += dy * dist / dLen;
+				dispHintingSpheres[2] += dz * dist / dLen;
+				dispHintingCnt++;
+			}
+		}
 	}
 
 	protected void suggestMoveBasedOnHoldPositionSpheres(
@@ -514,5 +550,29 @@ public class Agent {
 	                           final double newX,
 	                           final double newY,
 	                           final double newZ) {
+		/*
+		for (int off = 0; off < simulatorFrame.holdPositionSpheresSharedArrayMaxUsedIdx; off += nearbySpheresStride) {
+			double dx = oldX - simulatorFrame.holdPositionSpheresSharedArray[off+0]; //NB: direction doesn't matter now
+			double dy = oldY - simulatorFrame.holdPositionSpheresSharedArray[off+1];
+			double dz = oldZ - simulatorFrame.holdPositionSpheresSharedArray[off+2];
+			double dLen = Math.sqrt(dx*dx + dy*dy + dz*dz);
+			if (simulatorFrame.holdPositionSpheresSharedArray[off+3] > dLen) {
+				//old pos was inside this hinting sphere, then: make sure the new pos is not outside
+				dx = simulatorFrame.holdPositionSpheresSharedArray[off+0] - newX;
+				dy = simulatorFrame.holdPositionSpheresSharedArray[off+1] - newY;
+				dz = simulatorFrame.holdPositionSpheresSharedArray[off+2] - newZ;
+				dLen = Math.sqrt(dx*dx + dy*dy + dz*dz);
+				double dist = dLen - simulatorFrame.holdPositionSpheresSharedArray[off+3];
+				if (dist > 0) {
+					//new pos is outside
+					dist = Math.min(dist, this.usualStepSize);
+					dispHintingSpheres[0] += dx * dist / dLen;
+					dispHintingSpheres[1] += dy * dist / dLen;
+					dispHintingSpheres[2] += dz * dist / dLen;
+					dispHintingCnt++;
+				}
+			}
+		}
+		*/
 	}
 }
