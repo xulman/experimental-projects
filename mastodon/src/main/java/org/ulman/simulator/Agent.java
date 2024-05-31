@@ -244,6 +244,9 @@ public class Agent {
 			dispAwayZ /= sumOfWeights;
 		}
 
+		//make sure the relevant hinting spheres are extracted and ready
+		simulatorFrame.updateSphereCaches(this.t+1);
+
 		//NB: if 'step' is a distance along one axis, the total length in the space is sqrt(spaceDim)-times larger
 		final double stepSizeDimensionalityCompensation = Simulator.AGENT_DO_2D_MOVES_ONLY ? 1.41 : 1.73;
 		final double stepSize = usualStepSize / stepSizeDimensionalityCompensation;
@@ -269,6 +272,33 @@ public class Agent {
 			newX = oldX + dispX + dispAwayX;
 			newY = oldY + dispY + dispAwayY;
 			newZ = oldZ + dispZ + dispAwayZ;
+
+			//init:
+			dispHintingSpheres[0] = 0.0;
+			dispHintingSpheres[1] = 0.0;
+			dispHintingSpheres[2] = 0.0;
+			dispHintingCnt = 0;
+			//
+			//cumulate:
+			suggestMoveBasedOnStayInsideSpheres( oldX,oldY,oldZ, newX,newY,newZ );
+			suggestMoveBasedOnKeepOutSpheres( newX,newY,newZ );
+			suggestMoveBasedOnHoldPositionSpheres( oldX,oldY,oldZ, newX,newY,newZ );
+			//
+			//finalize:
+			if (dispHintingCnt > 0) {
+				dispHintingSpheres[0] /= (double)dispHintingCnt;
+				dispHintingSpheres[1] /= (double)dispHintingCnt;
+				dispHintingSpheres[2] /= (double)dispHintingCnt;
+				if (Simulator.VERBOSE_AGENT_DEBUG) {
+					System.out.printf("  hinted displacement = (%f,%f,%f) from %d hinting spheres%n",
+							dispHintingSpheres[0],dispHintingSpheres[1],dispHintingSpheres[2], dispHintingCnt);
+				}
+			}
+			//
+			//apply:
+			newX += dispHintingSpheres[0];
+			newY += dispHintingSpheres[1];
+			newZ += dispHintingSpheres[2];
 
 			tooClose = false;
 			for (int off = 0; off < neighborsMaxIdx; off += nearbySpheresStride) {
@@ -456,5 +486,33 @@ public class Agent {
 		}
 
 		return true;
+	}
+
+
+	protected final double[] dispHintingSpheres = new double[3];
+	protected int dispHintingCnt = 0;
+
+	protected void suggestMoveBasedOnStayInsideSpheres(
+	                           final double oldX,
+	                           final double oldY,
+	                           final double oldZ,
+	                           final double newX,
+	                           final double newY,
+	                           final double newZ) {
+	}
+
+	protected void suggestMoveBasedOnKeepOutSpheres(
+	                           final double newX,
+	                           final double newY,
+	                           final double newZ) {
+	}
+
+	protected void suggestMoveBasedOnHoldPositionSpheres(
+	                           final double oldX,
+	                           final double oldY,
+	                           final double oldZ,
+	                           final double newX,
+	                           final double newY,
+	                           final double newZ) {
 	}
 }
