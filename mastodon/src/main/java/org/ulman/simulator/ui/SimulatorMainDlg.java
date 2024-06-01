@@ -63,6 +63,9 @@ public class SimulatorMainDlg implements Command {
 	@Parameter(label = "Show the advanced dialog:")
 	boolean showAdvancedDlg = false;
 
+	@Parameter(label = "Show the progress bar:")
+	boolean showProgressBar = true;
+
 	@Parameter
 	PrefService prefService;
 
@@ -117,6 +120,7 @@ public class SimulatorMainDlg implements Command {
 			logService.info("Managed to extract and thus will use : "+ssTimepoints);
 		}
 
+		r.setUseProgressBar(showProgressBar);
 		r.run();
 	}
 

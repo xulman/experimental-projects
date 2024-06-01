@@ -110,7 +110,7 @@ public class Runner implements Runnable {
 			int time = timeFrom+1;
 			if (outputProjectFilename == null && time < timeTill) {
 				//NB: doesn't make sense to show progress bar when zero time points are to be simulated
-				pb = new ProgressBar(time, timeTill, "Current time point: "+time);
+				if (useProgressBarIfPossible) pb = new ProgressBar(time, timeTill, "Current time point: "+time);
 			}
 			while (time <= timeTill) {
 				s.doOneTime();
@@ -179,5 +179,10 @@ public class Runner implements Runnable {
 		} catch (IOException e) {
 			System.out.println("Error saving snapshot: "+e.getMessage());
 		}
+	}
+
+	private boolean useProgressBarIfPossible = true;
+	public void setUseProgressBar(boolean newState) {
+		useProgressBarIfPossible = newState;
 	}
 }
