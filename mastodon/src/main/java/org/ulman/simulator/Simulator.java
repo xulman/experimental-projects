@@ -210,13 +210,14 @@ public class Simulator {
 	int spheresCacheCurrentTimepoint = -1;
 	//
 	//NB: package protected... so, directly accessible from Agent... yeah, "da shortcut"
-	final double[] stayInsideSpheresSharedArray = new double[400];
-	final double[] keepOutSpheresSharedArray = new double[400];
-	final double[] holdPositionSpheresSharedArray = new double[400];
+	final double[] stayInsideSpheresSharedArray = new double[8192];
+	final double[] keepOutSpheresSharedArray = new double[8192];
+	final double[] holdPositionSpheresSharedArray = new double[8192];
 	int stayInsideSpheresSharedArrayMaxUsedIdx = -1;
 	int keepOutSpheresSharedArrayMaxUsedIdx = -1;
 	int holdPositionSpheresSharedArrayMaxUsedIdx = -1;
 
+	synchronized
 	protected void updateSphereCaches(final int forThisTimepoint) {
 		//already valid/up-to-date?
 		if (VERBOSE_SIMULATOR_DEBUG) {
