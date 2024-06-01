@@ -179,6 +179,9 @@ public class Simulator {
 		{
 			final Spot neighborSpot = search.next();
 			if (neighborSpot.equals(thisSpot)) continue;
+			if (neighborSpot.getLabel().startsWith("stay_inside")) continue;
+			if (neighborSpot.getLabel().startsWith("keep_out")) continue;
+			if (neighborSpot.getLabel().startsWith("hold_position")) continue;
 
 			final double neighborSpotR = Math.sqrt(neighborSpot.getBoundingSphereRadiusSquared());
 			if ( Util.distance(thisSpot,neighborSpot) >
@@ -190,6 +193,60 @@ public class Simulator {
 			nearbySpheres[off++] = neighborSpotR;
 		}
 		return off;
+	}
+
+
+	//the shared hinting spheres are relevant for this time point
+	int spheresCacheCurrentTimepoint = -1;
+	//
+	//NB: package protected... so, directly accessible from Agent... yeah, "da shortcut"
+	final double[] stayInsideSpheresSharedArray = new double[400];
+	final double[] keepOutSpheresSharedArray = new double[400];
+	final double[] holdPositionSpheresSharedArray = new double[400];
+	int stayInsideSpheresSharedArrayMaxUsedIdx = -1;
+	int keepOutSpheresSharedArrayMaxUsedIdx = -1;
+	int holdPositionSpheresSharedArrayMaxUsedIdx = -1;
+
+	protected void updateSphereCaches(final int forThisTimepoint) {
+		//already valid/up-to-date?
+		if (VERBOSE_SIMULATOR_DEBUG) {
+			System.out.println("========== SIM: requested hinting spheres for TP " + forThisTimepoint);
+		}
+		if (spheresCacheCurrentTimepoint == forThisTimepoint) return;
+
+		//else, reset cache and start filling it below....
+		stayInsideSpheresSharedArrayMaxUsedIdx = 0;
+		keepOutSpheresSharedArrayMaxUsedIdx = 0;
+		holdPositionSpheresSharedArrayMaxUsedIdx = 0;
+
+		final SpatialIndex< Spot > spatialIndex
+				= projectModel.getModel().getSpatioTemporalIndex().getSpatialIndex( forThisTimepoint );
+
+		for (Spot s : spatialIndex) {
+			if (s.getLabel().startsWith("stay_inside")) {
+				stayInsideSpheresSharedArray[stayInsideSpheresSharedArrayMaxUsedIdx++] = s.getDoublePosition(0);
+				stayInsideSpheresSharedArray[stayInsideSpheresSharedArrayMaxUsedIdx++] = s.getDoublePosition(1);
+				stayInsideSpheresSharedArray[stayInsideSpheresSharedArrayMaxUsedIdx++] = s.getDoublePosition(2);
+				stayInsideSpheresSharedArray[stayInsideSpheresSharedArrayMaxUsedIdx++] = Math.sqrt(s.getBoundingSphereRadiusSquared());
+			} else if (s.getLabel().startsWith("keep_out")) {
+				keepOutSpheresSharedArray[keepOutSpheresSharedArrayMaxUsedIdx++] = s.getDoublePosition(0);
+				keepOutSpheresSharedArray[keepOutSpheresSharedArrayMaxUsedIdx++] = s.getDoublePosition(1);
+				keepOutSpheresSharedArray[keepOutSpheresSharedArrayMaxUsedIdx++] = s.getDoublePosition(2);
+				keepOutSpheresSharedArray[keepOutSpheresSharedArrayMaxUsedIdx++] = Math.sqrt(s.getBoundingSphereRadiusSquared());
+			} else if (s.getLabel().startsWith("hold_position")) {
+				holdPositionSpheresSharedArray[holdPositionSpheresSharedArrayMaxUsedIdx++] = s.getDoublePosition(0);
+				holdPositionSpheresSharedArray[holdPositionSpheresSharedArrayMaxUsedIdx++] = s.getDoublePosition(1);
+				holdPositionSpheresSharedArray[holdPositionSpheresSharedArrayMaxUsedIdx++] = s.getDoublePosition(2);
+				holdPositionSpheresSharedArray[holdPositionSpheresSharedArrayMaxUsedIdx++] = Math.sqrt(s.getBoundingSphereRadiusSquared());
+			}
+		}
+		spheresCacheCurrentTimepoint = forThisTimepoint;
+
+		if (VERBOSE_SIMULATOR_DEBUG) {
+			System.out.println("========== SIM: found "+(stayInsideSpheresSharedArrayMaxUsedIdx/4)
+				+", "+(keepOutSpheresSharedArrayMaxUsedIdx/4)+", "+(holdPositionSpheresSharedArrayMaxUsedIdx/4)
+				+" stay,keep,hold hinting spheres");
+		}
 	}
 
 
