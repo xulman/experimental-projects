@@ -179,9 +179,7 @@ public class Simulator {
 		{
 			final Spot neighborSpot = search.next();
 			if (neighborSpot.equals(thisSpot)) continue;
-			if (neighborSpot.getLabel().startsWith("stay_inside")) continue;
-			if (neighborSpot.getLabel().startsWith("keep_out")) continue;
-			if (neighborSpot.getLabel().startsWith("hold_position")) continue;
+			if (isHintingSphere(neighborSpot)) continue;
 
 			final double neighborSpotR = Math.sqrt(neighborSpot.getBoundingSphereRadiusSquared());
 			if ( Util.distance(thisSpot,neighborSpot) >
@@ -193,6 +191,18 @@ public class Simulator {
 			nearbySpheres[off++] = neighborSpotR;
 		}
 		return off;
+	}
+
+	public static final String STAY_INSIDE_SPHERES_NAME = "stay_inside";
+	public static final String KEEP_OUT_SPHERES_NAME = "keep_out";
+	public static final String HOLD_POSITION_SPHERES_NAME = "hold_position";
+
+	public static boolean isHintingSphere(final Spot s) {
+			final String label = s.getLabel();
+			if (label.startsWith(STAY_INSIDE_SPHERES_NAME)) return true;
+			if (label.startsWith(KEEP_OUT_SPHERES_NAME)) return true;
+			if (label.startsWith(HOLD_POSITION_SPHERES_NAME)) return true;
+			return false;
 	}
 
 
@@ -223,17 +233,17 @@ public class Simulator {
 				= projectModel.getModel().getSpatioTemporalIndex().getSpatialIndex( forThisTimepoint );
 
 		for (Spot s : spatialIndex) {
-			if (s.getLabel().startsWith("stay_inside")) {
+			if (s.getLabel().startsWith(STAY_INSIDE_SPHERES_NAME)) {
 				stayInsideSpheresSharedArray[stayInsideSpheresSharedArrayMaxUsedIdx++] = s.getDoublePosition(0);
 				stayInsideSpheresSharedArray[stayInsideSpheresSharedArrayMaxUsedIdx++] = s.getDoublePosition(1);
 				stayInsideSpheresSharedArray[stayInsideSpheresSharedArrayMaxUsedIdx++] = s.getDoublePosition(2);
 				stayInsideSpheresSharedArray[stayInsideSpheresSharedArrayMaxUsedIdx++] = Math.sqrt(s.getBoundingSphereRadiusSquared());
-			} else if (s.getLabel().startsWith("keep_out")) {
+			} else if (s.getLabel().startsWith(KEEP_OUT_SPHERES_NAME)) {
 				keepOutSpheresSharedArray[keepOutSpheresSharedArrayMaxUsedIdx++] = s.getDoublePosition(0);
 				keepOutSpheresSharedArray[keepOutSpheresSharedArrayMaxUsedIdx++] = s.getDoublePosition(1);
 				keepOutSpheresSharedArray[keepOutSpheresSharedArrayMaxUsedIdx++] = s.getDoublePosition(2);
 				keepOutSpheresSharedArray[keepOutSpheresSharedArrayMaxUsedIdx++] = Math.sqrt(s.getBoundingSphereRadiusSquared());
-			} else if (s.getLabel().startsWith("hold_position")) {
+			} else if (s.getLabel().startsWith(HOLD_POSITION_SPHERES_NAME)) {
 				holdPositionSpheresSharedArray[holdPositionSpheresSharedArrayMaxUsedIdx++] = s.getDoublePosition(0);
 				holdPositionSpheresSharedArray[holdPositionSpheresSharedArrayMaxUsedIdx++] = s.getDoublePosition(1);
 				holdPositionSpheresSharedArray[holdPositionSpheresSharedArrayMaxUsedIdx++] = s.getDoublePosition(2);
@@ -367,6 +377,7 @@ public class Simulator {
 		this.time = timePoint;
 		for (Spot s : projectModel.getModel().getSpatioTemporalIndex().getSpatialIndex(timePoint)) {
 			if (s.getLabel().equals(Simulator.MASTODON_CENTER_SPOT_NAME)) continue;
+			if (isHintingSphere(s)) continue;
 			if (someSpotsSelected && !currentSpotSelection.isSelected(s)) continue;
 			Agent agent = new Agent(this, this.getNewId(), 0, s.getLabel()+"-",
 					s.getDoublePosition(0), s.getDoublePosition(1), s.getDoublePosition(2),
