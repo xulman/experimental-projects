@@ -102,6 +102,7 @@ public class Runner implements Runnable {
 			if (initialNumberOfCells == -1) {
 				s.populate(projectModel, timeFrom);
 				//don't pushToMastodonGraphAndUpdateStats(), the spots are already there
+				s.updateStats();
 			} else {
 				s.populate(initialNumberOfCells, timeFrom);
 				s.pushToMastodonGraphAndUpdateStats();

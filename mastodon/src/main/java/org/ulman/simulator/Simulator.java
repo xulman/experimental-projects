@@ -316,6 +316,24 @@ public class Simulator {
 		sum_z[time] /= agentsContainer.size();
 	}
 
+	public void updateStats() {
+		System.out.println("========== SIM: updateStats - calculating average coord from " + agentsContainer.size() + " agents");
+		sum_x[time] = 0;
+		sum_y[time] = 0;
+		sum_z[time] = 0;
+
+		agentsContainer.values().forEach( agent -> {
+			sum_x[time] += agent.getX();
+			sum_y[time] += agent.getY();
+			sum_z[time] += agent.getZ();
+		});
+		spotsInTotal += agentsContainer.size();
+
+		sum_x[time] /= agentsContainer.size();
+		sum_y[time] /= agentsContainer.size();
+		sum_z[time] /= agentsContainer.size();
+	}
+
 	public void pushCenterSpotsToMastodonGraph(int timeFrom, int timeTill) {
 		final Spot prevCentreSpot = projectModel.getModel().getGraph().vertexRef();
 		boolean isPrevCentreValid = false;
