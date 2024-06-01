@@ -49,8 +49,19 @@ public class PlaceSpotsOnSpotSurface implements Command {
 	@Parameter(visibility = ItemVisibility.MESSAGE)
 	private final String selectionInfoMsg = "...of ONLY selected spots.";
 
+	@Parameter(visibility = ItemVisibility.MESSAGE)
+	private final String msg1 = "The created spots take the name from their source spot.";
+	@Parameter(visibility = ItemVisibility.MESSAGE)
+	private final String msg2 = "Consider naming the source spot as keep_out.";
+
 	@Parameter(label = "Radius of the created spots:")
-	double tgtRadius = 5.0;
+	double targetRadius = 5.0;
+
+	@Parameter(label = "Overlap of the created spots:")
+	double targetOverlap = 1.5;
+
+	@Parameter(label = "Created spots are selected:")
+	boolean shouldBeSelected = true;
 
 	@Parameter(persist = false)
 	ProjectModel projectModel;
@@ -71,11 +82,12 @@ public class PlaceSpotsOnSpotSurface implements Command {
 
 		final Spot newSpot = graph.vertexRef();
 		for (Spot s : projectModel.getSelectionModel().getSelectedVertices()) {
-			enumerateSurfacePositions(s, Math.sqrt(s.getBoundingSphereRadiusSquared()), tgtRadius)
+			enumerateSurfacePositions(s, Math.sqrt(s.getBoundingSphereRadiusSquared()), targetRadius-targetOverlap)
 					  .forEach(p -> {
-						  graph.addVertex(newSpot).init(s.getTimepoint(), p.positionAsDoubleArray(), tgtRadius);
+						  graph.addVertex(newSpot).init(s.getTimepoint(), p.positionAsDoubleArray(), targetRadius);
 						  newSpot.setLabel( s.getLabel() );
 						  tagsUtil.insertSpotIntoSameTSAs(newSpot, s);
+						  if (shouldBeSelected) projectModel.getSelectionModel().setSelected(newSpot, true);
 					  });
 		}
 		graph.releaseRef(newSpot);
