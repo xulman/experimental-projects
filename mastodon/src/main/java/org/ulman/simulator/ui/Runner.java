@@ -101,10 +101,10 @@ public class Runner implements Runnable {
 
 			if (initialNumberOfCells == -1) {
 				s.populate(projectModel, timeFrom);
-				//don't pushToMastodonGraph(), the spots are already there
+				//don't pushToMastodonGraphAndUpdateStats(), the spots are already there
 			} else {
 				s.populate(initialNumberOfCells, timeFrom);
-				s.pushToMastodonGraph();
+				s.pushToMastodonGraphAndUpdateStats();
 			}
 
 			int time = timeFrom+1;
@@ -114,7 +114,7 @@ public class Runner implements Runnable {
 			}
 			while (time <= timeTill) {
 				s.doOneTime();
-				s.pushToMastodonGraph();
+				s.pushToMastodonGraphAndUpdateStats();
 
 				if (pb != null) {
 					if (pb.isStop()) {

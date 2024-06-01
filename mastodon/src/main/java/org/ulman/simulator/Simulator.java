@@ -167,7 +167,7 @@ public class Simulator {
 		if (searchDistance == 0) return 0;
 		final double radiusPlusSearchDistance = fromThisAgent.getR() + searchDistance;
 
-		//NB: should exist since this method is always called after this.pushToMastodonGraph()
+		//NB: should exist since this method is always called after this.pushToMastodonGraphAndUpdateStats()
 		final Spot thisSpot = fromThisAgent.getMostRecentMastodonSpotRepre();
 		final SpatialIndex< Spot > spatialIndex
 				= projectModel.getModel().getSpatioTemporalIndex().getSpatialIndex( thisSpot.getTimepoint() );
@@ -287,7 +287,7 @@ public class Simulator {
 	final double[] sum_z = new double[5000];
 	Spot auxSpot = null;
 
-	public void pushToMastodonGraph() {
+	public void pushToMastodonGraphAndUpdateStats() {
 		System.out.println("========== SIM: publishing to Mastodon " + agentsContainer.size() + " agents");
 		sum_x[time] = 0;
 		sum_y[time] = 0;
