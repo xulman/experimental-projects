@@ -31,12 +31,12 @@ public class SimulatorMainDlg implements Command {
 	final String sep1 = "----------- Input -----------";
 
 	@Parameter(label = "How to start a simulation:",
-		choices = {"From the scratch from the seeds, see below",
+		choices = {"From scratch from the seeds, see below",
 		           "From the existing spots in the time point GIVEN below",
 		           "From the existing spots in the LAST non-empty time point"})
-	String initMode = "From the scratch";
+	String initMode = "From scratch";
 
-	@Parameter(label = "From the scratch: Number of seeds:", min="1")
+	@Parameter(label = "From scratch: Number of seeds:", min="1")
 	short numCells = 2;
 
 	@Parameter(label = "From existing spots in this time point:", min="0")
