@@ -149,7 +149,7 @@ public class PlaceSpotsInSpotVolume implements Command {
 
 		int latLines = (int)Math.floor( quarterOfPerimeter / stepping );
 		double latSteppingAng = 0.5 * Math.PI / (double)latLines;
-		for (int l = 0; l < latLines; ++l) {
+		for (int l = 1; l < latLines; ++l) {
 			double latRadius = srcRadius * Math.cos((double)l * latSteppingAng);
 			double latPerimeter = 2.0 * Math.PI * latRadius;
 
