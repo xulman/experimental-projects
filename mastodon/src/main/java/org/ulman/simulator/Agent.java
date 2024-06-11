@@ -200,7 +200,7 @@ public class Agent {
 		final int neighborsCnt = neighborsMaxIdx / nearbySpheresStride;
 
 		if (Simulator.VERBOSE_AGENT_DEBUG) {
-			System.out.printf("advancing agent id %d (%s):%n", this.id, this.name);
+			System.out.printf("advancing agent id %d (%s) @ %d:%n", this.id, this.name, this.t);
 			System.out.printf("  from pos [%f,%f,%f] (from_current_pos=%b)%n", oldX, oldY, oldZ, fromCurrentPos);
 			System.out.println("  neighs cnt: " + neighborsCnt);
 		}
@@ -404,7 +404,7 @@ public class Agent {
 		int remainingTries = 20;
 		int proximityCounter = 9999;
 
-		double dx = 0, dy = 0, dz = 0, azimuth;
+		double dx = 0, dy = 0, dz = 0, azimuth, reported_azimuth;
 		while (remainingTries > 0 && proximityCounter > 0) {
 			--remainingTries;
 
@@ -412,6 +412,7 @@ public class Agent {
 			switch (Simulator.AGENT_DO_2D_MOVES_ONLY) {
 			case NO_X_AXIS_MOVE:
 				azimuth = Math.atan2(nextZ-z, nextY-y);
+				reported_azimuth = azimuth;
 				azimuth += Math.PI / 2.0;
 				azimuth += moveRndGenerator.nextGaussian() * Simulator.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE / 3.0;
 				dx = 0.0;
@@ -420,6 +421,7 @@ public class Agent {
 				break;
 			case NO_Y_AXIS_MOVE:
 				azimuth = Math.atan2(nextZ-z, nextX-x);
+				reported_azimuth = azimuth;
 				azimuth += Math.PI / 2.0;
 				azimuth += moveRndGenerator.nextGaussian() * Simulator.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE / 3.0;
 				dx = Math.cos(azimuth);
@@ -428,6 +430,7 @@ public class Agent {
 				break;
 			default:
 				azimuth = Math.atan2(nextY-y, nextX-x);
+				reported_azimuth = azimuth;
 				azimuth += Math.PI / 2.0;
 				azimuth += moveRndGenerator.nextGaussian() * Simulator.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE / 3.0;
 				dx = Math.cos(azimuth);
@@ -436,6 +439,9 @@ public class Agent {
 				break;
 			}
 			final double dLen = Math.sqrt(dx*dx + dy*dy + dz*dz);
+			if (Simulator.VERBOSE_AGENT_DEBUG) {
+				System.out.println("  azimuth of the last move was "+reported_azimuth+" rad");
+			}
 
 			//memorize the direction and the full distance to travel for the "buldozering":
 			final double buldozeringLen = 0.5*(minDistanceToNeighbor - daughtersInitialDisplacement) / dLen;
@@ -524,7 +530,7 @@ public class Agent {
 		this.name = this.nameBuldozer;
 
 		if (Simulator.VERBOSE_AGENT_DEBUG) {
-			System.out.printf("advancing agent id %d (%s) in buldozer-mode (%d/%d):%n", this.id, this.name, remainingTimePoints,daughtersInitialBuldozer);
+			System.out.printf("advancing agent id %d (%s) @ %d in buldozer-mode (%d/%d):%n", this.id, this.name, this.t, remainingTimePoints,daughtersInitialBuldozer);
 			System.out.printf("  from pos [%f,%f,%f] to [%f,%f,%f] using step proportion %f%n",
 					fromHereX, fromHereY, fromHereZ, nextX, nextY, nextZ, currentStepLen);
 		}
