@@ -59,6 +59,9 @@ public class PlaceSpotsInSpotVolume implements Command {
 	@Parameter(label = "Radius of the created spots:")
 	double targetRadius = 5.0;
 
+	@Parameter(label = "How much to randomize radius (disabled=0):")
+	double targetRadiusVar = 1.0;
+
 	@Parameter(label = "How much of random move:")
 	double targetRandomMove = 2.0;
 
@@ -109,19 +112,20 @@ public class PlaceSpotsInSpotVolume implements Command {
 			}
 
 			//kick out until the correct size
-			Random rng = new Random();
+			final Random rng = new Random();
 			while (allPoints.size() > targetCount) {
 				allPoints.remove( (int)Math.floor(rng.nextDouble()*allPoints.size()) );
 			}
 
 			//now randomly shuffle while inserting the RealPoints into Mastodon
+			final double radiusSigma = 0.33 * targetRadiusVar;
 			allPoints.forEach(p -> {
 					final double[] coords = p.positionAsDoubleArray();
 					coords[0] += rng.nextGaussian() * 0.33*targetRandomMove; //so that the whole range is <-targetRandomMove;+targetRandomMove>
 					coords[1] += rng.nextGaussian() * 0.33*targetRandomMove;
 					coords[2] += rng.nextGaussian() * 0.33*targetRandomMove;
 
-					graph.addVertex(newSpot).init(s.getTimepoint(), coords, targetRadius);
+					graph.addVertex(newSpot).init(s.getTimepoint(), coords, targetRadius + rng.nextGaussian()*radiusSigma);
 					newSpot.setLabel( s.getLabel() );
 					tagsUtil.insertSpotIntoSameTSAs(newSpot, s);
 					if (shouldBeSelected) projectModel.getSelectionModel().setSelected(newSpot, true);

@@ -42,6 +42,7 @@ import net.imglib2.RealLocalizable;
 import net.imglib2.RealPoint;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Random;
 
 @Plugin( type = Command.class, name = "Place spots on a surface" )
 public class PlaceSpotsOnSpotSurface implements Command {
@@ -56,6 +57,9 @@ public class PlaceSpotsOnSpotSurface implements Command {
 
 	@Parameter(label = "Radius of the created spots:")
 	double targetRadius = 5.0;
+
+	@Parameter(label = "How much to randomize radius (disabled=0):")
+	double targetRadiusVar = 0.0;
 
 	@Parameter(label = "Overlap of the created spots:")
 	double targetOverlap = 1.5;
@@ -80,11 +84,13 @@ public class PlaceSpotsOnSpotSurface implements Command {
 		final CopyTagsBetweenSpots tagsUtil = new CopyTagsBetweenSpots(projectModel);
 		final ModelGraph graph = projectModel.getModel().getGraph();
 
+		final Random rng = new Random();
+		final double radiusSigma = 0.33 * targetRadiusVar;
 		final Spot newSpot = graph.vertexRef();
 		for (Spot s : projectModel.getSelectionModel().getSelectedVertices()) {
 			enumerateSurfacePositions(s, Math.sqrt(s.getBoundingSphereRadiusSquared()), targetRadius-targetOverlap)
 					  .forEach(p -> {
-						  graph.addVertex(newSpot).init(s.getTimepoint(), p.positionAsDoubleArray(), targetRadius);
+						  graph.addVertex(newSpot).init(s.getTimepoint(), p.positionAsDoubleArray(), targetRadius + rng.nextGaussian()*radiusSigma);
 						  newSpot.setLabel( s.getLabel() );
 						  tagsUtil.insertSpotIntoSameTSAs(newSpot, s);
 						  if (shouldBeSelected) projectModel.getSelectionModel().setSelected(newSpot, true);
