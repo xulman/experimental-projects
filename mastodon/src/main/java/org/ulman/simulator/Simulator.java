@@ -322,6 +322,37 @@ public class Simulator {
 		sum_z[time] /= agentsContainer.size();
 	}
 
+	public void updateMastodonGraphAndUpdateStats() {
+		System.out.println("========== SIM: RE-publishing to Mastodon " + agentsContainer.size() + " agents");
+		sum_x[time] = 0;
+		sum_y[time] = 0;
+		sum_z[time] = 0;
+
+		agentsContainer.values().forEach( agent -> {
+			coords[0] = agent.getX();
+			coords[1] = agent.getY();
+			coords[2] = agent.getZ();
+			auxSpot.refTo( agent.getMostRecentMastodonSpotRepre() );
+			auxSpot.setPosition( coords );
+			auxSpot.getBoundingSphereRadiusSquared();
+
+			//set radius using agent.getR()
+			auxSpot.setLabel(agent.getName());
+
+			//TODO creating/removing/skipping over during divisions
+
+			sum_x[time] += coords[0];
+			sum_y[time] += coords[1];
+			sum_z[time] += coords[2];
+			}
+		});
+		spotsInTotal += agentsContainer.size();
+
+		sum_x[time] /= agentsContainer.size();
+		sum_y[time] /= agentsContainer.size();
+		sum_z[time] /= agentsContainer.size();
+	}
+
 	public void updateStats() {
 		System.out.println("========== SIM: updateStats - calculating average coord from " + agentsContainer.size() + " agents");
 		sum_x[time] = 0;
