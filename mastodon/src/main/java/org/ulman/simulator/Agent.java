@@ -53,6 +53,7 @@ public class Agent {
 	private double divBuldozerDx, divBuldozerDy, divBuldozerDz;
 	private int divBuldozerStopTP = -1; //-1 means not active
 
+	private final int slowDownForDivisionPeriod;
 	private int dontDivideBefore;
 	private final int dontLiveBeyond;
 	private final int maxNeighborsForDivide = Simulator.AGENT_MAX_DENSITY_TO_ENABLE_DIVISION;
@@ -151,6 +152,7 @@ public class Agent {
 		double meanLifePeriod = Simulator.AGENT_AVERAGE_LIFESPAN_BEFORE_DIVISION;
 		double sigma = (0.6 * meanLifePeriod) / 3.0;
 		this.dontDivideBefore = time + Math.max((int)(lifeSpanRndGenerator.nextGaussian() * sigma + meanLifePeriod),1);
+		this.slowDownForDivisionPeriod = (int)Math.floor(0.15*meanLifePeriod);
 		this.dontLiveBeyond = time + Math.max(Simulator.AGENT_MAX_LIFESPAN_AND_DIES_AFTER,1);
 		//NB: make sure the lifespan is always at least one time point
 
@@ -159,7 +161,8 @@ public class Agent {
 		}
 
 		if (Simulator.VERBOSE_AGENT_DEBUG) {
-			System.out.printf("NEW AGENT %d (%s), parent %d @ [%f,%f,%f] tp=%d, divTime=%d, dieTime=%d%n", ID, label, parentID, x, y, z, time, this.dontDivideBefore, this.dontLiveBeyond);
+			System.out.printf("NEW AGENT %d (%s), parent %d @ [%f,%f,%f] tp=%d, (slowPeriod=%d) divTime=%d, dieTime=%d%n",
+				ID, label, parentID, x, y, z, time, this.slowDownForDivisionPeriod, this.dontDivideBefore, this.dontLiveBeyond);
 		}
 	}
 
@@ -258,6 +261,7 @@ public class Agent {
 				= Simulator.AGENT_DO_2D_MOVES_ONLY == Agent2dMovesRestriction.NO_RESTRICTION ? 1.73 : 1.41;
 		final double stepSize = usualStepSize / stepSizeDimensionalityCompensation;
 		double slowDownFactor = 1.0;
+		final double slowDownFactor_division = 0.2 + Math.min( Math.max(0,dontDivideBefore-1 -this.t) / (double)slowDownForDivisionPeriod , 0.8);
 		final double sumOfWeights_heavyCollisionThreshold = 0.7;
 
 		int moveAttemptsCnt = 0;
@@ -267,6 +271,7 @@ public class Agent {
 					(double)moveAttemptsCnt / (double)Simulator.AGENT_NUMBER_OF_ATTEMPTS_TO_MAKE_A_MOVE );
 			//if, however, there is "a lot of 'collision'", we additionally
 			//lower the contribution of the random step
+			slowDownFactor *= slowDownFactor_division;
 			if (sumOfWeights > sumOfWeights_heavyCollisionThreshold) slowDownFactor *= 0.5;
 			moveAttemptsCnt += 1;
 
@@ -334,8 +339,8 @@ public class Agent {
 			if (Simulator.VERBOSE_AGENT_DEBUG) {
 				System.out.printf("  away   displacement = (%f,%f,%f), heavy collision = %b, sumOfWeights=%f%n",
 						dispAwayX, dispAwayY, dispAwayZ, sumOfWeights > sumOfWeights_heavyCollisionThreshold, sumOfWeights);
-				System.out.printf("  random displacement = (%f,%f,%f), toneDownFactor = %f%n",
-						dispX, dispY, dispZ, slowDownFactor);
+				System.out.printf("  random displacement = (%f,%f,%f), slowDownFactor = %f (slowDF_division = %f)%n",
+						dispX, dispY, dispZ, slowDownFactor, slowDownFactor_division);
 				System.out.printf("  trying pos [%f,%f,%f], too_close=%b%n", newX, newY, newZ, tooClose);
 			}
 		}
