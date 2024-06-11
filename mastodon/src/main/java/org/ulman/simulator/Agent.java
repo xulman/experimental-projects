@@ -248,7 +248,8 @@ public class Agent {
 		simulatorFrame.updateSphereCaches(this.t+1);
 
 		//NB: if 'step' is a distance along one axis, the total length in the space is sqrt(spaceDim)-times larger
-		final double stepSizeDimensionalityCompensation = Simulator.AGENT_DO_2D_MOVES_ONLY ? 1.41 : 1.73;
+		final double stepSizeDimensionalityCompensation
+				= Simulator.AGENT_DO_2D_MOVES_ONLY == Agent2dMovesRestriction.NO_RESTRICTION ? 1.73 : 1.41;
 		final double stepSize = usualStepSize / stepSizeDimensionalityCompensation;
 		double slowDownFactor = 1.0;
 		final double sumOfWeights_heavyCollisionThreshold = 0.7;
@@ -267,7 +268,18 @@ public class Agent {
 			dispX = moveRndGenerator.nextGaussian() * stepSize * slowDownFactor;
 			dispY = moveRndGenerator.nextGaussian() * stepSize * slowDownFactor;
 			dispZ = moveRndGenerator.nextGaussian() * stepSize * slowDownFactor;
-			if (Simulator.AGENT_DO_2D_MOVES_ONLY) dispZ = 0.0;
+			//
+			switch (Simulator.AGENT_DO_2D_MOVES_ONLY) {
+			case NO_X_AXIS_MOVE:
+				dispX = 0.0;
+				break;
+			case NO_Y_AXIS_MOVE:
+				dispY = 0.0;
+				break;
+			case NO_Z_AXIS_MOVE:
+				dispZ = 0.0;
+				break;
+			}
 
 			newX = oldX + dispX + dispAwayX;
 			newY = oldY + dispY + dispAwayY;
@@ -380,17 +392,37 @@ public class Agent {
 		int remainingTries = 20;
 		int proximityCounter = 9999;
 
-		double dx = 0, dy = 0, dz = 0;
+		double dx = 0, dy = 0, dz = 0, azimuth;
 		while (remainingTries > 0 && proximityCounter > 0) {
 			--remainingTries;
 
 			//division vector:
-			double azimuth = Math.atan2(nextY-y, nextX-x);
-			azimuth += Math.PI / 2.0;
-			azimuth += moveRndGenerator.nextGaussian() * Simulator.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE / 3.0;
-			dx = Math.cos(azimuth);
-			dy = Math.sin(azimuth);
-			dz = Simulator.AGENT_DO_2D_MOVES_ONLY ? 0.0 : moveRndGenerator.nextDouble();
+			switch (Simulator.AGENT_DO_2D_MOVES_ONLY) {
+			case NO_X_AXIS_MOVE:
+				azimuth = Math.atan2(nextZ-z, nextY-y);
+				azimuth += Math.PI / 2.0;
+				azimuth += moveRndGenerator.nextGaussian() * Simulator.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE / 3.0;
+				dx = 0.0;
+				dy = Math.cos(azimuth);
+				dz = Math.sin(azimuth);
+				break;
+			case NO_Y_AXIS_MOVE:
+				azimuth = Math.atan2(nextZ-z, nextX-x);
+				azimuth += Math.PI / 2.0;
+				azimuth += moveRndGenerator.nextGaussian() * Simulator.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE / 3.0;
+				dx = Math.cos(azimuth);
+				dy = 0.0;
+				dz = Math.sin(azimuth);
+				break;
+			default:
+				azimuth = Math.atan2(nextY-y, nextX-x);
+				azimuth += Math.PI / 2.0;
+				azimuth += moveRndGenerator.nextGaussian() * Simulator.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE / 3.0;
+				dx = Math.cos(azimuth);
+				dy = Math.sin(azimuth);
+				dz = Simulator.AGENT_DO_2D_MOVES_ONLY == Agent2dMovesRestriction.NO_Z_AXIS_MOVE ? 0.0 : moveRndGenerator.nextDouble();
+				break;
+			}
 			final double dLen = Math.sqrt(dx*dx + dy*dy + dz*dz);
 
 			//memorize the direction and the full distance to travel for the "buldozering":
