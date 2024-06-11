@@ -47,6 +47,7 @@ public class Agent {
 	private final double minDistanceToNeighbor = Simulator.AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT;
 	private final double usualStepSize = Simulator.AGENT_USUAL_STEP_SIZE;
 	private final double daughtersInitialDisplacement = Simulator.AGENT_DAUGHTERS_INITIAL_DISTANCE;
+	private static final double EPSILON = 0.00005;
 	//
 	private final int daughtersInitialBuldozer = Simulator.AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS;
 	private double divBuldozerDx, divBuldozerDy, divBuldozerDz;
@@ -323,7 +324,8 @@ public class Agent {
 				double dy = nearbySpheres[off+1] - newY;
 				double dz = nearbySpheres[off+2] - newZ;
 				double dist = Math.sqrt(dx*dx + dy*dy + dz*dz) - oldR - nearbySpheres[off+3];
-				if (dist < minDistanceToNeighbor) {
+				//NB: little more tolerant here...
+				if (dist < (minDistanceToNeighbor-EPSILON)) {
 					tooClose = true;
 					break;
 				}
