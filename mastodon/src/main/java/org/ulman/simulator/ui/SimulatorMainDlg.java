@@ -48,6 +48,10 @@ public class SimulatorMainDlg implements Command {
 	@Parameter(visibility = ItemVisibility.MESSAGE)
 	final String sep2 = "----------- Output -----------";
 
+	@Parameter(label = "Save in Mastodon only after simulated rounds of:", min="1",
+	           description = "Simulation advances normally but intermediate (N-1) simulated rounds are not stored.")
+	int saveOnlyEveryTP = 1;
+
 	@Parameter(label = "Save snapshots at these time points, e.g. 10,20,30:", min="0")
 	String snapShotsTPs = "don't save";
 
@@ -91,6 +95,7 @@ public class SimulatorMainDlg implements Command {
 
 	public void runInsideMastodon() {
 		Simulator.AGENT_DO_2D_MOVES_ONLY = do2D;
+		Simulator.MASTODON_KEEPS_EVERY_ROUND = saveOnlyEveryTP;
 
 		Runner r;
 		if (initMode.startsWith("From the existing spots")) {
