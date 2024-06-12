@@ -378,7 +378,7 @@ public class Agent {
 				//
 				final boolean managedToDivide = this.divideMe();
 				//
-				this.dontDivideBefore += 2;
+				this.dontDivideBefore = this.t + 2;
 				if (Simulator.VERBOSE_AGENT_DEBUG && !managedToDivide) {
 					System.out.println("  FAILED dividing! will try again at time point "+(dontDivideBefore+1));
 				}
