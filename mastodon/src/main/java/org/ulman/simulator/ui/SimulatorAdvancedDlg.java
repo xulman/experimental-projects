@@ -63,8 +63,8 @@ public class SimulatorAdvancedDlg implements Command {
 	@Parameter(description = "The maximum number of neighbors tolerated for a division to occur; if more neighbors are around, the system believes the space is too condensed and doesn't permit agents (cells) to divide.")
 	int AGENT_MAX_DENSITY_TO_ENABLE_DIVISION = Simulator.AGENT_MAX_DENSITY_TO_ENABLE_DIVISION;
 
-	@Parameter(description = "Given the last move of a mother cell, project it onto an xy-plane, one can then imagine a perpendicular line in the xy-plane. A division line in the xy-plane is randomly picked such that it does not coincide by larger angle with that perpendicular line, and this random line would be a \"division\" orientation for the x,y coords, the z-coord is randomized.")
-	double AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE = Simulator.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE;
+	@Parameter(description = "Given the last division direction (dozering direction) of a mother cell, daughters will divide in a new, random division direction such that the angle between the two division directions is not more than this.")
+	double AGENT_MAX_VARIABILITY_OF_DIVISION_PLANES = Simulator.AGENT_MAX_VARIABILITY_OF_DIVISION_PLANES;
 
 	@Parameter(description = "Freshly \"born\" daughters are placed exactly this distance apart from one another.")
 	double AGENT_DAUGHTERS_INITIAL_DISTANCE = Simulator.AGENT_DAUGHTERS_INITIAL_DISTANCE;
@@ -91,7 +91,7 @@ public class SimulatorAdvancedDlg implements Command {
 		Simulator.AGENT_AVERAGE_LIFESPAN_BEFORE_DIVISION = AGENT_AVERAGE_LIFESPAN_BEFORE_DIVISION;
 		Simulator.AGENT_MAX_LIFESPAN_AND_DIES_AFTER = AGENT_MAX_LIFESPAN_AND_DIES_AFTER;
 		Simulator.AGENT_MAX_DENSITY_TO_ENABLE_DIVISION = AGENT_MAX_DENSITY_TO_ENABLE_DIVISION;
-		Simulator.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE = AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE;
+		Simulator.AGENT_MAX_VARIABILITY_OF_DIVISION_PLANES = AGENT_MAX_VARIABILITY_OF_DIVISION_PLANES;
 		Simulator.AGENT_DAUGHTERS_INITIAL_DISTANCE = AGENT_DAUGHTERS_INITIAL_DISTANCE;
 		Simulator.AGENT_DAUGHTERS_DOZERING_DISTANCE = AGENT_DAUGHTERS_DOZERING_DISTANCE;
 		Simulator.AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS = AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS;
@@ -128,7 +128,7 @@ public class SimulatorAdvancedDlg implements Command {
 		cfg.AGENT_AVERAGE_LIFESPAN_BEFORE_DIVISION =                    prefService.getInt(SimulatorAdvancedDlg.class, "AGENT_AVERAGE_LIFESPAN_BEFORE_DIVISION", Simulator.AGENT_AVERAGE_LIFESPAN_BEFORE_DIVISION);
 		cfg.AGENT_MAX_LIFESPAN_AND_DIES_AFTER =                         prefService.getInt(SimulatorAdvancedDlg.class, "AGENT_MAX_LIFESPAN_AND_DIES_AFTER", Simulator.AGENT_MAX_LIFESPAN_AND_DIES_AFTER);
 		cfg.AGENT_MAX_DENSITY_TO_ENABLE_DIVISION =                      prefService.getInt(SimulatorAdvancedDlg.class, "AGENT_MAX_DENSITY_TO_ENABLE_DIVISION", Simulator.AGENT_MAX_DENSITY_TO_ENABLE_DIVISION);
-		cfg.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE = prefService.getDouble(SimulatorAdvancedDlg.class, "AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE", Simulator.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE);
+		cfg.AGENT_MAX_VARIABILITY_OF_DIVISION_PLANES = prefService.getDouble(SimulatorAdvancedDlg.class, "AGENT_MAX_VARIABILITY_OF_DIVISION_PLANES", Simulator.AGENT_MAX_VARIABILITY_OF_DIVISION_PLANES);
 		cfg.AGENT_DAUGHTERS_INITIAL_DISTANCE =                          prefService.getDouble(SimulatorAdvancedDlg.class, "AGENT_DAUGHTERS_INITIAL_DISTANCE", Simulator.AGENT_DAUGHTERS_INITIAL_DISTANCE);
 		cfg.AGENT_DAUGHTERS_DOZERING_DISTANCE =                         prefService.getDouble(SimulatorAdvancedDlg.class, "AGENT_DAUGHTERS_DOZERING_DISTANCE", Simulator.AGENT_DAUGHTERS_DOZERING_DISTANCE);
 		cfg.AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS =            prefService.getInt(SimulatorAdvancedDlg.class, "AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS", Simulator.AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS);

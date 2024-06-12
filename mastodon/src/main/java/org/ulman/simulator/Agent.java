@@ -432,28 +432,28 @@ public class Agent {
 			switch (Simulator.AGENT_DO_2D_MOVES_ONLY) {
 			case NO_X_AXIS_MOVE:
 				azimuth = Math.atan2(divBuldozerDz, divBuldozerDy);
-				azimuth += moveRndGenerator.nextGaussian() * Simulator.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE / 3.0;
+				azimuth += moveRndGenerator.nextGaussian() * Simulator.AGENT_MAX_VARIABILITY_OF_DIVISION_PLANES / 3.0;
 				dx = 0.0;
 				dy = Math.cos(azimuth);
 				dz = Math.sin(azimuth);
 				break;
 			case NO_Y_AXIS_MOVE:
 				azimuth = Math.atan2(divBuldozerDz, divBuldozerDx);
-				azimuth += moveRndGenerator.nextGaussian() * Simulator.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE / 3.0;
+				azimuth += moveRndGenerator.nextGaussian() * Simulator.AGENT_MAX_VARIABILITY_OF_DIVISION_PLANES / 3.0;
 				dx = Math.cos(azimuth);
 				dy = 0.0;
 				dz = Math.sin(azimuth);
 				break;
 			case NO_Z_AXIS_MOVE:
 				azimuth = Math.atan2(divBuldozerDy, divBuldozerDx);
-				azimuth += moveRndGenerator.nextGaussian() * Simulator.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE / 3.0;
+				azimuth += moveRndGenerator.nextGaussian() * Simulator.AGENT_MAX_VARIABILITY_OF_DIVISION_PLANES / 3.0;
 				dx = Math.cos(azimuth);
 				dy = Math.sin(azimuth);
 				dz = 0.0;
 				break;
 			default: //full 3D case
 				azimuth = Math.atan2(divBuldozerDy, divBuldozerDx);
-				azimuth += moveRndGenerator.nextGaussian() * 0.8 * Simulator.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE / 3.0;
+				azimuth += moveRndGenerator.nextGaussian() * 0.8 * Simulator.AGENT_MAX_VARIABILITY_OF_DIVISION_PLANES / 3.0;
 				//NB: the azimuth changes in both "axes" can move within a square while we needed it move within a circle, so we
 				//    reduce the size of the square to 80% to compensate... (as a square corner stretches far beyond the circle)
 				double twoDlen = Math.sqrt(divBuldozerDy*divBuldozerDy + divBuldozerDx*divBuldozerDx);
@@ -462,7 +462,7 @@ public class Agent {
 				dz = divBuldozerDz;
 
 				azimuth = Math.atan2(dz, dx);
-				azimuth += moveRndGenerator.nextGaussian() * 0.8 * Simulator.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE / 3.0;
+				azimuth += moveRndGenerator.nextGaussian() * 0.8 * Simulator.AGENT_MAX_VARIABILITY_OF_DIVISION_PLANES / 3.0;
 				twoDlen = Math.sqrt(dz*dz + dx*dx);
 				dx = twoDlen * Math.cos(azimuth);
 				dz = twoDlen * Math.sin(azimuth);

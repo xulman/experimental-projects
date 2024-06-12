@@ -50,11 +50,9 @@ public class Simulator {
 	 *  is too condensed and doesn't permit agents (cells) to divide. */
 
 	public static int AGENT_MAX_DENSITY_TO_ENABLE_DIVISION = 2;
-	/** Given the last move of a mother cell, project it onto an xy-plane, one can then imagine a perpendicular
-	 *  line in the xy-plane. A division line in the xy-plane is randomly picked such that it does not coincide
-	 *  by larger angle with that perpendicular line, and this random line would be a "division" orientation
-	 *  for the x,y coords, the z-coord is randomized. */
-	public static double AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE = 2.35;
+	/** Given the last division direction (dozering direction) of a mother cell, daughters will divide in a new,
+	 *  random division direction such that the angle between the two division directions is not more than this. */
+	public static double AGENT_MAX_VARIABILITY_OF_DIVISION_PLANES = 1.40; //+- 80deg
 	/** Freshly "born" daughters are placed exactly this distance apart from one another. */
 	public static double AGENT_DAUGHTERS_INITIAL_DISTANCE = 0.4;
 	/** After the two daughters are born, they translate away from each other from their INITIAL_DISTANCE
@@ -86,7 +84,7 @@ public class Simulator {
 		AGENT_AVERAGE_LIFESPAN_BEFORE_DIVISION = c.AGENT_AVERAGE_LIFESPAN_BEFORE_DIVISION;
 		AGENT_MAX_LIFESPAN_AND_DIES_AFTER = c.AGENT_MAX_LIFESPAN_AND_DIES_AFTER;
 		AGENT_MAX_DENSITY_TO_ENABLE_DIVISION = c.AGENT_MAX_DENSITY_TO_ENABLE_DIVISION;
-		AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE = c.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE;
+		AGENT_MAX_VARIABILITY_OF_DIVISION_PLANES = c.AGENT_MAX_VARIABILITY_OF_DIVISION_PLANES;
 		AGENT_DAUGHTERS_INITIAL_DISTANCE = c.AGENT_DAUGHTERS_INITIAL_DISTANCE;
 		AGENT_DAUGHTERS_DOZERING_DISTANCE = c.AGENT_DAUGHTERS_DOZERING_DISTANCE;
 		AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS = c.AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS;
@@ -105,7 +103,7 @@ public class Simulator {
 				"\n  AGENT_AVERAGE_LIFESPAN_BEFORE_DIVISION: " + AGENT_AVERAGE_LIFESPAN_BEFORE_DIVISION +
 				"\n  AGENT_MAX_LIFESPAN_AND_DIES_AFTER: " + AGENT_MAX_LIFESPAN_AND_DIES_AFTER +
 				"\n  AGENT_MAX_DENSITY_TO_ENABLE_DIVISION: " + AGENT_MAX_DENSITY_TO_ENABLE_DIVISION +
-				"\n  AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE: " + AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE +
+				"\n  AGENT_MAX_VARIABILITY_OF_DIVISION_PLANES: " + AGENT_MAX_VARIABILITY_OF_DIVISION_PLANES +
 				"\n  AGENT_DAUGHTERS_INITIAL_DISTANCE: " + AGENT_DAUGHTERS_INITIAL_DISTANCE +
 				"\n  AGENT_DAUGHTERS_DOZERING_DISTANCE: " + AGENT_DAUGHTERS_DOZERING_DISTANCE +
 				"\n  AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS: " + AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS +
