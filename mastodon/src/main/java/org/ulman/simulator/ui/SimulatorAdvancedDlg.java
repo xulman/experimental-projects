@@ -69,7 +69,10 @@ public class SimulatorAdvancedDlg implements Command {
 	@Parameter(description = "Freshly \"born\" daughters are placed exactly this distance apart from one another.")
 	double AGENT_DAUGHTERS_INITIAL_DISTANCE = Simulator.AGENT_DAUGHTERS_INITIAL_DISTANCE;
 
-	@Parameter(description = "After the two daughters are born, they translate away from each other from their INITIAL_DISTANCE to MIN_DISTANCE_TO_ANOTHER_AGENT for this number of time points, during this the daughters are not influenced by any surrounding agents (even when they are in overlap), but the surrounding agents are influenced by these daughters (so the influence is asymmetrical).")
+	@Parameter(description = "After the two daughters are born, they translate away from each other from their INITIAL_DISTANCE to AGENT_DAUGHTERS_DOZERING_DISTANCE for this number of time points.")
+	double AGENT_DAUGHTERS_DOZERING_DISTANCE = Simulator.AGENT_DAUGHTERS_DOZERING_DISTANCE;
+
+	@Parameter(description = "After the two daughters are born, they translate away from each other from their INITIAL_DISTANCE to AGENT_DAUGHTERS_DOZERING_DISTANCE for this number of time points, during this the daughters are not influenced by any surrounding agents (even when they are in overlap), but the surrounding agents are influenced by these daughters (so the influence is asymmetrical).")
 	int AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS = Simulator.AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS;
 
 	@Parameter
@@ -90,6 +93,7 @@ public class SimulatorAdvancedDlg implements Command {
 		Simulator.AGENT_MAX_DENSITY_TO_ENABLE_DIVISION = AGENT_MAX_DENSITY_TO_ENABLE_DIVISION;
 		Simulator.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE = AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE;
 		Simulator.AGENT_DAUGHTERS_INITIAL_DISTANCE = AGENT_DAUGHTERS_INITIAL_DISTANCE;
+		Simulator.AGENT_DAUGHTERS_DOZERING_DISTANCE = AGENT_DAUGHTERS_DOZERING_DISTANCE;
 		Simulator.AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS = AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS;
 		Simulator.AGENT_INITIAL_RADIUS = AGENT_INITIAL_RADIUS;
 		Simulator.CREATE_MASTODON_CENTER_SPOT = CREATE_MASTODON_CENTER_SPOT;
@@ -126,6 +130,7 @@ public class SimulatorAdvancedDlg implements Command {
 		cfg.AGENT_MAX_DENSITY_TO_ENABLE_DIVISION =                      prefService.getInt(SimulatorAdvancedDlg.class, "AGENT_MAX_DENSITY_TO_ENABLE_DIVISION", Simulator.AGENT_MAX_DENSITY_TO_ENABLE_DIVISION);
 		cfg.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE = prefService.getDouble(SimulatorAdvancedDlg.class, "AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE", Simulator.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE);
 		cfg.AGENT_DAUGHTERS_INITIAL_DISTANCE =                          prefService.getDouble(SimulatorAdvancedDlg.class, "AGENT_DAUGHTERS_INITIAL_DISTANCE", Simulator.AGENT_DAUGHTERS_INITIAL_DISTANCE);
+		cfg.AGENT_DAUGHTERS_DOZERING_DISTANCE =                         prefService.getDouble(SimulatorAdvancedDlg.class, "AGENT_DAUGHTERS_DOZERING_DISTANCE", Simulator.AGENT_DAUGHTERS_DOZERING_DISTANCE);
 		cfg.AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS =            prefService.getInt(SimulatorAdvancedDlg.class, "AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS", Simulator.AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS);
 		cfg.AGENT_INITIAL_RADIUS =                                      prefService.getDouble(SimulatorAdvancedDlg.class, "AGENT_INITIAL_RADIUS", Simulator.AGENT_INITIAL_RADIUS);
 		cfg.CREATE_MASTODON_CENTER_SPOT =                               prefService.getBoolean(SimulatorAdvancedDlg.class, "CREATE_MASTODON_CENTER_SPOT", Simulator.CREATE_MASTODON_CENTER_SPOT);
