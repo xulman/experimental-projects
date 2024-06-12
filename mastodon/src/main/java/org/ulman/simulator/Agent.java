@@ -53,6 +53,7 @@ public class Agent {
 	private double divBuldozerDx, divBuldozerDy, divBuldozerDz;
 	private int divBuldozerStopTP = -1; //-1 means not active
 
+	private final int slowDownForDivisionPeriod;
 	private int dontDivideBefore;
 	private final int dontLiveBeyond;
 	private final int maxNeighborsForDivide = Simulator.AGENT_MAX_DENSITY_TO_ENABLE_DIVISION;
@@ -151,6 +152,7 @@ public class Agent {
 		double meanLifePeriod = Simulator.AGENT_AVERAGE_LIFESPAN_BEFORE_DIVISION;
 		double sigma = (0.6 * meanLifePeriod) / 3.0;
 		this.dontDivideBefore = time + Math.max((int)(lifeSpanRndGenerator.nextGaussian() * sigma + meanLifePeriod),1);
+		this.slowDownForDivisionPeriod = (int)Math.floor(0.15*meanLifePeriod);
 		this.dontLiveBeyond = time + Math.max(Simulator.AGENT_MAX_LIFESPAN_AND_DIES_AFTER,1);
 		//NB: make sure the lifespan is always at least one time point
 
@@ -159,7 +161,8 @@ public class Agent {
 		}
 
 		if (Simulator.VERBOSE_AGENT_DEBUG) {
-			System.out.printf("NEW AGENT %d (%s), parent %d @ [%f,%f,%f] tp=%d, divTime=%d, dieTime=%d%n", ID, label, parentID, x, y, z, time, this.dontDivideBefore, this.dontLiveBeyond);
+			System.out.printf("NEW AGENT %d (%s), parent %d @ [%f,%f,%f] tp=%d, (slowPeriod=%d) divTime=%d, dieTime=%d%n",
+				ID, label, parentID, x, y, z, time, this.slowDownForDivisionPeriod, this.dontDivideBefore, this.dontLiveBeyond);
 		}
 	}
 
@@ -197,7 +200,7 @@ public class Agent {
 		final int neighborsCnt = neighborsMaxIdx / nearbySpheresStride;
 
 		if (Simulator.VERBOSE_AGENT_DEBUG) {
-			System.out.printf("advancing agent id %d (%s):%n", this.id, this.name);
+			System.out.printf("advancing agent id %d (%s) @ %d:%n", this.id, this.name, this.t);
 			System.out.printf("  from pos [%f,%f,%f] (from_current_pos=%b)%n", oldX, oldY, oldZ, fromCurrentPos);
 			System.out.println("  neighs cnt: " + neighborsCnt);
 		}
@@ -258,6 +261,7 @@ public class Agent {
 				= Simulator.AGENT_DO_2D_MOVES_ONLY == Agent2dMovesRestriction.NO_RESTRICTION ? 1.73 : 1.41;
 		final double stepSize = usualStepSize / stepSizeDimensionalityCompensation;
 		double slowDownFactor = 1.0;
+		final double slowDownFactor_division = 0.2 + Math.min( Math.max(0,dontDivideBefore-1 -this.t) / (double)slowDownForDivisionPeriod , 0.8);
 		final double sumOfWeights_heavyCollisionThreshold = 0.7;
 
 		int moveAttemptsCnt = 0;
@@ -267,6 +271,7 @@ public class Agent {
 					(double)moveAttemptsCnt / (double)Simulator.AGENT_NUMBER_OF_ATTEMPTS_TO_MAKE_A_MOVE );
 			//if, however, there is "a lot of 'collision'", we additionally
 			//lower the contribution of the random step
+			slowDownFactor *= slowDownFactor_division;
 			if (sumOfWeights > sumOfWeights_heavyCollisionThreshold) slowDownFactor *= 0.5;
 			moveAttemptsCnt += 1;
 
@@ -334,8 +339,8 @@ public class Agent {
 			if (Simulator.VERBOSE_AGENT_DEBUG) {
 				System.out.printf("  away   displacement = (%f,%f,%f), heavy collision = %b, sumOfWeights=%f%n",
 						dispAwayX, dispAwayY, dispAwayZ, sumOfWeights > sumOfWeights_heavyCollisionThreshold, sumOfWeights);
-				System.out.printf("  random displacement = (%f,%f,%f), toneDownFactor = %f%n",
-						dispX, dispY, dispZ, slowDownFactor);
+				System.out.printf("  random displacement = (%f,%f,%f), slowDownFactor = %f (slowDF_division = %f)%n",
+						dispX, dispY, dispZ, slowDownFactor, slowDownFactor_division);
 				System.out.printf("  trying pos [%f,%f,%f], too_close=%b%n", newX, newY, newZ, tooClose);
 			}
 		}
@@ -373,7 +378,7 @@ public class Agent {
 				//
 				final boolean managedToDivide = this.divideMe();
 				//
-				this.dontDivideBefore += 2;
+				this.dontDivideBefore = this.t + 2;
 				if (Simulator.VERBOSE_AGENT_DEBUG && !managedToDivide) {
 					System.out.println("  FAILED dividing! will try again at time point "+(dontDivideBefore+1));
 				}
@@ -399,7 +404,7 @@ public class Agent {
 		int remainingTries = 20;
 		int proximityCounter = 9999;
 
-		double dx = 0, dy = 0, dz = 0, azimuth;
+		double dx = 0, dy = 0, dz = 0, azimuth, reported_azimuth;
 		while (remainingTries > 0 && proximityCounter > 0) {
 			--remainingTries;
 
@@ -407,6 +412,7 @@ public class Agent {
 			switch (Simulator.AGENT_DO_2D_MOVES_ONLY) {
 			case NO_X_AXIS_MOVE:
 				azimuth = Math.atan2(nextZ-z, nextY-y);
+				reported_azimuth = azimuth;
 				azimuth += Math.PI / 2.0;
 				azimuth += moveRndGenerator.nextGaussian() * Simulator.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE / 3.0;
 				dx = 0.0;
@@ -415,6 +421,7 @@ public class Agent {
 				break;
 			case NO_Y_AXIS_MOVE:
 				azimuth = Math.atan2(nextZ-z, nextX-x);
+				reported_azimuth = azimuth;
 				azimuth += Math.PI / 2.0;
 				azimuth += moveRndGenerator.nextGaussian() * Simulator.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE / 3.0;
 				dx = Math.cos(azimuth);
@@ -423,6 +430,7 @@ public class Agent {
 				break;
 			default:
 				azimuth = Math.atan2(nextY-y, nextX-x);
+				reported_azimuth = azimuth;
 				azimuth += Math.PI / 2.0;
 				azimuth += moveRndGenerator.nextGaussian() * Simulator.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE / 3.0;
 				dx = Math.cos(azimuth);
@@ -431,6 +439,9 @@ public class Agent {
 				break;
 			}
 			final double dLen = Math.sqrt(dx*dx + dy*dy + dz*dz);
+			if (Simulator.VERBOSE_AGENT_DEBUG) {
+				System.out.println("  azimuth of the last move was "+reported_azimuth+" rad");
+			}
 
 			//memorize the direction and the full distance to travel for the "buldozering":
 			final double buldozeringLen = 0.5*(minDistanceToNeighbor - daughtersInitialDisplacement) / dLen;
@@ -519,7 +530,7 @@ public class Agent {
 		this.name = this.nameBuldozer;
 
 		if (Simulator.VERBOSE_AGENT_DEBUG) {
-			System.out.printf("advancing agent id %d (%s) in buldozer-mode (%d/%d):%n", this.id, this.name, remainingTimePoints,daughtersInitialBuldozer);
+			System.out.printf("advancing agent id %d (%s) @ %d in buldozer-mode (%d/%d):%n", this.id, this.name, this.t, remainingTimePoints,daughtersInitialBuldozer);
 			System.out.printf("  from pos [%f,%f,%f] to [%f,%f,%f] using step proportion %f%n",
 					fromHereX, fromHereY, fromHereZ, nextX, nextY, nextZ, currentStepLen);
 		}

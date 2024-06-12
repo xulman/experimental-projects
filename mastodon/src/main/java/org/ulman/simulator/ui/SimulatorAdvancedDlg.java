@@ -54,7 +54,7 @@ public class SimulatorAdvancedDlg implements Command {
 	@Parameter(visibility = ItemVisibility.MESSAGE)
 	final String sep3 = "----------- Agents life-cycle -----------";
 
-	@Parameter(description = "The mean life span of an agent (cell). Shorted means divisions occurs more often.")
+	@Parameter(description = "The mean life span of an agent (cell). Shorter means divisions occurs more often. 15%-down-rounded of the lifespan is a period just prior a division when mother cell slows down.")
 	int AGENT_AVERAGE_LIFESPAN_BEFORE_DIVISION = Simulator.AGENT_AVERAGE_LIFESPAN_BEFORE_DIVISION;
 
 	@Parameter(description = "Hard limit on the life span of an agent (cell). The cell dies, is removed from the simulation, whenever it's life exceeded this value.")
