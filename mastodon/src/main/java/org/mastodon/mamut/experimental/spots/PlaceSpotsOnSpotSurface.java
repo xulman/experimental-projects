@@ -58,7 +58,7 @@ public class PlaceSpotsOnSpotSurface implements Command {
 	@Parameter(label = "Radius of the created spots:")
 	double targetRadius = 5.0;
 
-	@Parameter(label = "How much to randomize radius (disabled=0):")
+	@Parameter(label = "Randomize radius (disabled=0):")
 	double targetRadiusVar = 0.0;
 
 	@Parameter(label = "Overlap of the created spots:")

@@ -59,10 +59,10 @@ public class PlaceSpotsInSpotVolume implements Command {
 	@Parameter(label = "Radius of the created spots:")
 	double targetRadius = 5.0;
 
-	@Parameter(label = "How much to randomize radius (disabled=0):")
+	@Parameter(label = "Randomize radius (disabled=0):")
 	double targetRadiusVar = 1.0;
 
-	@Parameter(label = "How much of random move:")
+	@Parameter(label = "Random distribution:")
 	double targetRandomMove = 2.0;
 
 	@Parameter(label = "Created spots are selected:")
