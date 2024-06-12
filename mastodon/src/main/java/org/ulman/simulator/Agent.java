@@ -47,6 +47,7 @@ public class Agent {
 	private final double minDistanceToNeighbor = Simulator.AGENT_MIN_DISTANCE_TO_ANOTHER_AGENT;
 	private final double usualStepSize = Simulator.AGENT_USUAL_STEP_SIZE;
 	private final double daughtersInitialDisplacement = Simulator.AGENT_DAUGHTERS_INITIAL_DISTANCE;
+	private final double daughtersDozeringDisplacement = Simulator.AGENT_DAUGHTERS_DOZERING_DISTANCE;
 	private static final double EPSILON = 0.00005;
 	//
 	private final int daughtersInitialBuldozer = Simulator.AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS;
@@ -439,12 +440,13 @@ public class Agent {
 				break;
 			}
 			final double dLen = Math.sqrt(dx*dx + dy*dy + dz*dz);
+
 			if (Simulator.VERBOSE_AGENT_DEBUG) {
 				System.out.println("  azimuth of the last move was "+reported_azimuth+" rad");
 			}
 
 			//memorize the direction and the full distance to travel for the "buldozering":
-			final double buldozeringLen = 0.5*(minDistanceToNeighbor - daughtersInitialDisplacement) / dLen;
+			final double buldozeringLen = 0.5*(daughtersDozeringDisplacement - daughtersInitialDisplacement) / dLen;
 			divBuldozerDx = buldozeringLen * dx;
 			divBuldozerDy = buldozeringLen * dy;
 			divBuldozerDz = buldozeringLen * dz;
