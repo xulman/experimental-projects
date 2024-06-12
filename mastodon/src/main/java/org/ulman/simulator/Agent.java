@@ -51,7 +51,7 @@ public class Agent {
 	private static final double EPSILON = 0.00005;
 	//
 	private final int daughtersInitialBuldozer = Simulator.AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS;
-	private double divBuldozerDx, divBuldozerDy, divBuldozerDz;
+	private double divBuldozerDx=0, divBuldozerDy=0, divBuldozerDz=0;
 	private int divBuldozerStopTP = -1; //-1 means not active
 
 	private final int slowDownForDivisionPeriod;
@@ -402,54 +402,76 @@ public class Agent {
 		final double lookAroundDist = daughtersCentresHalfDistance + Math.max(d1Radius,d2Radius) - this.R;
 		final int neighborsMaxIdx = simulatorFrame.getListOfOccupiedCoords(this, lookAroundDist, nearbySpheres);
 
+		//NB: it is assumed that agent/cell is no longer buldozering when it reaches divideMe(), so we can modify the buldozering vector now
+		//but, is there any valid/already-used buldozering vector at all?
+		if (divBuldozerDx == 0.0 && divBuldozerDy == 0.0 && divBuldozerDz == 0.0) {
+			//nope, let's create one
+			divBuldozerDx = moveRndGenerator.nextDouble()*2.0 - 1.0; //interval: -1.0 <-> 1.0
+			divBuldozerDy = moveRndGenerator.nextDouble()*2.0 - 1.0;
+			divBuldozerDz = moveRndGenerator.nextDouble()*2.0 - 1.0;
+		}
+		//
+		//normalize the last dozering travel vector
+		//NB: could be that this is another divideMe() attempt and so this vector has been normalized already
+		double divBuldozerLen = Math.sqrt(divBuldozerDx*divBuldozerDx + divBuldozerDy*divBuldozerDy + divBuldozerDz*divBuldozerDz);
+		if (Math.abs(divBuldozerLen - 1.0) > EPSILON) {
+			//wasn't already normalized, let's normalize now
+			divBuldozerDx /= divBuldozerLen;
+			divBuldozerDy /= divBuldozerLen;
+			divBuldozerDz /= divBuldozerLen;
+		}
+
 		int remainingTries = 20;
 		int proximityCounter = 9999;
 
-		double dx = 0, dy = 0, dz = 0, azimuth, reported_azimuth;
+		double dx = 0, dy = 0, dz = 0, azimuth;
 		while (remainingTries > 0 && proximityCounter > 0) {
 			--remainingTries;
 
 			//division vector:
 			switch (Simulator.AGENT_DO_2D_MOVES_ONLY) {
 			case NO_X_AXIS_MOVE:
-				azimuth = Math.atan2(nextZ-z, nextY-y);
-				reported_azimuth = azimuth;
-				azimuth += Math.PI / 2.0;
+				azimuth = Math.atan2(divBuldozerDz, divBuldozerDy);
 				azimuth += moveRndGenerator.nextGaussian() * Simulator.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE / 3.0;
 				dx = 0.0;
 				dy = Math.cos(azimuth);
 				dz = Math.sin(azimuth);
 				break;
 			case NO_Y_AXIS_MOVE:
-				azimuth = Math.atan2(nextZ-z, nextX-x);
-				reported_azimuth = azimuth;
-				azimuth += Math.PI / 2.0;
+				azimuth = Math.atan2(divBuldozerDz, divBuldozerDx);
 				azimuth += moveRndGenerator.nextGaussian() * Simulator.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE / 3.0;
 				dx = Math.cos(azimuth);
 				dy = 0.0;
 				dz = Math.sin(azimuth);
 				break;
-			default:
-				azimuth = Math.atan2(nextY-y, nextX-x);
-				reported_azimuth = azimuth;
-				azimuth += Math.PI / 2.0;
+			case NO_Z_AXIS_MOVE:
+				azimuth = Math.atan2(divBuldozerDy, divBuldozerDx);
 				azimuth += moveRndGenerator.nextGaussian() * Simulator.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE / 3.0;
 				dx = Math.cos(azimuth);
 				dy = Math.sin(azimuth);
-				dz = Simulator.AGENT_DO_2D_MOVES_ONLY == Agent2dMovesRestriction.NO_Z_AXIS_MOVE ? 0.0 : moveRndGenerator.nextDouble();
+				dz = 0.0;
 				break;
+			default: //full 3D case
+				azimuth = Math.atan2(divBuldozerDy, divBuldozerDx);
+				azimuth += moveRndGenerator.nextGaussian() * 0.8 * Simulator.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE / 3.0;
+				//NB: the azimuth changes in both "axes" can move within a square while we needed it move within a circle, so we
+				//    reduce the size of the square to 80% to compensate... (as a square corner stretches far beyond the circle)
+				double twoDlen = Math.sqrt(divBuldozerDy*divBuldozerDy + divBuldozerDx*divBuldozerDx);
+				dx = twoDlen * Math.cos(azimuth);
+				dy = twoDlen * Math.sin(azimuth);
+				dz = divBuldozerDz;
+
+				azimuth = Math.atan2(dz, dx);
+				azimuth += moveRndGenerator.nextGaussian() * 0.8 * Simulator.AGENT_MAX_VARIABILITY_FROM_A_PERPENDICULAR_DIVISION_PLANE / 3.0;
+				twoDlen = Math.sqrt(dz*dz + dx*dx);
+				dx = twoDlen * Math.cos(azimuth);
+				dz = twoDlen * Math.sin(azimuth);
 			}
 			final double dLen = Math.sqrt(dx*dx + dy*dy + dz*dz);
-
-			if (Simulator.VERBOSE_AGENT_DEBUG) {
-				System.out.println("  azimuth of the last move was "+reported_azimuth+" rad");
+			//NB: should be always ~ 1.0 !!
+			if (Math.abs(dLen - 1.0) > EPSILON) {
+				System.out.println("DIVISION CORRUPTED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 			}
-
-			//memorize the direction and the full distance to travel for the "buldozering":
-			final double buldozeringLen = 0.5*(daughtersDozeringDisplacement - daughtersInitialDisplacement) / dLen;
-			divBuldozerDx = buldozeringLen * dx;
-			divBuldozerDy = buldozeringLen * dy;
-			divBuldozerDz = buldozeringLen * dz;
 
 			//direction and distance for the initial placement of both daughters:
 			//(since both will move, it is enough to move each only by half of the total needed displacement)
@@ -471,6 +493,13 @@ public class Agent {
 			}
 		}
 		if (proximityCounter > 0) return false;
+
+		//memorize the direction and the full distance to travel for the "buldozering":
+		//NB: the (dx,dy,dz) vector is now of the length 'daughtersCentresHalfDistance', which is guaranteed to never be zero!
+		final double buldozeringLen = 0.5*(daughtersDozeringDisplacement - daughtersInitialDisplacement) / daughtersCentresHalfDistance;
+		divBuldozerDx = buldozeringLen * dx;
+		divBuldozerDy = buldozeringLen * dy;
+		divBuldozerDz = buldozeringLen * dz;
 
 		//all seems well incl. where to place the daughters, let's introduce them to the Simulator (and deregister this mother)
 		final int d1Id = simulatorFrame.getNewId();
