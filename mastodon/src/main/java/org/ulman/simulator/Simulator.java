@@ -163,11 +163,17 @@ public class Simulator {
 	}
 
 
+	public static final double SKIP_NEIGHBOR_SEARCH_DISTANCE = -10240.0;
+
 	/** returns how many coordinates it has put into the array 'nearbySpheres', and
-	 *  returns the actual last offset (so divide by four to learn how many neighbors are there) */
+	 *  returns the actual last offset (so divide by four to learn how many neighbors are there);
+	 *  the actual surface-to-surface distance is measured (the 'searchDistance' parameter) and
+	 *  can be even provided negative (e.g. to detect only overlapping neighbors);
+	 *  if Simulator.SKIP_NEIGHBOR_SEARCH_DISTANCE is provided for 'searchDistance',
+	 *  then this function quits immediately, without doing any search */
 	int getListOfOccupiedCoords(final Agent fromThisAgent, final double searchDistance, final double[] nearbySpheres) {
 		//do no searching if the agent actually doesn't care...
-		if (searchDistance == 0) return 0;
+		if (searchDistance == SKIP_NEIGHBOR_SEARCH_DISTANCE) return 0;
 		final double radiusPlusSearchDistance = fromThisAgent.getR() + searchDistance;
 
 		//NB: should exist since this method is always called after this.pushToMastodonGraphAndUpdateStats()
