@@ -50,7 +50,7 @@ public class Agent {
 	private final double daughtersDozeringDisplacement = Simulator.AGENT_DAUGHTERS_DOZERING_DISTANCE;
 	private static final double EPSILON = 0.00005;
 	//
-	private final int daughtersInitialBuldozer = Simulator.AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS;
+	private final int daughtersInitialBuldozer = Simulator.AGENT_DAUGHTERS_DOZERING_TIME_PERIOD;
 	private double divBuldozerDx=0, divBuldozerDy=0, divBuldozerDz=0;
 	private int divBuldozerStopTP = -1; //-1 means not active
 

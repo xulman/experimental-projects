@@ -60,9 +60,9 @@ public class Simulator {
 	public static double AGENT_DAUGHTERS_DOZERING_DISTANCE = 3.1;
 	/** After the two daughters are born, they translate away from each other from their INITIAL_DISTANCE
 	 *  to AGENT_DAUGHTERS_DOZERING_DISTANCE for this number of time points, during this the daughters are
-	 *  not influenced by any surrounding agents (even when they are in overlap), but the surrounding agents
-	 *  are influenced by these daughters (so the influence is asymmetrical). */
-	public static int AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS = 2;
+	 *  influenced only by surrounding-and-overlapping agents, but the surrounding agents
+	 *  are influenced by these daughters normally (so the influence is asymmetrical). */
+	public static int AGENT_DAUGHTERS_DOZERING_TIME_PERIOD = 2;
 
 	/** Using this radius the new spots are introduced into the simulation. */
 	public static double AGENT_INITIAL_RADIUS = 1.5;
@@ -87,7 +87,7 @@ public class Simulator {
 		AGENT_MAX_VARIABILITY_OF_DIVISION_PLANES = c.AGENT_MAX_VARIABILITY_OF_DIVISION_PLANES;
 		AGENT_DAUGHTERS_INITIAL_DISTANCE = c.AGENT_DAUGHTERS_INITIAL_DISTANCE;
 		AGENT_DAUGHTERS_DOZERING_DISTANCE = c.AGENT_DAUGHTERS_DOZERING_DISTANCE;
-		AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS = c.AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS;
+		AGENT_DAUGHTERS_DOZERING_TIME_PERIOD = c.AGENT_DAUGHTERS_DOZERING_TIME_PERIOD;
 		AGENT_INITIAL_RADIUS = c.AGENT_INITIAL_RADIUS;
 		CREATE_MASTODON_CENTER_SPOT = c.CREATE_MASTODON_CENTER_SPOT;
 	}
@@ -106,7 +106,7 @@ public class Simulator {
 				"\n  AGENT_MAX_VARIABILITY_OF_DIVISION_PLANES: " + AGENT_MAX_VARIABILITY_OF_DIVISION_PLANES +
 				"\n  AGENT_DAUGHTERS_INITIAL_DISTANCE: " + AGENT_DAUGHTERS_INITIAL_DISTANCE +
 				"\n  AGENT_DAUGHTERS_DOZERING_DISTANCE: " + AGENT_DAUGHTERS_DOZERING_DISTANCE +
-				"\n  AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS: " + AGENT_MAX_TIME_DAUGHTERS_IGNORE_ANOTHER_AGENTS +
+				"\n  AGENT_DAUGHTERS_DOZERING_TIME_PERIOD: " + AGENT_DAUGHTERS_DOZERING_TIME_PERIOD +
 				"\n  AGENT_INITIAL_RADIUS: " + AGENT_INITIAL_RADIUS +
 				"\n  CREATE_MASTODON_CENTER_SPOT: " + CREATE_MASTODON_CENTER_SPOT;
 	}
