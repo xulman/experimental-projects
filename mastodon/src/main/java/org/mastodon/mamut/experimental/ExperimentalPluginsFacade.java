@@ -102,16 +102,18 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 	{
 		return Collections.singletonList(
 			menu( "Plugins",
-				menu( "Trees Management",
+				menu( "Tags",
 					item( EXP_LINEAGECOLORIZER )
 				),
-				item( EXP_SIMULATOR ),
-				item( EXP_SHIFTSPOTS ),
-				item( EXP_DUPLICATESPOTS ),
-				item( EXP_PLANEROTATESPOTS ),
-				item( EXP_GENROTATESPOTS ),
-				item( EXP_SURFACESPOTS ),
-				item( EXP_VOLUMESPOTS )
+				menu( "Spots Shuffling",
+					item( EXP_SHIFTSPOTS ),
+					item( EXP_DUPLICATESPOTS ),
+					item( EXP_PLANEROTATESPOTS ),
+					item( EXP_GENROTATESPOTS ),
+					item( EXP_SURFACESPOTS ),
+					item( EXP_VOLUMESPOTS )
+				),
+				item( EXP_SIMULATOR )
 			)
 		);
 	}
