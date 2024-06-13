@@ -45,24 +45,25 @@ import java.util.ArrayList;
 import java.util.Random;
 
 @Plugin( type = Command.class, name = "Place spots on a surface" )
-public class PlaceSpotsOnSpotSurface implements Command {
+public class PlaceSpotsInSpotVolume implements Command {
 
 	@Parameter(visibility = ItemVisibility.MESSAGE)
 	private final String selectionInfoMsg = "...of ONLY selected spots.";
 
 	@Parameter(visibility = ItemVisibility.MESSAGE)
 	private final String msg1 = "The created spots take the name from their source spot.";
-	@Parameter(visibility = ItemVisibility.MESSAGE)
-	private final String msg2 = "Consider naming the source spot as keep_out.";
+
+	@Parameter(label = "Number of the created spots:")
+	int targetCount = 10;
 
 	@Parameter(label = "Radius of the created spots:")
 	double targetRadius = 5.0;
 
 	@Parameter(label = "Randomize radius (disabled=0):")
-	double targetRadiusVar = 0.0;
+	double targetRadiusVar = 1.0;
 
-	@Parameter(label = "Overlap of the created spots:")
-	double targetOverlap = 1.5;
+	@Parameter(label = "Random distribution:")
+	double targetRandomMove = 2.0;
 
 	@Parameter(label = "Created spots are selected:")
 	boolean shouldBeSelected = true;
@@ -84,28 +85,64 @@ public class PlaceSpotsOnSpotSurface implements Command {
 		final CopyTagsBetweenSpots tagsUtil = new CopyTagsBetweenSpots(projectModel);
 		final ModelGraph graph = projectModel.getModel().getGraph();
 
-		final Random rng = new Random();
-		final double radiusSigma = 0.33 * targetRadiusVar;
 		final Spot newSpot = graph.vertexRef();
 		for (Spot s : projectModel.getSelectionModel().getSelectedVertices()) {
-			enumerateSurfacePositions(s, Math.sqrt(s.getBoundingSphereRadiusSquared()), targetRadius-targetOverlap)
-					  .forEach(p -> {
-						  graph.addVertex(newSpot).init(s.getTimepoint(), p.positionAsDoubleArray(), targetRadius + rng.nextGaussian()*radiusSigma);
-						  newSpot.setLabel( s.getLabel() );
-						  tagsUtil.insertSpotIntoSameTSAs(newSpot, s);
-						  if (shouldBeSelected) projectModel.getSelectionModel().setSelected(newSpot, true);
-					  });
+			//for each Spot-volume 's':
+
+			//the plan:
+			//let's first generate a "full house" situation,
+			//and then randomly kick out spots to reach the wanted number;
+			//and then randomly shuffle these...
+
+			final double minVolumeRadius = 0.0 +targetRadius +targetRandomMove;
+			//wasn't permitting to get to the surface of the volume sphere:
+			//final double maxVolumeRadius = Math.sqrt(s.getBoundingSphereRadiusSquared()) -targetRadius -targetRandomMove;
+			final double maxVolumeRadius = Math.sqrt(s.getBoundingSphereRadiusSquared()) -targetRandomMove;
+			//space required between two sphere centres:
+			final double stepping = targetRadius + targetRandomMove + targetRandomMove + targetRadius;
+
+			List<RealPoint> allPoints = new ArrayList<>(10000);
+			for (double R = minVolumeRadius; R < maxVolumeRadius; R += stepping) {
+				allPoints.addAll( enumerateSurfacePositions(s, R, stepping) );
+			}
+
+			if (allPoints.size() < targetCount) {
+				logService.warn("Couldn't fit the requested "+targetCount+" new spheres into the volume '"+s.getLabel()+
+					"' as I can fit in there only "+allPoints.size()+" spheres, which I'm keeping for now...");
+			}
+
+			//kick out until the correct size
+			final Random rng = new Random();
+			while (allPoints.size() > targetCount) {
+				allPoints.remove( (int)Math.floor(rng.nextDouble()*allPoints.size()) );
+			}
+
+			//now randomly shuffle while inserting the RealPoints into Mastodon
+			final double radiusSigma = 0.33 * targetRadiusVar;
+			allPoints.forEach(p -> {
+					final double[] coords = p.positionAsDoubleArray();
+					coords[0] += rng.nextGaussian() * 0.33*targetRandomMove; //so that the whole range is <-targetRandomMove;+targetRandomMove>
+					coords[1] += rng.nextGaussian() * 0.33*targetRandomMove;
+					coords[2] += rng.nextGaussian() * 0.33*targetRandomMove;
+
+					graph.addVertex(newSpot).init(s.getTimepoint(), coords, targetRadius + rng.nextGaussian()*radiusSigma);
+					newSpot.setLabel( s.getLabel() );
+					tagsUtil.insertSpotIntoSameTSAs(newSpot, s);
+					if (shouldBeSelected) projectModel.getSelectionModel().setSelected(newSpot, true);
+			});
 		}
 		graph.releaseRef(newSpot);
 	}
 
+
+
 	public static List<RealPoint> enumerateSurfacePositions(final RealLocalizable srcCentre,
 	                                                        final double srcRadius,
-	                                                        final double tgtRadius) {
+	                                                        final double stepping) {
 		List<RealPoint> list = new ArrayList<>(1000);
 		final double quarterOfPerimeter = 0.5 * Math.PI * srcRadius;
 
-		int steps = (int)Math.floor((4.0 * quarterOfPerimeter) / (2.0 * tgtRadius));
+		int steps = (int)Math.floor((4.0 * quarterOfPerimeter) / stepping);
 		double stepsAng = 2.0 * Math.PI / (double)steps;
 		for (int s = 0; s < steps; ++s) {
 			list.add(new RealPoint(
@@ -114,13 +151,13 @@ public class PlaceSpotsOnSpotSurface implements Command {
 					  srcCentre.getDoublePosition(2)  ));
 		}
 
-		int latLines = (int)Math.floor( quarterOfPerimeter / (2.0 * tgtRadius) );
+		int latLines = (int)Math.floor( quarterOfPerimeter / stepping );
 		double latSteppingAng = 0.5 * Math.PI / (double)latLines;
 		for (int l = 1; l < latLines; ++l) {
-			double latRadius = srcRadius * Math.cos(l * latSteppingAng);
+			double latRadius = srcRadius * Math.cos((double)l * latSteppingAng);
 			double latPerimeter = 2.0 * Math.PI * latRadius;
 
-			steps = (int)Math.floor(latPerimeter / (2.0 * tgtRadius));
+			steps = (int)Math.floor(latPerimeter / stepping);
 			stepsAng = 2.0 * Math.PI / (double)steps;
 
 			for (int s = 0; s < steps; ++s) {

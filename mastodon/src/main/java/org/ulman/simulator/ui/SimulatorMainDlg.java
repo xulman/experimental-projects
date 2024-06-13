@@ -14,6 +14,7 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
 import org.ulman.simulator.Simulator;
+import org.ulman.simulator.Agent2dMovesRestriction;
 import org.ulman.util.NumberSequenceHandler;
 import javax.swing.WindowConstants;
 import java.nio.file.Files;
@@ -31,12 +32,12 @@ public class SimulatorMainDlg implements Command {
 	final String sep1 = "----------- Input -----------";
 
 	@Parameter(label = "How to start a simulation:",
-		choices = {"From the scratch from the seeds, see below",
+		choices = {"From scratch from the seeds, see below",
 		           "From the existing spots in the time point GIVEN below",
 		           "From the existing spots in the LAST non-empty time point"})
-	String initMode = "From the scratch";
+	String initMode = "From scratch";
 
-	@Parameter(label = "From the scratch: Number of seeds:", min="1")
+	@Parameter(label = "From scratch: Number of seeds:", min="1")
 	short numCells = 2;
 
 	@Parameter(label = "From existing spots in this time point:", min="0")
@@ -57,8 +58,12 @@ public class SimulatorMainDlg implements Command {
 	@Parameter(visibility = ItemVisibility.MESSAGE)
 	final String sep3 = "----------- Parameters -----------";
 
-	@Parameter(label = "Restrict to 2D simulation in xy-plane:")
-	boolean do2D = Simulator.AGENT_DO_2D_MOVES_ONLY;
+	@Parameter(label = "Simulation dimensionality:",
+	           choices = {"Do full 3D",
+	                      "Restrict to XY",
+	                      "Restrict to XZ",
+	                      "Restrict to YZ"} )
+	String do2D = "Do full 3D";
 
 	@Parameter(label = "Show the advanced dialog:")
 	boolean showAdvancedDlg = false;
@@ -90,7 +95,10 @@ public class SimulatorMainDlg implements Command {
 	}
 
 	public void runInsideMastodon() {
-		Simulator.AGENT_DO_2D_MOVES_ONLY = do2D;
+		if (do2D.contains("XY")) Simulator.AGENT_DO_2D_MOVES_ONLY = Agent2dMovesRestriction.NO_Z_AXIS_MOVE;
+		else if (do2D.contains("XZ")) Simulator.AGENT_DO_2D_MOVES_ONLY = Agent2dMovesRestriction.NO_Y_AXIS_MOVE;
+		else if (do2D.contains("YZ")) Simulator.AGENT_DO_2D_MOVES_ONLY = Agent2dMovesRestriction.NO_X_AXIS_MOVE;
+		else Simulator.AGENT_DO_2D_MOVES_ONLY = Agent2dMovesRestriction.NO_RESTRICTION;
 
 		Runner r;
 		if (initMode.startsWith("From the existing spots")) {
