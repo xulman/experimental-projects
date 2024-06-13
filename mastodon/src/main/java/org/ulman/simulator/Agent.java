@@ -195,7 +195,7 @@ public class Agent {
 		final double oldZ = fromCurrentPos ? this.z : this.nextZ;
 		final double oldR = fromCurrentPos ? this.R : this.nextR;
 
-		if ( doBuldozering(oldX,oldY,oldZ) ) return;
+		if ( doBuldozering(oldX,oldY,oldZ, oldR) ) return;
 
 		final int neighborsMaxIdx = simulatorFrame.getListOfOccupiedCoords(this, lookAroundRadius, nearbySpheres);
 		final int neighborsCnt = neighborsMaxIdx / nearbySpheresStride;
@@ -531,6 +531,8 @@ public class Agent {
 		return true; //division has happened
 	}
 
+	/** given one agent explicitly as [posx,posy,posz,R] and another agent implicitly via offset [ nearbySpheres[neighOffset] ],
+	 *  the method returns true if the two agents are surface-to-surface closer than Agent.daughtersInitialDisplacement */
 	private boolean isSphereTooCloseToNeigh(double posx, double posy, double posz, double R, int neighOffset) {
 			double dx = posx - nearbySpheres[neighOffset+0];
 			double dy = posy - nearbySpheres[neighOffset+1];
@@ -541,9 +543,40 @@ public class Agent {
 	}
 
 
-	protected boolean doBuldozering(final double fromHereX, final double fromHereY, final double fromHereZ) {
+	protected boolean doBuldozering(final double fromHereX, final double fromHereY, final double fromHereZ, final double oldR) {
 		final int remainingTimePoints = this.divBuldozerStopTP - (this.t+1); //NB: as if already in the now-creating (future) time point
 		if (remainingTimePoints < 0) return false;
+
+		//now, a combination of what is in divideMe() and dispAwayX,Y,Z from doOneTime()
+		//NB: searching only for overlapping/colliding neighbors
+		final int neighborsMaxIdx = simulatorFrame.getListOfOccupiedCoords(this, 0.0, nearbySpheres);
+		//
+		double dispAwayX = 0,dispAwayY = 0,dispAwayZ = 0;
+		int dispAwayCnt = 0;
+		for (int off = 0; off < neighborsMaxIdx; off += nearbySpheresStride) {
+			double dx = fromHereX - nearbySpheres[off+0];
+			double dy = fromHereY - nearbySpheres[off+1];
+			double dz = fromHereZ - nearbySpheres[off+2];
+			double dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+			dx /= dist; dy /= dist; dz /= dist;  //displacement vector is now normalized
+
+			dist -= oldR + nearbySpheres[off+3]; //the actual (surface) distance to get outside the current overlapping constellation
+			//NB: dist should be non-positive, but just in case....
+			if (dist >= 0.0) continue;
+
+			dist *= -0.7;
+			//half (0.5) should be taken because the other agent will do the same move;
+			//but since agents jump chaotically, we better displace a little more (0.7);
+			dispAwayX += dist * dx;
+			dispAwayY += dist * dy;
+			dispAwayZ += dist * dz;
+			dispAwayCnt++;
+		}
+		if (dispAwayCnt > 0) {
+			dispAwayX /= (double)dispAwayCnt;
+			dispAwayY /= (double)dispAwayCnt;
+			dispAwayZ /= (double)dispAwayCnt;
+		}
 
 		//NB: steps(x) = 0.5 * (x + x*x) -- the sum of arithmetic sequence 1...to...x
 		//when k-steps (where k = 0...N-1) is left from N-step plan, the current move shall be:
@@ -554,17 +587,21 @@ public class Agent {
 		final double currentStepLen =
 				(double)(2*(1+remainingTimePoints)) / (double)(daughtersInitialBuldozer*(1+daughtersInitialBuldozer));
 
-		this.nextX = fromHereX + currentStepLen*divBuldozerDx;
-		this.nextY = fromHereY + currentStepLen*divBuldozerDy;
-		this.nextZ = fromHereZ + currentStepLen*divBuldozerDz;
-		this.t += 1;
-		this.name = this.nameBuldozer;
+		this.nextX = fromHereX + currentStepLen*divBuldozerDx + dispAwayX;
+		this.nextY = fromHereY + currentStepLen*divBuldozerDy + dispAwayY;
+		this.nextZ = fromHereZ + currentStepLen*divBuldozerDz + dispAwayZ;
 
 		if (Simulator.VERBOSE_AGENT_DEBUG) {
-			System.out.printf("advancing agent id %d (%s) @ %d in buldozer-mode (%d/%d):%n", this.id, this.name, this.t, remainingTimePoints,daughtersInitialBuldozer);
-			System.out.printf("  from pos [%f,%f,%f] to [%f,%f,%f] using step proportion %f%n",
-					fromHereX, fromHereY, fromHereZ, nextX, nextY, nextZ, currentStepLen);
+			System.out.printf("advancing agent id %d (%s) @ %d in buldozer-mode:%n", this.id, this.name, this.t);
+			System.out.printf("  from pos [%f,%f,%f] when overlapping neighs cnt %d%n", fromHereX, fromHereY, fromHereZ, neighborsMaxIdx/nearbySpheresStride);
+			System.out.printf("  away displacement = (%f,%f,%f), sumOfWeights=%d%n", dispAwayX, dispAwayY, dispAwayZ, dispAwayCnt);
+			System.out.printf("  in buldozer-mode  = (%f,%f,%f), phase (%d/%d)%n",
+					currentStepLen*divBuldozerDx,currentStepLen*divBuldozerDy,currentStepLen*divBuldozerDz, remainingTimePoints,daughtersInitialBuldozer);
+			System.out.printf("  established coords [%f,%f,%f]%n", this.nextX,this.nextY,this.nextZ);
 		}
+
+		this.t += 1;
+		this.name = this.nameBuldozer;
 
 		return true;
 	}
