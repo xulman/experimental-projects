@@ -1,5 +1,6 @@
 package org.mastodon.benchmark;
 
+import bdv.tools.benchmarks.TimeReporter;
 import net.imagej.ImageJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.mastodon.mamut.MainWindow;
@@ -31,12 +32,15 @@ public class BenchmarkSetup {
 		mainWindow.setVisible( true );
 		mainWindow.setDefaultCloseOperation( WindowConstants.EXIT_ON_CLOSE );
 
+
 		System.out.println("opening windows...");
 		MamutViewBdv bdvXY = projectModel.getWindowManager().createView(MamutViewBdv.class);
 		bdvXY.getFrame().setTitle("XY - CLsim");
+		bdvXY.getViewerPanelMamut().getDisplay().setDisplayName("bdvXY");
 
 		MamutViewBdv bdvYZ = projectModel.getWindowManager().createView(MamutViewBdv.class);
 		bdvYZ.getFrame().setTitle("YZ - CLsim");
+		bdvYZ.getViewerPanelMamut().getDisplay().setDisplayName("bdvYZ");
 		//
 		AffineTransform3D yzViewTransform = new AffineTransform3D();
 		bdvYZ.getViewerPanelMamut().state().getViewerTransform(yzViewTransform);
@@ -45,6 +49,7 @@ public class BenchmarkSetup {
 
 		MamutViewBdv bdvXZ = projectModel.getWindowManager().createView(MamutViewBdv.class);
 		bdvXZ.getFrame().setTitle("XZ - CLsim");
+		bdvXZ.getViewerPanelMamut().getDisplay().setDisplayName("bdvXZ");
 		//
 		AffineTransform3D xzViewTransform = new AffineTransform3D();
 		bdvXZ.getViewerPanelMamut().state().getViewerTransform(xzViewTransform);
@@ -52,16 +57,22 @@ public class BenchmarkSetup {
 		bdvXZ.getViewerPanelMamut().state().setViewerTransform(xzViewTransform);
 
 		MamutViewTrackScheme ts = projectModel.getWindowManager().createView(MamutViewTrackScheme.class);
+		ts.getFrame().getTrackschemePanel().getDisplay().setDisplayName(" TS  ");
 
 		System.out.println("lock buttons in windows...");
 		List<MamutViewI> windows = Arrays.asList(bdvXY,bdvXZ,bdvYZ,ts);
 		windows.forEach(w -> w.getGroupHandle().setGroupId(1));
 
 		try {
+			TimeReporter.getInstance().startNowAndReportAfter(4);
 			changeTimepoint(projectModel,windows, 100);
 			Thread.sleep(3000);
+
+			TimeReporter.getInstance().startNowAndReportAfter(4);
 			changeTimepoint(projectModel,windows, 200);
 			Thread.sleep(3000);
+
+			TimeReporter.getInstance().startNowAndReportAfter(4);
 			changeTimepoint(projectModel,windows, 300);
 		} catch (InterruptedException e) {
 			throw new RuntimeException(e);
