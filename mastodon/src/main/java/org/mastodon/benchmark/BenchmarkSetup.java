@@ -55,13 +55,23 @@ public class BenchmarkSetup {
 
 		System.out.println("lock buttons in windows...");
 		List<MamutViewI> windows = Arrays.asList(bdvXY,bdvXZ,bdvYZ,ts);
-		for (MamutViewI win : windows) {
-			win.getGroupHandle().setGroupId(1);
-		}
+		windows.forEach(w -> w.getGroupHandle().setGroupId(1));
 
-		System.out.println("changing time point in windows...");
+		try {
+			changeTimepoint(projectModel,windows, 100);
+			Thread.sleep(3000);
+			changeTimepoint(projectModel,windows, 200);
+			Thread.sleep(3000);
+			changeTimepoint(projectModel,windows, 300);
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	static void changeTimepoint(final ProjectModel projectModel, final List<MamutViewI> windows, final int setTP) {
+		System.out.println("changing windows to time point "+setTP);
 		for (MamutViewI win : windows) {
-			win.getGroupHandle().getModel(projectModel.TIMEPOINT).setTimepoint(10);
+			win.getGroupHandle().getModel(projectModel.TIMEPOINT).setTimepoint(setTP);
 		}
 	}
 }
