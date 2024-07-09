@@ -53,6 +53,7 @@ def divide_spot(mother_spot, current_position, current_age, division_direction):
     spot = p.getModel().getGraph().addVertex()
     spot.init(fill_from_this_timepoint + current_age+1, pos, spots_radius)
     # link to mother
+    p.getModel().getGraph().addEdge(mother_spot,spot).init()
     divide_spot(spot, pos, current_age+1, (division_direction+1)%3)
     
 
@@ -62,6 +63,7 @@ def divide_spot(mother_spot, current_position, current_age, division_direction):
     spot = p.getModel().getGraph().addVertex()
     spot.init(fill_from_this_timepoint + current_age+1, pos, spots_radius)
     # link to mother
+    p.getModel().getGraph().addEdge(mother_spot,spot).init()
     divide_spot(spot, pos, current_age+1, (division_direction+1)%3)
 
 
