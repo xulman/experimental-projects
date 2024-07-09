@@ -14,7 +14,7 @@
 
 #@int num_divisions = 1
 
-#@boolean(label="Color layers using the FIRST listed tag set") use_colors = False
+#@boolean(label="Color generations using the FIRST listed tag set") use_colors = False
 
 
 from org.mastodon.mamut.io import ProjectLoader
@@ -56,6 +56,9 @@ def divide_spot(mother_spot, current_position, current_age, division_direction):
     spot.init(fill_from_this_timepoint + current_age+1, pos, spots_radius)
     # link to mother
     p.getModel().getGraph().addEdge(mother_spot,spot).init()
+    if use_colors:
+        layer = (current_age//3) % len(tags)
+        tagMap.set(spot, tags[layer])
     divide_spot(spot, pos, current_age+1, (division_direction+1)%3)
     
 
@@ -66,6 +69,9 @@ def divide_spot(mother_spot, current_position, current_age, division_direction):
     spot.init(fill_from_this_timepoint + current_age+1, pos, spots_radius)
     # link to mother
     p.getModel().getGraph().addEdge(mother_spot,spot).init()
+    if use_colors:
+        layer = (current_age//3) % len(tags)
+        tagMap.set(spot, tags[layer])
     divide_spot(spot, pos, current_age+1, (division_direction+1)%3)
 
 
@@ -73,6 +79,8 @@ def divide_spot(mother_spot, current_position, current_age, division_direction):
 pos = [x_centre, y_centre, z_centre]
 spot = p.getModel().getGraph().addVertex()
 spot.init(fill_from_this_timepoint, pos, spots_radius)
+if use_colors:
+    tagMap.set(spot, tags[-1])
 divide_spot(spot, pos, 0, 0)
 
 
