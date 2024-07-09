@@ -40,16 +40,18 @@ def divide_spot(mother_spot, current_position, current_age, division_direction):
         return
 
     # compensate for the fact that the division directions are alternating in x,y,z axes
-    remaining_generations = math.ceil(remaining_generations / 3.0)
-    # compensate for the fact the both daughters move aside,
-    # so that the wanted final grid size can be achieved
-    remaining_generations /= 2.0
+    remaining_generations = int( math.ceil(remaining_generations / 3.0) )
+
+    # how many ancestors will have each of my daughters
+    grid_positions_needed = 1 << (remaining_generations-1)
+    # and position my daughter into the middle
+    grid_positions_needed /= 2.0
 
     current_mask = direction_masks[division_direction]
     #print(current_mask, current_position)
-    pos = [ current_position[0] + remaining_generations * x_step_size * current_mask[0], \
-            current_position[1] + remaining_generations * y_step_size * current_mask[1], \
-            current_position[2] + remaining_generations * z_step_size * current_mask[2] ]
+    pos = [ current_position[0] + grid_positions_needed * x_step_size * current_mask[0], \
+            current_position[1] + grid_positions_needed * y_step_size * current_mask[1], \
+            current_position[2] + grid_positions_needed * z_step_size * current_mask[2] ]
     spot = p.getModel().getGraph().addVertex()
     spot.init(fill_from_this_timepoint + current_age+1, pos, spots_radius)
     # link to mother
@@ -57,9 +59,9 @@ def divide_spot(mother_spot, current_position, current_age, division_direction):
     divide_spot(spot, pos, current_age+1, (division_direction+1)%3)
     
 
-    pos = [ current_position[0] - remaining_generations * x_step_size * current_mask[0], \
-            current_position[1] - remaining_generations * y_step_size * current_mask[1], \
-            current_position[2] - remaining_generations * z_step_size * current_mask[2] ]
+    pos = [ current_position[0] - grid_positions_needed * x_step_size * current_mask[0], \
+            current_position[1] - grid_positions_needed * y_step_size * current_mask[1], \
+            current_position[2] - grid_positions_needed * z_step_size * current_mask[2] ]
     spot = p.getModel().getGraph().addVertex()
     spot.init(fill_from_this_timepoint + current_age+1, pos, spots_radius)
     # link to mother
@@ -72,3 +74,6 @@ pos = [x_centre, y_centre, z_centre]
 spot = p.getModel().getGraph().addVertex()
 spot.init(fill_from_this_timepoint, pos, spots_radius)
 divide_spot(spot, pos, 0, 0)
+
+
+print("done adding spots")
