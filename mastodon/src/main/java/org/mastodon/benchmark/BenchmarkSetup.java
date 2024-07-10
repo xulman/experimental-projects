@@ -16,7 +16,7 @@ import javax.swing.*;
 import java.util.List;
 import java.util.ArrayList;
 
-public class BenchmarkSetup {
+public class BenchmarkSetup implements Runnable {
 
 	public static void main(String[] args) {
 		System.setProperty( "apple.laf.useScreenMenuBar", "true" );
@@ -32,20 +32,26 @@ public class BenchmarkSetup {
 		mainWindow.setVisible( true );
 		mainWindow.setDefaultCloseOperation( WindowConstants.EXIT_ON_CLOSE );
 
-		new BenchmarkSetup(projectModel).runBenchmark();
+		executeBenchmark(projectModel);
 	}
 
+	public static void executeBenchmark(final ProjectModel project) {
+		//start a thread that will do the waiting for the issued benchmarked actions
+		Thread benchThread = new Thread(new BenchmarkSetup(project), "Mastodon Benchmark Controller");
+		benchThread.start();
+	}
 
 	public BenchmarkSetup(final ProjectModel project) {
+		//NB: keeping it 'public' allows callers to start/place this benchmark their own ways
 		this.projectModel = project;
 	}
 
 	private final ProjectModel projectModel;
 
 
-	public void runBenchmark() {
+	@Override
+	public void run() {
 		clear();
-
 		List<MamutViewI> windows = setup();
 		doActions(windows);
 	}
@@ -63,7 +69,6 @@ public class BenchmarkSetup {
 		bdvXY.getFrame().setTitle("XY - CLsim");
 		bdvXY.getViewerPanelMamut().getDisplay().setDisplayName("bdvXY");
 		windows.add(bdvXY);
-
 
 		//TODO: make BDV windows of my size (1024x1024), not of some random one
 		MamutViewBdv bdvYZ = projectModel.getWindowManager().createView(MamutViewBdv.class);
@@ -93,47 +98,56 @@ public class BenchmarkSetup {
 		System.out.println("lock buttons in windows...");
 		windows.forEach( w -> w.getGroupHandle().setGroupId(1) );
 
+		waitThisLong(10000, "10 secs until the newly opened windows calm down");
+		waitThisLong(1000, "READY IN 3...");
+		waitThisLong(1000, "READY IN 2...");
+		waitThisLong(1000, "READY IN 1...");
+
 		return windows;
 	}
 
 	public void doActions(final List<MamutViewI> windows) {
-			TimeReporter.getInstance().startNowAndReportNotMoreThan(windows.size());
-			changeTimepoint(windows, 50);
-			busyWaitForMillis(3000);
+		TimeReporter.getInstance().startNowAndReportNotMoreThan(windows.size());
+		changeTimepoint(windows.get(0), 50);
+		waitThisLong(5000);
 
-			TimeReporter.getInstance().startNowAndReportNotMoreThan(windows.size());
-			changeTimepoint(windows, 55);
-			busyWaitForMillis(3000);
-			System.out.println("done benchmarking");
+		TimeReporter.getInstance().startNowAndReportNotMoreThan(windows.size());
+		changeTimepoint(windows.get(0), 55);
+		waitThisLong(5000);
 
-			//TimeReporter.getInstance().startNowAndReportNotMoreThan(windows.size());
-			//changeTimepoint(windows, 250);
-			//Thread.sleep(5000);
-
-			//TimeReporter.getInstance().startNowAndReportNotMoreThan(windows.size());
-			//changeTimepoint(windows.get(0), 500);
+		System.out.println("done benchmarking");
 	}
 
-	public void busyWaitForMillis(final long period) {
-		try {
-			long time = System.currentTimeMillis();
-			final long targetTime = time + period;
-			while (time < targetTime) {
-				Thread.sleep(1);
-				time = System.currentTimeMillis();
-			}
-		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		}
-	}
 
 	public void changeTimepoint(final List<MamutViewI> windows, final int setTP) {
-		System.out.println("changing all "+windows.size()+" windows to time point "+setTP);
+		System.out.println("Asking all "+windows.size()+" windows to switch to time point "+setTP);
 		windows.forEach( w -> w.getGroupHandle().getModel(projectModel.TIMEPOINT).setTimepoint(setTP) );
 	}
 
 	public void changeTimepoint(final MamutViewI window, final int setTP) {
-		System.out.println("changing the given window to time point "+setTP);
+		System.out.println("Asking a given window to switch to time point "+setTP);
 		window.getGroupHandle().getModel(projectModel.TIMEPOINT).setTimepoint(setTP);
+	}
+
+
+	/**
+	 * Just pauses the execution of this thread for the given time. Since this thread
+	 * should NOT be the main thread of Mastodon (and of AWT), the Mastodon should
+	 * be doing its stuff happily while we're waiting here (and the "stuff" is actually
+	 * our benchmarked actions...). That much the plan...
+	 */
+	public void waitThisLong(final long periodInMillis) {
+		System.out.println("Benchmark thread: Going to wait "+periodInMillis+" ms");
+		try {
+			Thread.sleep(periodInMillis);
+		} catch (InterruptedException e) {
+			System.out.println("Interrupted while waiting during benchmark: "+e.getMessage());
+		}
+		System.out.println("Benchmark thread: Finished the waiting...");
+	}
+
+	public void waitThisLong(final long periodInMillis, final String reasonForWaiting) {
+		System.out.println("Benchmark thread: Will wait "+reasonForWaiting);
+		waitThisLong(periodInMillis);
 	}
 }
