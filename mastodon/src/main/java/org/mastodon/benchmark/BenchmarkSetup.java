@@ -59,6 +59,7 @@ public class BenchmarkSetup implements Runnable {
 
 	public void clear() {
 		//close all opened windows
+		projectModel.getWindowManager().closeAllWindows();
 	}
 
 	public List<MamutViewI> setup() {
