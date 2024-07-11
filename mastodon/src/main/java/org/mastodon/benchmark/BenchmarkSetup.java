@@ -1,33 +1,52 @@
 package org.mastodon.benchmark;
 
 import bdv.tools.benchmarks.TimeReporter;
+import mpicbg.spim.data.SpimDataException;
 import net.imagej.ImageJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.mastodon.mamut.MainWindow;
 import org.mastodon.mamut.ProjectModel;
+import org.mastodon.mamut.io.ProjectLoader;
 import org.mastodon.mamut.io.project.MamutProject;
 import org.mastodon.mamut.model.Model;
 import org.mastodon.mamut.views.MamutViewI;
 import org.mastodon.mamut.views.bdv.MamutViewBdv;
 import org.mastodon.mamut.views.trackscheme.MamutViewTrackScheme;
 import org.mastodon.views.bdv.SharedBigDataViewerData;
+import org.scijava.Context;
 
 import javax.swing.*;
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
 
 public class BenchmarkSetup implements Runnable {
+
+	public static ProjectModel openDummyProject(final Context ctx) {
+		return ProjectModel.create(ctx,
+				  new Model(),
+				  SharedBigDataViewerData.fromDummyFilename("DUMMY x=100 y=100 z=100 t=1000.dummy"),
+				  new MamutProject("/temp/CLsim.mastodon"));
+	}
+
+	public static ProjectModel loadProject(final String pathToMastodonFile, final Context ctx) {
+		ProjectModel projectModel;
+		try {
+			projectModel = ProjectLoader.open(pathToMastodonFile, ctx);
+		} catch (IOException | SpimDataException e) {
+			System.out.println("Error opening the project "+pathToMastodonFile+": "+e.getMessage());
+			throw new RuntimeException(e);
+		}
+		return projectModel;
+	}
 
 	public static void main(String[] args) {
 		System.setProperty( "apple.laf.useScreenMenuBar", "true" );
 
 		ImageJ ij = new ImageJ();
 
-		//TODO: should open on a particular testing benchmark
-		final ProjectModel projectModel = ProjectModel.create(ij.getContext(),
-				new Model(),
-				SharedBigDataViewerData.fromDummyFilename("DUMMY x=100 y=100 z=100 t=1000.dummy"),
-				new MamutProject("/temp/CLsim.mastodon"));
+		final ProjectModel projectModel = loadProject("/temp/NG_BENCHMARK_DATASET.mastodon", ij.getContext());
 		final MainWindow mainWindow = new MainWindow( projectModel );
 		mainWindow.setVisible( true );
 		mainWindow.setDefaultCloseOperation( WindowConstants.EXIT_ON_CLOSE );
