@@ -71,8 +71,12 @@ public class BenchmarkSetup implements Runnable {
 	@Override
 	public void run() {
 		clear();
+
 		List<MamutViewI> windows = setup();
-		doActions(windows);
+		//doActions(windows);
+
+		MamutViewBdv bdv = projectModel.getWindowManager().getViewList(MamutViewBdv.class).get(0);
+		visitBookmarks(Arrays.asList("1","2","3","4"), bdv, 3000);
 	}
 
 
@@ -90,6 +94,7 @@ public class BenchmarkSetup implements Runnable {
 		bdvXY.getViewerPanelMamut().getDisplay().setDisplayName("bdvXY");
 		windows.add(bdvXY);
 
+		/*
 		//TODO: make BDV windows of my size (1024x1024), not of some random one
 		MamutViewBdv bdvYZ = projectModel.getWindowManager().createView(MamutViewBdv.class);
 		bdvYZ.getFrame().setTitle("YZ - CLsim");
@@ -114,6 +119,7 @@ public class BenchmarkSetup implements Runnable {
 		MamutViewTrackScheme ts = projectModel.getWindowManager().createView(MamutViewTrackScheme.class);
 		ts.getFrame().getTrackschemePanel().getDisplay().setDisplayName(" TS  ");
 		windows.add(ts);
+		*/
 
 		System.out.println("lock buttons in windows...");
 		windows.forEach( w -> w.getGroupHandle().setGroupId(1) );
@@ -136,6 +142,22 @@ public class BenchmarkSetup implements Runnable {
 		waitThisLong(5000);
 
 		System.out.println("done benchmarking");
+	}
+
+
+	public void visitBookmarks(final List<String> bookmarkKeys, final MamutViewBdv bdvWin, final long delaysInMillis) {
+		//MamutViewBdv bdv = projectModel.getWindowManager().getViewList(MamutViewBdv.class).get(0);
+		//list of actions - find mouse moves and override when X key is pressed
+		//bdv.getViewerPanelMamut().getInputTriggerConfig();
+
+		//gives transform... hmmm
+		//AffineTransform3D t = projectModel.getSharedBdvData().getBookmarks().get(key);
+		//projectModel.getSharedBdvData().getBookmarks().restoreFromXml(...);
+
+		bookmarkKeys.forEach(key -> {
+			bdvWin.getViewerPanelMamut().state().setViewerTransform( projectModel.getSharedBdvData().getBookmarks().get(key) );
+			waitThisLong(delaysInMillis, "after moving to bookmark "+key);
+		});
 	}
 
 
