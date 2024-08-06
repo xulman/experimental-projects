@@ -4,10 +4,6 @@
 #@int fill_from_this_timepoint = 0
 #@int(value=7) spots_radius = 7
 
-#@double x_centre = 0
-#@double y_centre = 0
-#@double z_centre = 0
-
 #@double x_step_size = 10
 #@double y_step_size = 10
 #@double z_step_size = 10
@@ -27,6 +23,11 @@ import math
 p = ProjectLoader.open(initialMastodonProjectFile.toString(), ctx)
 MainWindow(p).setVisible(True)
 
+pixel_data_dimensions = p.getSharedBdvData().getSpimData().getSequenceDescription().getViewSetups().get(0).getSize().dimensionsAsLongArray()
+x_centre = pixel_data_dimensions[0] // 2
+y_centre = pixel_data_dimensions[1] // 2
+z_centre = pixel_data_dimensions[2] // 2 if len(pixel_data_dimensions) > 2 else 0
+print("Starting from ["+str(x_centre)+","+str(y_centre)+","+str(z_centre)+"] from TP="+str(fill_from_this_timepoint))
 
 centre_spot_x = dict()
 centre_spot_y = dict()
