@@ -17,7 +17,7 @@ max_conducted_divisions = 3 * num_of_full_generations
 
 #@boolean(label="Color generations using the FIRST listed tag set") use_colors = False
 #@boolean(label="Mark intermediate divisions using the SECOND tag set") mark_intermediate = False
-
+#@boolean add_centre_spot = True
 
 
 from org.mastodon.mamut.io import ProjectLoader
@@ -26,6 +26,25 @@ import math
 
 p = ProjectLoader.open(initialMastodonProjectFile.toString(), ctx)
 MainWindow(p).setVisible(True)
+
+
+centre_spot_x = dict()
+centre_spot_y = dict()
+centre_spot_z = dict()
+centre_spot_cnt = dict()
+
+def centre_spot_update(t, pos):
+    if centre_spot_cnt.get(t) is None:
+        centre_spot_x[t] = 0.0
+        centre_spot_y[t] = 0.0
+        centre_spot_z[t] = 0.0
+        centre_spot_cnt[t] = 0
+
+    centre_spot_x[t] += pos[0]
+    centre_spot_y[t] += pos[1]
+    centre_spot_z[t] += pos[2]
+    centre_spot_cnt[t] += 1
+
 
 tagMap = None
 tags = None
@@ -64,6 +83,7 @@ def divide_spot(mother_spot, current_position, current_age, division_direction):
             current_position[2] + grid_positions_needed * z_step_size * current_mask[2] ]
     spot = p.getModel().getGraph().addVertex()
     spot.init(fill_from_this_timepoint + current_age+1, pos, spots_radius)
+    centre_spot_update(fill_from_this_timepoint + current_age+1, pos)
     # link to mother
     p.getModel().getGraph().addEdge(mother_spot,spot).init()
     if use_colors:
@@ -80,6 +100,7 @@ def divide_spot(mother_spot, current_position, current_age, division_direction):
             current_position[2] - grid_positions_needed * z_step_size * current_mask[2] ]
     spot = p.getModel().getGraph().addVertex()
     spot.init(fill_from_this_timepoint + current_age+1, pos, spots_radius)
+    centre_spot_update(fill_from_this_timepoint + current_age+1, pos)
     # link to mother
     p.getModel().getGraph().addEdge(mother_spot,spot).init()
     if use_colors:
@@ -95,9 +116,29 @@ def divide_spot(mother_spot, current_position, current_age, division_direction):
 pos = [x_centre, y_centre, z_centre]
 spot = p.getModel().getGraph().addVertex()
 spot.init(fill_from_this_timepoint, pos, spots_radius)
+centre_spot_update(fill_from_this_timepoint, pos)
 if use_colors:
     tagMap.set(spot, tags[0])
 divide_spot(spot, pos, 0, 0)
 
-
 print("done adding spots")
+
+if add_centre_spot:
+    pos = [0.0,0.0,0.0]
+    prev_spot = None
+
+    for t in centre_spot_cnt.keys():
+        cnt = float(centre_spot_cnt[t])
+        pos[0] = centre_spot_x[t] / cnt
+        pos[1] = centre_spot_y[t] / cnt
+        pos[2] = centre_spot_z[t] / cnt
+        spot = p.getModel().getGraph().addVertex()
+        spot.init(t, pos, spots_radius)
+        spot.setLabel("centre")
+
+        if prev_spot is not None:
+            p.getModel().getGraph().addEdge(prev_spot,spot).init()
+        prev_spot = spot
+
+    print("done adding centre(s)")
+
