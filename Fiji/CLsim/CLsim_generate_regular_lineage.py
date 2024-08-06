@@ -16,6 +16,8 @@
 max_conducted_divisions = 3 * num_of_full_generations
 
 #@boolean(label="Color generations using the FIRST listed tag set") use_colors = False
+#@boolean(label="Mark intermediate divisions using the SECOND tag set") mark_intermediate = False
+
 
 
 from org.mastodon.mamut.io import ProjectLoader
@@ -31,6 +33,13 @@ if use_colors:
     tagSet = p.getModel().getTagSetModel().getTagSetStructure().getTagSets().get(0)
     tagMap = p.getModel().getTagSetModel().getVertexTags().tags(tagSet)
     tags = tagSet.getTags()
+
+tagIMap = None
+tagsI = None
+if mark_intermediate:
+    tagSet = p.getModel().getTagSetModel().getTagSetStructure().getTagSets().get(1)
+    tagIMap = p.getModel().getTagSetModel().getVertexTags().tags(tagSet)
+    tagsI = tagSet.getTags()
 
 
 direction_masks = [ [1,0,0], [0,1,0], [0,0,1] ]
@@ -60,8 +69,11 @@ def divide_spot(mother_spot, current_position, current_age, division_direction):
     if use_colors:
         layer = ((current_age//3)+1) % len(tags)
         tagMap.set(spot, tags[layer])
+    if mark_intermediate and division_direction < 2:
+        tagIMap.set(spot, tagsI[0])
+    #
     divide_spot(spot, pos, current_age+1, (division_direction+1)%3)
-    
+
 
     pos = [ current_position[0] - grid_positions_needed * x_step_size * current_mask[0], \
             current_position[1] - grid_positions_needed * y_step_size * current_mask[1], \
@@ -73,6 +85,9 @@ def divide_spot(mother_spot, current_position, current_age, division_direction):
     if use_colors:
         layer = ((current_age//3)+1) % len(tags)
         tagMap.set(spot, tags[layer])
+    if mark_intermediate and division_direction < 2:
+        tagIMap.set(spot, tagsI[0])
+    #
     divide_spot(spot, pos, current_age+1, (division_direction+1)%3)
 
 
