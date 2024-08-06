@@ -12,7 +12,8 @@
 #@double y_step_size = 10
 #@double z_step_size = 10
 
-#@int num_divisions = 1
+#@int(label="number of triaxial growth cycles", min="0") num_of_full_generations = 2
+max_conducted_divisions = 3 * num_of_full_generations
 
 #@boolean(label="Color generations using the FIRST listed tag set") use_colors = False
 
@@ -35,7 +36,7 @@ if use_colors:
 direction_masks = [ [1,0,0], [0,1,0], [0,0,1] ]
 
 def divide_spot(mother_spot, current_position, current_age, division_direction):
-    remaining_generations = num_divisions - current_age
+    remaining_generations = max_conducted_divisions - current_age
     if remaining_generations == 0:
         return
 
@@ -57,7 +58,7 @@ def divide_spot(mother_spot, current_position, current_age, division_direction):
     # link to mother
     p.getModel().getGraph().addEdge(mother_spot,spot).init()
     if use_colors:
-        layer = (current_age//3) % len(tags)
+        layer = ((current_age//3)+1) % len(tags)
         tagMap.set(spot, tags[layer])
     divide_spot(spot, pos, current_age+1, (division_direction+1)%3)
     
@@ -70,7 +71,7 @@ def divide_spot(mother_spot, current_position, current_age, division_direction):
     # link to mother
     p.getModel().getGraph().addEdge(mother_spot,spot).init()
     if use_colors:
-        layer = (current_age//3) % len(tags)
+        layer = ((current_age//3)+1) % len(tags)
         tagMap.set(spot, tags[layer])
     divide_spot(spot, pos, current_age+1, (division_direction+1)%3)
 
@@ -80,7 +81,7 @@ pos = [x_centre, y_centre, z_centre]
 spot = p.getModel().getGraph().addVertex()
 spot.init(fill_from_this_timepoint, pos, spots_radius)
 if use_colors:
-    tagMap.set(spot, tags[-1])
+    tagMap.set(spot, tags[0])
 divide_spot(spot, pos, 0, 0)
 
 
