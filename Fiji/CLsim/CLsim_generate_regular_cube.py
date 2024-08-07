@@ -18,11 +18,13 @@
 #@int z_num_steps = 13
 
 #@boolean fill_cube = False
+#@boolean randomize_positions = False
 #@boolean(label="Color layers using the FIRST listed tag set") use_colors = False
 
 
 from org.mastodon.mamut.io import ProjectLoader
 from org.mastodon.mamut import MainWindow
+import random
 
 p = ProjectLoader.open(initialMastodonProjectFile.toString(), ctx)
 MainWindow(p).setVisible(True)
@@ -48,6 +50,10 @@ for x in range(-x_num_steps, x_num_steps+1):
                 or y ==  y_num_steps \
                 or z ==  z_num_steps:
                 pos = [x*x_step_size + x_centre,  y*y_step_size + y_centre,  z*z_step_size + z_centre]
+                if randomize_positions:
+                    pos[0] += random.randint(1,20) / 40.0 * x_step_size
+                    pos[1] += random.randint(1,20) / 40.0 * y_step_size
+                    pos[2] += random.randint(1,20) / 40.0 * z_step_size
                 spot = p.getModel().getGraph().addVertex()
                 spot.init(start_in_this_timepoint, pos, spots_radius)
                 if use_colors:
