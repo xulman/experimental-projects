@@ -1,7 +1,8 @@
 #@ Context ctx
 #@File initialMastodonProjectFile
 
-#@int fill_this_timepoint = 0
+#@int start_in_this_timepoint = 0
+#@int advance_timepoint_after_this_number_of_spots = 10000
 #@int(value=7) spots_radius = 7
 
 #@double x_centre = 0
@@ -33,6 +34,8 @@ if use_colors:
     tagMap = p.getModel().getTagSetModel().getVertexTags().tags(tagSet)
     tags = tagSet.getTags()
 
+spots_cnt = 0
+
 for x in range(-x_num_steps, x_num_steps+1):
     for y in range(-y_num_steps, y_num_steps+1):
         for z in range(-z_num_steps, z_num_steps+1):
@@ -46,10 +49,14 @@ for x in range(-x_num_steps, x_num_steps+1):
                 or z ==  z_num_steps:
                 pos = [x*x_step_size + x_centre,  y*y_step_size + y_centre,  z*z_step_size + z_centre]
                 spot = p.getModel().getGraph().addVertex()
-                spot.init(fill_this_timepoint, pos, spots_radius)
+                spot.init(start_in_this_timepoint, pos, spots_radius)
                 if use_colors:
                     layer = max(abs(x), max(abs(y),abs(z))) % len(tags)
                     tagMap.set(spot, tags[layer])
+                spots_cnt += 1
+                if spots_cnt == advance_timepoint_after_this_number_of_spots:
+                    spots_cnt = 0
+                    start_in_this_timepoint += 1
 
 
 print("done adding spots")
