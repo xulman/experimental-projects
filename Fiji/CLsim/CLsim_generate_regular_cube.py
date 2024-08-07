@@ -51,6 +51,7 @@ def rotate_vec(pos):
 
 
 spots_cnt = 0
+cur_tp = start_in_this_timepoint
 
 for x in range(-x_num_steps, x_num_steps+1):
     for y in range(-y_num_steps, y_num_steps+1):
@@ -71,14 +72,15 @@ for x in range(-x_num_steps, x_num_steps+1):
                 if rotate_cube:
                     rotate_vec(pos)
                 spot = p.getModel().getGraph().addVertex()
-                spot.init(start_in_this_timepoint, pos, spots_radius)
+                spot.init(cur_tp, pos, spots_radius)
                 if use_colors:
                     layer = max(abs(x), max(abs(y),abs(z))) % len(tags)
                     tagMap.set(spot, tags[layer])
                 spots_cnt += 1
+                cur_tp += 1
                 if spots_cnt == advance_timepoint_after_this_number_of_spots:
                     spots_cnt = 0
-                    start_in_this_timepoint += 1
+                    cur_tp = start_in_this_timepoint
 
 
 print("done adding spots")
