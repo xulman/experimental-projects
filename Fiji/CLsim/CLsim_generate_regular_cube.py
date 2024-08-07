@@ -27,7 +27,7 @@ from org.mastodon.mamut import MainWindow
 import random
 
 p = ProjectLoader.open(initialMastodonProjectFile.toString(), ctx)
-MainWindow(p).setVisible(True)
+print("started, please wait...")
 
 tagMap = None
 tags = None
@@ -66,3 +66,4 @@ for x in range(-x_num_steps, x_num_steps+1):
 
 
 print("done adding spots")
+MainWindow(p).setVisible(True)

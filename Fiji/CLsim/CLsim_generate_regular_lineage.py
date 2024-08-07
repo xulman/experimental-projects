@@ -21,7 +21,7 @@ from org.mastodon.mamut import MainWindow
 import math
 
 p = ProjectLoader.open(initialMastodonProjectFile.toString(), ctx)
-MainWindow(p).setVisible(True)
+print("started, please wait...")
 
 pixel_data_dimensions = p.getSharedBdvData().getSpimData().getSequenceDescription().getViewSetups().get(0).getSize().dimensionsAsLongArray()
 x_centre = pixel_data_dimensions[0] // 2
@@ -119,3 +119,4 @@ if add_centre_spot:
 
     print("done adding centre(s)")
 
+MainWindow(p).setVisible(True)
