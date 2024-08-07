@@ -19,12 +19,14 @@
 
 #@boolean fill_cube = False
 #@boolean randomize_positions = False
+#@boolean rotate_cube = False
 #@boolean(label="Color layers using the FIRST listed tag set") use_colors = False
 
 
 from org.mastodon.mamut.io import ProjectLoader
 from org.mastodon.mamut import MainWindow
 import random
+import math
 
 p = ProjectLoader.open(initialMastodonProjectFile.toString(), ctx)
 print("started, please wait...")
@@ -35,6 +37,18 @@ if use_colors:
     tagSet = p.getModel().getTagSetModel().getTagSetStructure().getTagSets().get(0)
     tagMap = p.getModel().getTagSetModel().getVertexTags().tags(tagSet)
     tags = tagSet.getTags()
+
+
+ang_rad = 3.14159 * 9.0 / 180.0
+cos_ang = math.cos(ang_rad)
+sin_ang = math.sin(ang_rad)
+
+def rotate_vec(pos):
+    x = pos[0]
+    y = pos[1]
+    pos[0] = x*cos_ang - y*sin_ang
+    pos[1] = x*sin_ang + y*cos_ang
+
 
 spots_cnt = 0
 
@@ -54,6 +68,8 @@ for x in range(-x_num_steps, x_num_steps+1):
                     pos[0] += random.randint(1,20) / 40.0 * x_step_size
                     pos[1] += random.randint(1,20) / 40.0 * y_step_size
                     pos[2] += random.randint(1,20) / 40.0 * z_step_size
+                if rotate_cube:
+                    rotate_vec(pos)
                 spot = p.getModel().getGraph().addVertex()
                 spot.init(start_in_this_timepoint, pos, spots_radius)
                 if use_colors:
