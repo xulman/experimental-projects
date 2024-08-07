@@ -75,8 +75,14 @@ public class BenchmarkSetup implements Runnable {
 		List<MamutViewI> windows = setup();
 		//doActions(windows);
 
-		MamutViewBdv bdv = projectModel.getWindowManager().getViewList(MamutViewBdv.class).get(0);
-		visitBookmarks(Arrays.asList("1","2","3","4"), bdv, 3000);
+		//MamutViewBdv bdv = projectModel.getWindowManager().getViewList(MamutViewBdv.class).get(0);
+		//visitBookmarks(Arrays.asList("1","2","3","4"), bdv, 3000);
+
+		List<BdvViewRotator> rotatedBDVs = new ArrayList<>(windows.size());
+		rotatedBDVs.add( new BdvViewRotator( projectModel.getWindowManager().getViewList(MamutViewBdv.class).get(0).getViewerPanelMamut() ));
+		rotatedBDVs.add( new BdvViewRotator( projectModel.getWindowManager().getViewList(MamutViewBdv.class).get(1).getViewerPanelMamut() ));
+		rotatedBDVs.forEach(r -> r.prepareForRotations(0.314159));
+		rotate(rotatedBDVs, 20, 1000);
 	}
 
 
@@ -94,7 +100,6 @@ public class BenchmarkSetup implements Runnable {
 		bdvXY.getViewerPanelMamut().getDisplay().setDisplayName("bdvXY");
 		windows.add(bdvXY);
 
-		/*
 		//TODO: make BDV windows of my size (1024x1024), not of some random one
 		MamutViewBdv bdvYZ = projectModel.getWindowManager().createView(MamutViewBdv.class);
 		bdvYZ.getFrame().setTitle("YZ - CLsim");
@@ -106,6 +111,7 @@ public class BenchmarkSetup implements Runnable {
 		bdvYZ.getViewerPanelMamut().state().setViewerTransform(yzViewTransform);
 		windows.add(bdvYZ);
 
+		/*
 		MamutViewBdv bdvXZ = projectModel.getWindowManager().createView(MamutViewBdv.class);
 		bdvXZ.getFrame().setTitle("XZ - CLsim");
 		bdvXZ.getViewerPanelMamut().getDisplay().setDisplayName("bdvXZ");
@@ -158,6 +164,13 @@ public class BenchmarkSetup implements Runnable {
 			bdvWin.getViewerPanelMamut().state().setViewerTransform( projectModel.getSharedBdvData().getBookmarks().get(key) );
 			waitThisLong(delaysInMillis, "after moving to bookmark "+key);
 		});
+	}
+
+	public void rotate(final List<BdvViewRotator> rotatedBdvs, final int steps, final long delaysInMillis) {
+		for (int i = 0; i < steps; ++i) {
+			rotatedBdvs.forEach(BdvViewRotator::rotateOneStep);
+			waitThisLong(delaysInMillis, "after one step of rotations");
+		}
 	}
 
 
