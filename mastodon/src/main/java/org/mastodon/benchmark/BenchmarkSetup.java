@@ -158,6 +158,8 @@ public class BenchmarkSetup implements Runnable {
 	protected void executeWarmUpInstructions() {
 		final BenchmarkLanguage tokenizer = new BenchmarkLanguage(instructions.benchmarkInitializationSequence);
 		while (tokenizer.isTokenAvailable()) {
+			System.out.println("executing command: "+tokenizer.getCurrentToken());
+
 			final int winIdx = tokenizer.getCurrentWindowNumber();
 			if (tokenizer.getCurrentWindowType() == BenchmarkLanguage.WindowType.TS) {
 				List<MamutViewTrackScheme> wins = winIdx == -1 ? tsWindows : Collections.singletonList( tsWindows.get( winIdx-1 ) );
@@ -172,8 +174,11 @@ public class BenchmarkSetup implements Runnable {
 				} else if (act == BenchmarkLanguage.ActionType.T) {
 					final int time = tokenizer.getTimepoint();
 					wins.forEach(w -> windowsManager.changeTimepoint(w,time));
+				} else if (act == BenchmarkLanguage.ActionType.R) {
+					final int steps = tokenizer.getFullRotationSteps();
+					wins.forEach(w -> windowsManager.rotateBDV(w, 360.0/(double)steps, steps));
 				} else {
-					System.out.println("NOT SUPPORTED YET");
+					System.out.println("NOT SUPPORTED TOKEN");
 					//TODO...
 				}
 			}
