@@ -4,6 +4,7 @@ import bdv.tools.benchmarks.TimeReporter;
 import mpicbg.spim.data.SpimDataException;
 import net.imagej.ImageJ;
 import net.imglib2.realtransform.AffineTransform3D;
+import org.mastodon.benchmark.windows.BdvViewRotator;
 import org.mastodon.mamut.MainWindow;
 import org.mastodon.mamut.ProjectModel;
 import org.mastodon.mamut.io.ProjectLoader;

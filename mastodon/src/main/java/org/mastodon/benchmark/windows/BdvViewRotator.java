@@ -1,4 +1,4 @@
-package org.mastodon.benchmark;
+package org.mastodon.benchmark.windows;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.ViewerPanel;
