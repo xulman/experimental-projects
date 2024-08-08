@@ -66,17 +66,20 @@ public class WindowsManager {
 
 
 	public void rotateBDV(final MamutViewBdv bdv, final double rotationStepDeg, final int rotationStepsCnt) {
+		System.out.println("Rotations in angle "+rotationStepDeg+" deg in total steps "+rotationStepsCnt);
 		BdvViewRotator rotator = new BdvViewRotator(bdv.getViewerPanelMamut());
 		rotator.setOneStepAngle_deg(rotationStepDeg);
 		rotator.prepareForRotations();
 		for (int i = 0; i < rotationStepsCnt; ++i) {
 			rotator.rotateOneStep();
 			//TODO: waitThisLong(delaysInMillis, "after one step of rotations");
+			try { Thread.sleep(1000); }
+			catch (InterruptedException e) { /* empty */ }
 		}
 	}
 
 	public void visitBookmarkBDV(final MamutViewBdv bdv, final String bookmarkKey) {
-		AffineTransform3D t = projectModel.getSharedBdvData().getBookmarks().get(bookmarkKey);
+		AffineTransform3D t = projectModel.getSharedBdvData().getBookmarks().get(bookmarkKey).copy();
 		if (t != null) {
 			final Dimension displaySize = bdv.getViewerPanelMamut().getDisplayComponent().getSize();
 			t.set( t.get( 0, 3 ) + displaySize.getWidth() / 2, 0, 3 );
