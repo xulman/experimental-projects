@@ -23,6 +23,7 @@ import java.util.ArrayList;
 
 public class BenchmarkSetup implements Runnable {
 
+	// ============================ LOADING/CREATING PROJECTS & MAIN() ============================
 	public static ProjectModel openDummyProject(final Context ctx) {
 		return ProjectModel.create(ctx,
 				  new Model(),
@@ -47,6 +48,7 @@ public class BenchmarkSetup implements Runnable {
 		ImageJ ij = new ImageJ();
 
 		final ProjectModel projectModel = loadProject("/temp/NG_BENCHMARK_DATASET.mastodon", ij.getContext());
+		//final ProjectModel projectModel = loadProject("/home/ulman/data/Mastodon-benchmarkData/Benchmark_Cube/Cube_noedges_finished-cyclesproject.mastodon", ij.getContext());
 		final MainWindow mainWindow = new MainWindow( projectModel );
 		mainWindow.setVisible( true );
 		mainWindow.setDefaultCloseOperation( WindowConstants.EXIT_ON_CLOSE );
@@ -54,25 +56,39 @@ public class BenchmarkSetup implements Runnable {
 		executeBenchmark(projectModel);
 	}
 
+
+	// ============================ THE BENCHMARK ENTRY POINT ============================
+	/**
+	 * This is the expected starting point of the benchmarking. It instantiates this class
+	 * into a new, separate thread, which is the most important thing here. Being in a separate
+	 * thread allows us to initiate events on Mastodon (on its main thread, with its GUI AWT
+	 * underpinnings), and _wait_ for them here (in this new, separate thread) until they finish
+	 * while not blocking them (as it would have happened if the waiting would be on the main thread).
+	 */
 	public static void executeBenchmark(final ProjectModel project) {
 		//start a thread that will do the waiting for the issued benchmarked actions
 		Thread benchThread = new Thread(new BenchmarkSetup(project), "Mastodon Benchmark Controller");
 		benchThread.start();
 	}
 
+	/**
+	 * The constructor is intentionally public so that it allows callers to start/place this
+	 * benchmark in their own ways, perhaps in their own threads.
+	 * Read more on this in the docs of {@link BenchmarkSetup#executeBenchmark(ProjectModel)}.
+	 */
 	public BenchmarkSetup(final ProjectModel project) {
-		//NB: keeping it 'public' allows callers to start/place this benchmark their own ways
 		this.projectModel = project;
 	}
 
 	private final ProjectModel projectModel;
 
 
+	// ============================ THE BENCHMARK MAIN THREAD ============================
 	@Override
 	public void run() {
-		clear();
+		closeAllCurrentlyOpenedWindows();
 
-		List<MamutViewI> windows = setup();
+		List<MamutViewI> windows = openWindowsToBeBenchmarked();
 		//doActions(windows);
 
 		//MamutViewBdv bdv = projectModel.getWindowManager().getViewList(MamutViewBdv.class).get(0);
@@ -85,13 +101,26 @@ public class BenchmarkSetup implements Runnable {
 		rotate(rotatedBDVs, 20, 1000);
 	}
 
+	public void doActions(final List<MamutViewI> windows) {
+		TimeReporter.getInstance().startNowAndReportNotMoreThan(windows.size());
+		changeTimepoint(windows.get(0), 50);
+		waitThisLong(5000);
 
-	public void clear() {
+		TimeReporter.getInstance().startNowAndReportNotMoreThan(windows.size());
+		changeTimepoint(windows.get(0), 55);
+		waitThisLong(5000);
+
+		System.out.println("done benchmarking");
+	}
+
+
+	// ============================ WINDOWS MANIPULATING ROUTINES ============================
+	public void closeAllCurrentlyOpenedWindows() {
 		//close all opened windows
 		projectModel.getWindowManager().closeAllWindows();
 	}
 
-	public List<MamutViewI> setup() {
+	public List<MamutViewI> openWindowsToBeBenchmarked() {
 		final List<MamutViewI> windows = new ArrayList<>(10);
 
 		System.out.println("opening windows...");
@@ -138,18 +167,6 @@ public class BenchmarkSetup implements Runnable {
 		return windows;
 	}
 
-	public void doActions(final List<MamutViewI> windows) {
-		TimeReporter.getInstance().startNowAndReportNotMoreThan(windows.size());
-		changeTimepoint(windows.get(0), 50);
-		waitThisLong(5000);
-
-		TimeReporter.getInstance().startNowAndReportNotMoreThan(windows.size());
-		changeTimepoint(windows.get(0), 55);
-		waitThisLong(5000);
-
-		System.out.println("done benchmarking");
-	}
-
 
 	public void visitBookmarks(final List<String> bookmarkKeys, final MamutViewBdv bdvWin, final long delaysInMillis) {
 		//MamutViewBdv bdv = projectModel.getWindowManager().getViewList(MamutViewBdv.class).get(0);
@@ -185,24 +202,29 @@ public class BenchmarkSetup implements Runnable {
 	}
 
 
+	// ============================ AUX ROUTINES ============================
 	/**
 	 * Just pauses the execution of this thread for the given time. Since this thread
-	 * should NOT be the main thread of Mastodon (and of AWT), the Mastodon should
-	 * be doing its stuff happily while we're waiting here (and the "stuff" is actually
-	 * our benchmarked actions...). That much the plan...
+	 * should ideally NOT be the main thread of Mastodon (and of AWT), the Mastodon should
+	 * be doing its stuff happily while we're waiting here (where the "stuff" is actually
+	 * our triggered benchmarked actions...).
+	 * See also {@link BenchmarkSetup#executeBenchmark(ProjectModel)}.
 	 */
 	public void waitThisLong(final long periodInMillis) {
-		System.out.println("Benchmark thread: Going to wait "+periodInMillis+" ms");
+		System.out.println("  -> Benchmark thread: Going to wait "+periodInMillis+" ms");
 		try {
 			Thread.sleep(periodInMillis);
 		} catch (InterruptedException e) {
 			System.out.println("Interrupted while waiting during benchmark: "+e.getMessage());
 		}
-		System.out.println("Benchmark thread: Finished the waiting...");
+		System.out.println("  -> Benchmark thread: Finished the waiting...");
 	}
 
+	/**
+	 * Prints out the 'reasonForWaiting' and then calls {@link BenchmarkSetup#waitThisLong(long)}.
+	 */
 	public void waitThisLong(final long periodInMillis, final String reasonForWaiting) {
-		System.out.println("Benchmark thread: Will wait "+reasonForWaiting);
+		System.out.println("  -> Benchmark thread: Will wait "+reasonForWaiting);
 		waitThisLong(periodInMillis);
 	}
 }
