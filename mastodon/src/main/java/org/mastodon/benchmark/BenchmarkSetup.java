@@ -17,6 +17,7 @@ import org.scijava.Context;
 
 import javax.swing.*;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -110,8 +111,8 @@ public class BenchmarkSetup implements Runnable {
 		}
 		System.out.println("All benchmarked "+allWindows.size()+" windows were opened.");
 
-		//executeWarmUpInstructions();
 		explainInstructions( instructions.benchmarkInitializationSequence );
+		executeWarmUpInstructions();
 		System.out.println("All benchmarked "+allWindows.size()+" windows are set ready.");
 
 		//executeInstructions();
@@ -150,6 +151,32 @@ public class BenchmarkSetup implements Runnable {
 				System.out.println("  Rotate using "+tokenizer.getFullRotationSteps()+" steps");
 			}
 
+			tokenizer.moveToNextToken();
+		}
+	}
+
+	protected void executeWarmUpInstructions() {
+		final BenchmarkLanguage tokenizer = new BenchmarkLanguage(instructions.benchmarkInitializationSequence);
+		while (tokenizer.isTokenAvailable()) {
+			final int winIdx = tokenizer.getCurrentWindowNumber();
+			if (tokenizer.getCurrentWindowType() == BenchmarkLanguage.WindowType.TS) {
+				List<MamutViewTrackScheme> wins = winIdx == -1 ? tsWindows : Collections.singletonList( tsWindows.get( winIdx-1 ) );
+				System.out.println("NOT SUPPORTED YET");
+				//TODO...
+			} else {
+				List<MamutViewBdv> wins = winIdx == -1 ? bdvWindows : Collections.singletonList( bdvWindows.get( winIdx-1 ) );
+				BenchmarkLanguage.ActionType act = tokenizer.getCurrentAction();
+				if (act == BenchmarkLanguage.ActionType.B) {
+					final String key = String.valueOf(tokenizer.getBookmarkKey());
+					wins.forEach(w -> windowsManager.visitBookmarkBDV(w,key));
+				} else if (act == BenchmarkLanguage.ActionType.T) {
+					final int time = tokenizer.getTimepoint();
+					wins.forEach(w -> windowsManager.changeTimepoint(w,time));
+				} else {
+					System.out.println("NOT SUPPORTED YET");
+					//TODO...
+				}
+			}
 			tokenizer.moveToNextToken();
 		}
 	}
