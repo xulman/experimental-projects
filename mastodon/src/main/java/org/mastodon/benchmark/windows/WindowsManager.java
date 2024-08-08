@@ -1,5 +1,6 @@
 package org.mastodon.benchmark.windows;
 
+import bdv.viewer.animate.SimilarityTransformAnimator;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.mastodon.mamut.ProjectModel;
 import org.mastodon.mamut.views.MamutViewI;
@@ -76,9 +77,29 @@ public class WindowsManager {
 	}
 
 	public void visitBookmarkBDV(final MamutViewBdv bdv, final String bookmarkKey) {
-		AffineTransform3D t = projectModel.getSharedBdvData().getBookmarks().get(bookmarkKey);
-		if (t != null) {
-			bdv.getViewerPanelMamut().state().setViewerTransform(t);
+		//try to retrieve the bookmark data in the first place
+		AffineTransform3D tgt = projectModel.getSharedBdvData().getBookmarks().get(bookmarkKey);
+		if (tgt != null) {
+			final AffineTransform3D src = new AffineTransform3D();
+			bdv.getViewerPanelMamut().state().getViewerTransform( src );
+			//
+			double cX = bdv.getViewerPanelMamut().getDisplayComponent().getWidth() / 2.0;
+			double cY = bdv.getViewerPanelMamut().getDisplayComponent().getHeight() / 2.0;
+			/*
+			//alternative way of retrieving the image view centre,
+			//"116" is "linux constant", might be that on another OS the window
+			//decoration will need different number of pixels
+			System.out.println("cX = "+cX+", cY = "+cY);
+			cX = bdv.getFrame().getSize().getWidth() / 2.0;
+			cY = (bdv.getFrame().getSize().getHeight()-116) / 2.0;
+			System.out.println("cX = "+cX+", cY = "+cY);
+			*/
+			src.set( src.get( 0, 3 ) - cX, 0, 3 );
+			src.set( src.get( 1, 3 ) - cY, 1, 3 );
+			//
+			bdv.getViewerPanelMamut().state().setViewerTransform(
+				new SimilarityTransformAnimator(src, tgt, cX, cY, 3000).get(1.0) );
+			//TODO: this should happen w/o the TransformAnimator, I'm currently outsourcing the math-work to it...
 		} else {
 			System.out.println("Bookmark '"+bookmarkKey+"' was not found in the current project, skipping it.");
 		}
