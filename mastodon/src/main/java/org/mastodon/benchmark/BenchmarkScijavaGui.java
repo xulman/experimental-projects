@@ -7,14 +7,16 @@ import org.scijava.command.Command;
 import org.scijava.command.CommandService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
+import org.scijava.widget.FileWidget;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
 
 @Plugin(type = Command.class, name = "Benchmark GUI", menuPath = "Plugins>Mastodon Benchmark")
 public class BenchmarkScijavaGui implements Command {
-	@Parameter
-	public String mastodonProjectPath = "provide/path/to/project.mastodon";
+	@Parameter(style = FileWidget.OPEN_STYLE)
+	public File mastodonProjectPath;
 
 	/**
 	 * If this is set to non-null, it takes over the 'mastodonProjectPath'.
@@ -79,7 +81,7 @@ public class BenchmarkScijavaGui implements Command {
 			BenchmarkSetup.executeBenchmark(projectModel, instructions);
 		} else {
 			//for not-inside-Mastodon world:
-			ProjectModel p = BenchmarkSetup.loadProject(mastodonProjectPath, contextProviderService.getContext());
+			final ProjectModel p = BenchmarkSetup.loadProject(mastodonProjectPath.getAbsolutePath().toString(), contextProviderService.getContext());
 			//show the main Mastodon window first before the benchmark starts itself
 			final MainWindow mainWindow = new MainWindow(p);
 			mainWindow.setVisible(true);
@@ -92,7 +94,7 @@ public class BenchmarkScijavaGui implements Command {
 		return instructions;
 	}
 
-	public String getProjectPath() {
+	public File getProjectPath() {
 		return mastodonProjectPath;
 	}
 }
