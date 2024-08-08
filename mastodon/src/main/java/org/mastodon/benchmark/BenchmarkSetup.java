@@ -45,6 +45,7 @@ public class BenchmarkSetup implements Runnable {
 		System.setProperty( "apple.laf.useScreenMenuBar", "true" );
 
 		ImageJ ij = new ImageJ();
+		ij.ui().showUI();
 
 		final ProjectModel projectModel = loadProject("/temp/NG_BENCHMARK_DATASET.mastodon", ij.getContext());
 		//final ProjectModel projectModel = loadProject("/home/ulman/data/Mastodon-benchmarkData/Benchmark_Cube/Cube_noedges_finished-cyclesproject.mastodon", ij.getContext());
@@ -52,7 +53,7 @@ public class BenchmarkSetup implements Runnable {
 		mainWindow.setVisible( true );
 		mainWindow.setDefaultCloseOperation( WindowConstants.EXIT_ON_CLOSE );
 
-		executeBenchmark(projectModel, new BenchmarkInstructions());
+		//executeBenchmark(projectModel, new BenchmarkInstructions());
 	}
 
 

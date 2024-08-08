@@ -1,16 +1,29 @@
 package org.mastodon.benchmark;
 
+import org.mastodon.mamut.MainWindow;
 import org.mastodon.mamut.ProjectModel;
+import org.mastodon.mamut.experimental.ExperimentalPluginsFacade;
 import org.scijava.command.Command;
 import org.scijava.command.CommandService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
+
+import javax.swing.*;
 import java.awt.*;
 
 @Plugin(type = Command.class, name = "Benchmark GUI", menuPath = "Plugins>Mastodon Benchmark")
 public class BenchmarkScijavaGui implements Command {
 	@Parameter
 	public String mastodonProjectPath = "provide/path/to/project.mastodon";
+
+	/**
+	 * If this is set to non-null, it takes over the 'mastodonProjectPath'.
+	 * That said, no file is opened and this ProjectModel is used instead.
+	 * This is typically used from within a running Mastodon session,
+	 * see e.g. {@link ExperimentalPluginsFacade#benchmark()}.
+	 */
+	@Parameter(persist = false, required = false)
+	ProjectModel projectModel = null;
 
 	@Parameter
 	public boolean shouldCloseAllWindowsBeforeBenchmark = true;
@@ -60,13 +73,19 @@ public class BenchmarkScijavaGui implements Command {
 		instructions.millisToWaitAfterInitialization = millisToWaitAfterInitialization;
 		instructions.millisToWaitAfterEachBenchmarkAction = millisToWaitAfterEachBenchmarkAction;
 
-		//this is when this GUI is called from inside the Mastodon, which
-		//provides its own context and project, and executes the benchmark as well
-		if (mastodonProjectPath.startsWith("don't execute")) return;
-
-		//for not-inside-Mastodon world:
-		ProjectModel p = BenchmarkSetup.loadProject(mastodonProjectPath, contextProviderService.getContext());
-		BenchmarkSetup.executeBenchmark(p, instructions);
+		if (projectModel != null) {
+			//this is an indication that this GUI is called from inside the Mastodon, which
+			//is instructed to provide project, so we do the benchmark on this project
+			BenchmarkSetup.executeBenchmark(projectModel, instructions);
+		} else {
+			//for not-inside-Mastodon world:
+			ProjectModel p = BenchmarkSetup.loadProject(mastodonProjectPath, contextProviderService.getContext());
+			//show the main Mastodon window first before the benchmark starts itself
+			final MainWindow mainWindow = new MainWindow(p);
+			mainWindow.setVisible(true);
+			mainWindow.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+			BenchmarkSetup.executeBenchmark(p, instructions);
+		}
 	}
 
 	public BenchmarkInstructions getInstructions() {

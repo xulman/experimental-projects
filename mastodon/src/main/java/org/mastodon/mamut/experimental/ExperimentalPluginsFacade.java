@@ -284,17 +284,10 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 	}
 
 	private void benchmark() {
-		BenchmarkScijavaGui gui;
-		try {
-			Future<CommandModule> commandModule = this.getContext().getService(CommandService.class).run(
-				BenchmarkScijavaGui.class, true,
-				"mastodonProjectPath", "don't execute"
-			);
-			gui = (BenchmarkScijavaGui)commandModule.get().getCommand();
-		} catch (InterruptedException | ExecutionException e) {
-			System.out.println("Error working with the Benchmark GUI: "+e.getMessage());
-			return;
-		}
-		BenchmarkSetup.executeBenchmark(pluginAppModel, gui.getInstructions());
+		this.getContext().getService(CommandService.class).run(
+			BenchmarkScijavaGui.class, true,
+			"mastodonProjectPath", "just don't show this item",
+			"projectModel", pluginAppModel
+		);
 	}
 }
