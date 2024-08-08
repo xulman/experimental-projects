@@ -12,6 +12,7 @@ import java.util.List;
 public class WindowsManager {
 	public WindowsManager(final ProjectModel project) {
 		this.projectModel = project;
+		this.resetBdvLocations(512); // 512 is an optimistic guess.... nothing more
 	}
 	private final ProjectModel projectModel;
 
@@ -25,6 +26,8 @@ public class WindowsManager {
 		//screen visible stuff
 		bdv.getFrame().setTitle(winTitle);
 		bdv.getFrame().setSize(winSize);
+		bdv.getFrame().setLocation(bdvCurrentXlocation, bdvCurrentYlocation);
+		bdvCurrentXlocation += winSize.width + WINDOWS_GAP;
 		if (lockGroupId != null) bdv.getGroupHandle().setGroupId(lockGroupId);
 
 		//title for the time-needed-to-draw reports
@@ -39,6 +42,8 @@ public class WindowsManager {
 		//screen visible stuff
 		ts.getFrame().setTitle(winTitle);
 		ts.getFrame().setSize(winSize);
+		ts.getFrame().setLocation(tsCurrentXlocation, tsCurrentYlocation);
+		tsCurrentXlocation += winSize.width + WINDOWS_GAP;
 		if (lockGroupId != null) ts.getGroupHandle().setGroupId(lockGroupId);
 
 		//title for the time-needed-to-draw reports
@@ -46,6 +51,19 @@ public class WindowsManager {
 
 		return ts;
 	}
+
+
+	private int bdvCurrentXlocation, bdvCurrentYlocation;
+	private int tsCurrentXlocation, tsCurrentYlocation;
+	static int WINDOWS_GAP = 10;
+
+	public void resetBdvLocations(int heightOfBDVs) {
+		bdvCurrentXlocation = WINDOWS_GAP;
+		bdvCurrentYlocation = WINDOWS_GAP;
+		tsCurrentXlocation = WINDOWS_GAP;
+		tsCurrentYlocation = WINDOWS_GAP + heightOfBDVs + WINDOWS_GAP;
+	}
+
 
 	public void rotateBDV(final MamutViewBdv bdv, final double rotationStepDeg, final int rotationStepsCnt) {
 		BdvViewRotator rotator = new BdvViewRotator(bdv.getViewerPanelMamut());

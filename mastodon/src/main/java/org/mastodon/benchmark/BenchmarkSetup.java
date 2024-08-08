@@ -79,6 +79,7 @@ public class BenchmarkSetup implements Runnable {
 	public BenchmarkSetup(final ProjectModel project, final BenchmarkInstructions instructions) {
 		this.projectModel = project;
 		this.windowsManager = new WindowsManager(project);
+		this.windowsManager.resetBdvLocations( instructions.howManyBDVsToOpen > 0 ? instructions.windowSizeOfBDVs.height : 0 );
 		this.instructions = instructions;
 	}
 
