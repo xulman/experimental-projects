@@ -78,6 +78,9 @@ public class WindowsManager {
 	public void visitBookmarkBDV(final MamutViewBdv bdv, final String bookmarkKey) {
 		AffineTransform3D t = projectModel.getSharedBdvData().getBookmarks().get(bookmarkKey);
 		if (t != null) {
+			final Dimension displaySize = bdv.getViewerPanelMamut().getDisplayComponent().getSize();
+			t.set( t.get( 0, 3 ) + displaySize.getWidth() / 2, 0, 3 );
+			t.set( t.get( 1, 3 ) + displaySize.getHeight() / 2, 1, 3 );
 			bdv.getViewerPanelMamut().state().setViewerTransform(t);
 		} else {
 			System.out.println("Bookmark '"+bookmarkKey+"' was not found in the current project, skipping it.");
