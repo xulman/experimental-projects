@@ -111,6 +111,7 @@ public class BenchmarkSetup implements Runnable {
 		System.out.println("All benchmarked "+allWindows.size()+" windows were opened.");
 
 		//executeWarmUpInstructions();
+		explainInstructions( instructions.benchmarkInitializationSequence );
 		System.out.println("All benchmarked "+allWindows.size()+" windows are set ready.");
 
 		//executeInstructions();
@@ -124,6 +125,33 @@ public class BenchmarkSetup implements Runnable {
 		waitThisLong(5000);
 */
 		System.out.println("Benchmark is over.");
+	}
+
+	protected void explainInstructions(final String query) {
+		final BenchmarkLanguage tokenizer = new BenchmarkLanguage(query);
+		while (tokenizer.isTokenAvailable()) {
+			System.out.println("--> "+tokenizer.getCurrentToken());
+
+			int winIdx = tokenizer.getCurrentWindowNumber();
+			if (winIdx == -1) {
+				System.out.println("  Addressing: all "+tokenizer.getCurrentWindowType()+" windows");
+			} else {
+				System.out.println("  Addressing: "+tokenizer.getCurrentWindowType()+" #"+winIdx);
+			}
+
+			BenchmarkLanguage.ActionType act = tokenizer.getCurrentAction();
+			if (act == BenchmarkLanguage.ActionType.B) {
+				System.out.println("  Switch to bookmark "+tokenizer.getBookmarkKey());
+			} else if (act == BenchmarkLanguage.ActionType.T) {
+				System.out.println("  Switch to timepoint " + tokenizer.getTimepoint());
+			} else if (act == BenchmarkLanguage.ActionType.F) {
+				System.out.println("  Focus on spot "+tokenizer.getSpotLabel());
+			} else if (act == BenchmarkLanguage.ActionType.R) {
+				System.out.println("  Rotate using "+tokenizer.getFullRotationSteps()+" steps");
+			}
+
+			tokenizer.moveToNextToken();
+		}
 	}
 
 
