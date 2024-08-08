@@ -19,13 +19,13 @@ public class BdvViewRotator implements Runnable {
 	private double cX,cY;
 	private final AffineTransform3D rotatorAlongY= new AffineTransform3D();
 
-	public void prepareForRotations(final double angle) {
+	public void prepareForRotations() {
 		final Dimension displaySize = viewerPanel.getDisplayComponent().getSize();
 		cX = displaySize.getWidth() / 2;
 		cY = displaySize.getHeight() / 2;
 
 		rotatorAlongY.set(1,0,0,0, 0,1,0,0, 0,0,1,0);
-		rotatorAlongY.rotate(1, angle);
+		rotatorAlongY.rotate(1, this.oneRotStepRad);
 	}
 
 	public void rotateOneStep() {
@@ -57,7 +57,7 @@ public class BdvViewRotator implements Runnable {
 
 	@Override
 	public void run() {
-		prepareForRotations( oneRotStepRad );
+		prepareForRotations();
 		rotateOneStep();
 	}
 }
