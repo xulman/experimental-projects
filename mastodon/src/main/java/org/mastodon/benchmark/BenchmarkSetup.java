@@ -106,10 +106,10 @@ public class BenchmarkSetup implements Runnable {
 			allWindows.add(win);
 			tsWindows.add(win);
 		}
-		System.out.println("All benchmarked "+allWindows.size()+" windows created.");
+		System.out.println("All benchmarked "+allWindows.size()+" windows were opened.");
 
 		//executeWarmUpInstructions();
-		System.out.println("All benchmarked "+allWindows.size()+" windows set ready.");
+		System.out.println("All benchmarked "+allWindows.size()+" windows are set ready.");
 
 		//executeInstructions();
 /*
