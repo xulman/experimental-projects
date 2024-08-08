@@ -34,8 +34,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import org.mastodon.app.ui.ViewMenuBuilder;
+import org.mastodon.benchmark.BenchmarkScijavaGui;
 import org.mastodon.mamut.KeyConfigScopes;
 import org.mastodon.mamut.experimental.spots.RotateSpotsGeneral;
 import org.mastodon.mamut.experimental.spots.RotateSpotsInPlane;
@@ -44,6 +47,7 @@ import org.mastodon.mamut.experimental.spots.DuplicateSpots;
 import org.mastodon.mamut.experimental.trees.LineageRandomColorizer;
 import org.mastodon.mamut.plugin.MamutPlugin;
 import org.mastodon.mamut.ProjectModel;
+import org.scijava.command.CommandModule;
 import org.scijava.ui.behaviour.io.gui.CommandDescriptionProvider;
 import org.scijava.ui.behaviour.io.gui.CommandDescriptions;
 import org.mastodon.ui.keymap.KeyConfigContexts;
@@ -280,6 +284,17 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 	}
 
 	private void benchmark() {
-		BenchmarkSetup.executeBenchmark(pluginAppModel);
+		BenchmarkScijavaGui gui;
+		try {
+			Future<CommandModule> commandModule = this.getContext().getService(CommandService.class).run(
+				BenchmarkScijavaGui.class, true,
+				"mastodonProjectPath", "don't execute"
+			);
+			gui = (BenchmarkScijavaGui)commandModule.get().getCommand();
+		} catch (InterruptedException | ExecutionException e) {
+			System.out.println("Error working with the Benchmark GUI: "+e.getMessage());
+			return;
+		}
+		BenchmarkSetup.executeBenchmark(pluginAppModel, gui.getInstructions());
 	}
 }
