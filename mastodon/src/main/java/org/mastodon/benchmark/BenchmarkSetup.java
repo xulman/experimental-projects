@@ -54,7 +54,7 @@ public class BenchmarkSetup implements Runnable {
 		mainWindow.setVisible( true );
 		mainWindow.setDefaultCloseOperation( WindowConstants.EXIT_ON_CLOSE );
 
-		executeBenchmark(projectModel);
+		executeBenchmark(projectModel, new BenchmarkInstructions());
 	}
 
 
@@ -66,22 +66,24 @@ public class BenchmarkSetup implements Runnable {
 	 * underpinnings), and _wait_ for them here (in this new, separate thread) until they finish
 	 * while not blocking them (as it would have happened if the waiting would be on the main thread).
 	 */
-	public static void executeBenchmark(final ProjectModel project) {
+	public static void executeBenchmark(final ProjectModel project, final BenchmarkInstructions instructions) {
 		//start a thread that will do the waiting for the issued benchmarked actions
-		Thread benchThread = new Thread(new BenchmarkSetup(project), "Mastodon Benchmark Controller");
+		Thread benchThread = new Thread(new BenchmarkSetup(project,instructions), "Mastodon Benchmark Controller");
 		benchThread.start();
 	}
 
 	/**
 	 * The constructor is intentionally public so that it allows callers to start/place this
 	 * benchmark in their own ways, perhaps in their own threads.
-	 * Read more on this in the docs of {@link BenchmarkSetup#executeBenchmark(ProjectModel)}.
+	 * Read more on this in the docs of {@link BenchmarkSetup#executeBenchmark(ProjectModel, BenchmarkInstructions)}.
 	 */
-	public BenchmarkSetup(final ProjectModel project) {
+	public BenchmarkSetup(final ProjectModel project, final BenchmarkInstructions instructions) {
 		this.projectModel = project;
+		this.instructions = instructions;
 	}
 
 	private final ProjectModel projectModel;
+	private final BenchmarkInstructions instructions;
 
 
 	// ============================ THE BENCHMARK MAIN THREAD ============================
@@ -209,7 +211,7 @@ public class BenchmarkSetup implements Runnable {
 	 * should ideally NOT be the main thread of Mastodon (and of AWT), the Mastodon should
 	 * be doing its stuff happily while we're waiting here (where the "stuff" is actually
 	 * our triggered benchmarked actions...).
-	 * See also {@link BenchmarkSetup#executeBenchmark(ProjectModel)}.
+	 * See also {@link BenchmarkSetup#executeBenchmark(ProjectModel, BenchmarkInstructions)}.
 	 */
 	public void waitThisLong(final long periodInMillis) {
 		System.out.println("  -> Benchmark thread: Going to wait "+periodInMillis+" ms");
