@@ -187,6 +187,7 @@ public class BenchmarkSetup implements Runnable {
 		final BenchmarkLanguage tokenizer = new BenchmarkLanguage(commands);
 		while (tokenizer.isTokenAvailable()) {
 			System.out.println("executing command: "+tokenizer.getCurrentToken());
+			long waitingFactor = 1;
 
 			final int winIdx = tokenizer.getCurrentWindowNumber();
 			if (tokenizer.getCurrentWindowType() == BenchmarkLanguage.WindowType.TS) {
@@ -208,13 +209,14 @@ public class BenchmarkSetup implements Runnable {
 					final int steps = tokenizer.getFullRotationSteps();
 					if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(steps * wins.size());
 					wins.forEach(w -> windowsManager.rotateBDV(w, 360.0/(double)steps, steps));
+					waitingFactor = steps;
 				} else {
 					System.out.println("NOT SUPPORTED TOKEN");
 					//TODO...
 				}
 			}
 			tokenizer.moveToNextToken();
-			if (millisBetweenCommands > 0) waitThisLong(millisBetweenCommands, "a bit until the command finishes.");
+			if (millisBetweenCommands > 0) waitThisLong(waitingFactor*millisBetweenCommands, "a bit until the command finishes.");
 		}
 	}
 
