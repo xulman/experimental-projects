@@ -3,6 +3,10 @@ package org.mastodon.benchmark;
 import bdv.tools.benchmarks.TimeReporter;
 import net.imagej.ImageJ;
 import mpicbg.spim.data.SpimDataException;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.JDOMException;
+import org.jdom2.input.SAXBuilder;
 import org.mastodon.benchmark.windows.WindowsManager;
 import org.mastodon.mamut.MainWindow;
 import org.mastodon.mamut.ProjectModel;
@@ -96,6 +100,24 @@ public class BenchmarkSetup implements Runnable {
 	// ============================ THE BENCHMARK MAIN THREAD ============================
 	@Override
 	public void run() {
+		if (instructions.bdvSettingsXmlFilename != null && !instructions.bdvSettingsXmlFilename.isEmpty()) {
+			try {
+				final SAXBuilder sax = new SAXBuilder();
+				final Document doc = sax.build( instructions.bdvSettingsXmlFilename );
+				final Element root = doc.getRootElement();
+				//viewer.stateFromXml( root );
+				//setupAssignments.restoreFromXml( root );
+				//manualTransformation.restoreFromXml( root );
+				projectModel.getSharedBdvData().getBookmarks().restoreFromXml(root);
+				//activeSourcesDialog.update();
+				//viewer.requestRepaint();
+				//TODO: figure out how to close the file! (it's locked on Win as long as Fiji/Mastodon is there)
+			} catch (IOException | JDOMException e) {
+				System.out.println("Failed opening the settings xml file: "+instructions.bdvSettingsXmlFilename);
+				System.out.println("The error message was: "+e.getMessage());
+			}
+		}
+
 		if (instructions.shouldCloseAllWindowsBeforeBenchmark) windowsManager.closeAllWindows();
 
 		Integer groupLockID = instructions.shouldLockButtonsLinkOpenedWindows ? 1 : null;
