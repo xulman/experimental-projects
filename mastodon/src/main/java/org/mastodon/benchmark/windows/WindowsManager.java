@@ -73,6 +73,8 @@ public class WindowsManager {
 		for (int i = 0; i < rotationStepsCnt; ++i) {
 			rotator.rotateOneStep();
 			//TODO: waitThisLong(delaysInMillis, "after one step of rotations");
+			try { Thread.sleep(1000); }
+			catch (InterruptedException e) { /* empty */ }
 		}
 	}
 
