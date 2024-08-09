@@ -18,6 +18,9 @@ public class BenchmarkScijavaGui implements Command {
 	@Parameter(style = FileWidget.OPEN_STYLE)
 	public File mastodonProjectPath;
 
+	@Parameter(style = FileWidget.OPEN_STYLE)
+	public File bdvSettingsXmlFilePath;
+
 	/**
 	 * If this is set to non-null, it takes over the 'mastodonProjectPath'.
 	 * That said, no file is opened and this ProjectModel is used instead.
@@ -50,10 +53,10 @@ public class BenchmarkScijavaGui implements Command {
 	@Parameter
 	public String benchmarkInitializationSequence = "";
 	@Parameter
-	public String benchmarkExecutionSequence = "";
+	public long millisToWaitAfterInitialization = 5000;
 
 	@Parameter
-	public long millisToWaitAfterInitialization = 5000;
+	public String benchmarkExecutionSequence = "";
 	@Parameter
 	public long millisToWaitAfterEachBenchmarkAction = 3000;
 
@@ -64,6 +67,7 @@ public class BenchmarkScijavaGui implements Command {
 
 	@Override
 	public void run() {
+		instructions.bdvSettingsXmlFilename = bdvSettingsXmlFilePath.getAbsolutePath().toString();
 		instructions.shouldCloseAllWindowsBeforeBenchmark = shouldCloseAllWindowsBeforeBenchmark;
 		instructions.howManyTSsToOpen = howManyTSsToOpen;
 		instructions.windowSizeOfBDVs = new Dimension(windowWidthOfBDVs, windowHeightOfBDVs);

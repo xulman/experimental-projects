@@ -3,6 +3,7 @@ package org.mastodon.benchmark;
 import java.awt.*;
 
 public class BenchmarkInstructions {
+	public String bdvSettingsXmlFilename = "benchmark_settings.xml";
 	public boolean shouldCloseAllWindowsBeforeBenchmark = true;
 
 	public int howManyTSsToOpen = 0;

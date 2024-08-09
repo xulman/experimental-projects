@@ -1,8 +1,13 @@
 package org.mastodon.benchmark;
 
 import bdv.tools.benchmarks.TimeReporter;
+import ij.IJ;
 import net.imagej.ImageJ;
 import mpicbg.spim.data.SpimDataException;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.JDOMException;
+import org.jdom2.input.SAXBuilder;
 import org.mastodon.benchmark.windows.WindowsManager;
 import org.mastodon.mamut.MainWindow;
 import org.mastodon.mamut.ProjectModel;
@@ -17,6 +22,7 @@ import org.scijava.Context;
 
 import javax.swing.*;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -95,6 +101,26 @@ public class BenchmarkSetup implements Runnable {
 	// ============================ THE BENCHMARK MAIN THREAD ============================
 	@Override
 	public void run() {
+		IJ.run("Console");
+
+		if (instructions.bdvSettingsXmlFilename != null && !instructions.bdvSettingsXmlFilename.isEmpty()) {
+			try {
+				final SAXBuilder sax = new SAXBuilder();
+				final Document doc = sax.build( instructions.bdvSettingsXmlFilename );
+				final Element root = doc.getRootElement();
+				//viewer.stateFromXml( root );
+				//setupAssignments.restoreFromXml( root );
+				//manualTransformation.restoreFromXml( root );
+				projectModel.getSharedBdvData().getBookmarks().restoreFromXml(root);
+				//activeSourcesDialog.update();
+				//viewer.requestRepaint();
+				//TODO: figure out how to close the file! (it's locked on Win as long as Fiji/Mastodon is there)
+			} catch (IOException | JDOMException e) {
+				System.out.println("Failed opening the settings xml file: "+instructions.bdvSettingsXmlFilename);
+				System.out.println("The error message was: "+e.getMessage());
+			}
+		}
+
 		if (instructions.shouldCloseAllWindowsBeforeBenchmark) windowsManager.closeAllWindows();
 
 		Integer groupLockID = instructions.shouldLockButtonsLinkOpenedWindows ? 1 : null;
@@ -110,7 +136,8 @@ public class BenchmarkSetup implements Runnable {
 		}
 		System.out.println("All benchmarked "+allWindows.size()+" windows were opened.");
 
-		//executeWarmUpInstructions();
+		explainInstructions( instructions.benchmarkInitializationSequence );
+		executeWarmUpInstructions();
 		System.out.println("All benchmarked "+allWindows.size()+" windows are set ready.");
 
 		//executeInstructions();
@@ -124,6 +151,64 @@ public class BenchmarkSetup implements Runnable {
 		waitThisLong(5000);
 */
 		System.out.println("Benchmark is over.");
+	}
+
+	protected void explainInstructions(final String query) {
+		final BenchmarkLanguage tokenizer = new BenchmarkLanguage(query);
+		while (tokenizer.isTokenAvailable()) {
+			System.out.println("--> "+tokenizer.getCurrentToken());
+
+			int winIdx = tokenizer.getCurrentWindowNumber();
+			if (winIdx == -1) {
+				System.out.println("  Addressing: all "+tokenizer.getCurrentWindowType()+" windows");
+			} else {
+				System.out.println("  Addressing: "+tokenizer.getCurrentWindowType()+" #"+winIdx);
+			}
+
+			BenchmarkLanguage.ActionType act = tokenizer.getCurrentAction();
+			if (act == BenchmarkLanguage.ActionType.B) {
+				System.out.println("  Switch to bookmark "+tokenizer.getBookmarkKey());
+			} else if (act == BenchmarkLanguage.ActionType.T) {
+				System.out.println("  Switch to timepoint " + tokenizer.getTimepoint());
+			} else if (act == BenchmarkLanguage.ActionType.F) {
+				System.out.println("  Focus on spot "+tokenizer.getSpotLabel());
+			} else if (act == BenchmarkLanguage.ActionType.R) {
+				System.out.println("  Rotate using "+tokenizer.getFullRotationSteps()+" steps");
+			}
+
+			tokenizer.moveToNextToken();
+		}
+	}
+
+	protected void executeWarmUpInstructions() {
+		final BenchmarkLanguage tokenizer = new BenchmarkLanguage(instructions.benchmarkInitializationSequence);
+		while (tokenizer.isTokenAvailable()) {
+			System.out.println("executing command: "+tokenizer.getCurrentToken());
+
+			final int winIdx = tokenizer.getCurrentWindowNumber();
+			if (tokenizer.getCurrentWindowType() == BenchmarkLanguage.WindowType.TS) {
+				List<MamutViewTrackScheme> wins = winIdx == -1 ? tsWindows : Collections.singletonList( tsWindows.get( winIdx-1 ) );
+				System.out.println("NOT SUPPORTED YET");
+				//TODO...
+			} else {
+				List<MamutViewBdv> wins = winIdx == -1 ? bdvWindows : Collections.singletonList( bdvWindows.get( winIdx-1 ) );
+				BenchmarkLanguage.ActionType act = tokenizer.getCurrentAction();
+				if (act == BenchmarkLanguage.ActionType.B) {
+					final String key = String.valueOf(tokenizer.getBookmarkKey());
+					wins.forEach(w -> windowsManager.visitBookmarkBDV(w,key));
+				} else if (act == BenchmarkLanguage.ActionType.T) {
+					final int time = tokenizer.getTimepoint();
+					wins.forEach(w -> windowsManager.changeTimepoint(w,time));
+				} else if (act == BenchmarkLanguage.ActionType.R) {
+					final int steps = tokenizer.getFullRotationSteps();
+					wins.forEach(w -> windowsManager.rotateBDV(w, 360.0/(double)steps, steps));
+				} else {
+					System.out.println("NOT SUPPORTED TOKEN");
+					//TODO...
+				}
+			}
+			tokenizer.moveToNextToken();
+		}
 	}
 
 
