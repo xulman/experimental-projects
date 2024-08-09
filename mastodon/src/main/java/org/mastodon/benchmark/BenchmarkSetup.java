@@ -137,19 +137,13 @@ public class BenchmarkSetup implements Runnable {
 		System.out.println("All benchmarked "+allWindows.size()+" windows were opened.");
 
 		explainInstructions( instructions.benchmarkInitializationSequence );
+
+		System.out.println("\nSetting the windows:");
 		executeWarmUpInstructions();
 		System.out.println("All benchmarked "+allWindows.size()+" windows are set ready.");
 
-		//executeInstructions();
-/*
-		TimeReporter.getInstance().startNowAndReportNotMoreThan(windows.size());
-		changeTimepoint(windows.get(0), 50);
-		waitThisLong(5000);
-
-		TimeReporter.getInstance().startNowAndReportNotMoreThan(windows.size());
-		changeTimepoint(windows.get(0), 55);
-		waitThisLong(5000);
-*/
+		System.out.println("\nStarting the benchmark:");
+		executeBenchmarkInstructions();
 		System.out.println("Benchmark is over.");
 	}
 
@@ -181,7 +175,16 @@ public class BenchmarkSetup implements Runnable {
 	}
 
 	protected void executeWarmUpInstructions() {
-		final BenchmarkLanguage tokenizer = new BenchmarkLanguage(instructions.benchmarkInitializationSequence);
+		executeInstructions(instructions.benchmarkInitializationSequence, 0, false);
+		waitThisLong(instructions.millisToWaitAfterInitialization, "until the world calms down.");
+	}
+
+	protected void executeBenchmarkInstructions() {
+		executeInstructions(instructions.benchmarkExecutionSequence, instructions.millisToWaitAfterEachBenchmarkAction, true);
+	}
+
+	protected void executeInstructions(final String commands, final long millisBetweenCommands, final boolean doMeasureCommands) {
+		final BenchmarkLanguage tokenizer = new BenchmarkLanguage(commands);
 		while (tokenizer.isTokenAvailable()) {
 			System.out.println("executing command: "+tokenizer.getCurrentToken());
 
@@ -194,13 +197,16 @@ public class BenchmarkSetup implements Runnable {
 				List<MamutViewBdv> wins = winIdx == -1 ? bdvWindows : Collections.singletonList( bdvWindows.get( winIdx-1 ) );
 				BenchmarkLanguage.ActionType act = tokenizer.getCurrentAction();
 				if (act == BenchmarkLanguage.ActionType.B) {
+					if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(wins.size());
 					final String key = String.valueOf(tokenizer.getBookmarkKey());
 					wins.forEach(w -> windowsManager.visitBookmarkBDV(w,key));
 				} else if (act == BenchmarkLanguage.ActionType.T) {
+					if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(wins.size());
 					final int time = tokenizer.getTimepoint();
 					wins.forEach(w -> windowsManager.changeTimepoint(w,time));
 				} else if (act == BenchmarkLanguage.ActionType.R) {
 					final int steps = tokenizer.getFullRotationSteps();
+					if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(steps * wins.size());
 					wins.forEach(w -> windowsManager.rotateBDV(w, 360.0/(double)steps, steps));
 				} else {
 					System.out.println("NOT SUPPORTED TOKEN");
@@ -208,6 +214,7 @@ public class BenchmarkSetup implements Runnable {
 				}
 			}
 			tokenizer.moveToNextToken();
+			if (millisBetweenCommands > 0) waitThisLong(millisBetweenCommands, "a bit until the command finishes.");
 		}
 	}
 
