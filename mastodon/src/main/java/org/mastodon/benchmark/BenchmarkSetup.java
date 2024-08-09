@@ -136,7 +136,7 @@ public class BenchmarkSetup implements Runnable {
 		}
 		System.out.println("All benchmarked "+allWindows.size()+" windows were opened.");
 
-		explainInstructions( instructions.benchmarkInitializationSequence );
+		//explainInstructions( instructions.benchmarkInitializationSequence );
 
 		System.out.println("\nSetting the windows:");
 		executeWarmUpInstructions();
