@@ -6,6 +6,7 @@ import org.mastodon.mamut.ProjectModel;
 import org.mastodon.mamut.views.MamutViewI;
 import org.mastodon.mamut.views.bdv.MamutViewBdv;
 import org.mastodon.mamut.views.trackscheme.MamutViewTrackScheme;
+import org.mastodon.model.tag.TagSetStructure;
 
 import java.awt.*;
 import java.util.List;
@@ -34,6 +35,12 @@ public class WindowsManager {
 		//title for the time-needed-to-draw reports
 		bdv.getViewerPanelMamut().getDisplay().setDisplayName(winTitle);
 
+		//enable the first available TagSet
+		List<TagSetStructure.TagSet> tagSets = projectModel.getModel().getTagSetModel().getTagSetStructure().getTagSets();
+		if (tagSets.size() > 0) {
+			bdv.getColoringModel().colorByTagSet(tagSets.get(0));
+		}
+
 		return bdv;
 	}
 
@@ -49,6 +56,12 @@ public class WindowsManager {
 
 		//title for the time-needed-to-draw reports
 		ts.getFrame().getTrackschemePanel().getDisplay().setDisplayName(winTitle);
+
+		//enable the first available TagSet
+		List<TagSetStructure.TagSet> tagSets = projectModel.getModel().getTagSetModel().getTagSetStructure().getTagSets();
+		if (tagSets.size() > 0) {
+			ts.getColoringModel().colorByTagSet(tagSets.get(0));
+		}
 
 		return ts;
 	}
