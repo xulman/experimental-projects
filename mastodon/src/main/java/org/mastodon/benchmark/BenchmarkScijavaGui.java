@@ -50,10 +50,10 @@ public class BenchmarkScijavaGui implements Command {
 	@Parameter
 	public String benchmarkInitializationSequence = "";
 	@Parameter
-	public String benchmarkExecutionSequence = "";
+	public long millisToWaitAfterInitialization = 5000;
 
 	@Parameter
-	public long millisToWaitAfterInitialization = 5000;
+	public String benchmarkExecutionSequence = "";
 	@Parameter
 	public long millisToWaitAfterEachBenchmarkAction = 3000;
 
