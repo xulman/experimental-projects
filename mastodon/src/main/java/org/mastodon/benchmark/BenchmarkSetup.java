@@ -1,6 +1,7 @@
 package org.mastodon.benchmark;
 
 import bdv.tools.benchmarks.TimeReporter;
+import ij.IJ;
 import net.imagej.ImageJ;
 import mpicbg.spim.data.SpimDataException;
 import org.jdom2.Document;
@@ -100,6 +101,8 @@ public class BenchmarkSetup implements Runnable {
 	// ============================ THE BENCHMARK MAIN THREAD ============================
 	@Override
 	public void run() {
+		IJ.run("Console");
+
 		if (instructions.bdvSettingsXmlFilename != null && !instructions.bdvSettingsXmlFilename.isEmpty()) {
 			try {
 				final SAXBuilder sax = new SAXBuilder();
