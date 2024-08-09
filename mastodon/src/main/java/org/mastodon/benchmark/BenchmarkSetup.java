@@ -1,6 +1,5 @@
 package org.mastodon.benchmark;
 
-import bdv.tools.benchmarks.TimeReporter;
 import net.imagej.ImageJ;
 import mpicbg.spim.data.SpimDataException;
 import org.jdom2.Document;

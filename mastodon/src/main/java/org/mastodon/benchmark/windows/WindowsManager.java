@@ -1,5 +1,6 @@
 package org.mastodon.benchmark.windows;
 
+import bdv.viewer.animate.SimilarityTransformAnimator;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.mastodon.mamut.ProjectModel;
 import org.mastodon.mamut.views.MamutViewI;
@@ -79,15 +80,55 @@ public class WindowsManager {
 	}
 
 	public void visitBookmarkBDV(final MamutViewBdv bdv, final String bookmarkKey) {
-		AffineTransform3D t = projectModel.getSharedBdvData().getBookmarks().get(bookmarkKey).copy();
-		if (t != null) {
-			final Dimension displaySize = bdv.getViewerPanelMamut().getDisplayComponent().getSize();
-			t.set( t.get( 0, 3 ) + displaySize.getWidth() / 2, 0, 3 );
-			t.set( t.get( 1, 3 ) + displaySize.getHeight() / 2, 1, 3 );
-			bdv.getViewerPanelMamut().state().setViewerTransform(t);
+		//try to retrieve the bookmark data in the first place
+		AffineTransform3D tgt = projectModel.getSharedBdvData().getBookmarks().get(bookmarkKey);
+		if (tgt != null) {
+			final AffineTransform3D src = new AffineTransform3D();
+			bdv.getViewerPanelMamut().state().getViewerTransform( src );
+			final double cX = bdv.getViewerPanelMamut().getDisplayComponent().getWidth() / 2.0;
+			final double cY = bdv.getViewerPanelMamut().getDisplayComponent().getHeight() / 2.0;
+			src.set( src.get( 0, 3 ) - cX, 0, 3 );
+			src.set( src.get( 1, 3 ) - cY, 1, 3 );
+			if ( bdv.getFrame().getTitle().contains("#1") ) {
+				System.out.println("bdv1 doing animated rotation");
+				final SimilarityTransformAnimator animator = new SimilarityTransformAnimator(src, tgt, cX, cY, 10000);
+				bdv.getViewerPanelMamut().setTransformAnimator(animator);
+				for (int i = 0; i < 15; ++i) {
+					System.out.println("ratio complete = "+animator.ratioComplete()+", isComplete = "+animator.isComplete());
+					pause(1000);
+				}
+			} else {
+				System.out.println("bdv2 doing three-steps, just-end rotation");
+				final SimilarityTransformAnimator animator = new SimilarityTransformAnimator(src, tgt, cX, cY, 3000);
+				animator.setTime( System.currentTimeMillis() );
+
+				bdv.getViewerPanelMamut().state().setViewerTransform(animator.get(0.25));
+				System.out.println("after step #1");
+				pause(2000);
+
+				bdv.getViewerPanelMamut().state().setViewerTransform(animator.get(0.50));
+				System.out.println("after step #2");
+				pause(2000);
+
+				bdv.getViewerPanelMamut().state().setViewerTransform(animator.get(0.75));
+				System.out.println("after step #3");
+				pause(2000);
+
+				bdv.getViewerPanelMamut().state().setViewerTransform(animator.get(1.0));
+				System.out.println("after step #4");
+				pause(2000);
+
+				bdv.getViewerPanelMamut().state().setViewerTransform(animator.get(1.0));
+				System.out.println("after step #4");
+			}
 		} else {
 			System.out.println("Bookmark '"+bookmarkKey+"' was not found in the current project, skipping it.");
 		}
+	}
+
+	private void pause(long millis) {
+		try { Thread.sleep(millis); }
+		catch (InterruptedException e) { /* nothing */ }
 	}
 
 	public void changeTimepoint(final List<MamutViewI> windows, final int setTP) {
