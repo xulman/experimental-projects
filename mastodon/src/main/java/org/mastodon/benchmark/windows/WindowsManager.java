@@ -84,9 +84,10 @@ public class WindowsManager {
 		rotator.setOneStepAngle_deg(rotationStepDeg);
 		rotator.prepareForRotations();
 		for (int i = 0; i < rotationStepsCnt; ++i) {
+			System.out.println("  view rotates to "+(i+1)*rotationStepDeg+" deg");
 			rotator.rotateOneStep();
 			//TODO: waitThisLong(delaysInMillis, "after one step of rotations");
-			try { Thread.sleep(1000); }
+			try { Thread.sleep(2000); }
 			catch (InterruptedException e) { /* empty */ }
 		}
 	}
