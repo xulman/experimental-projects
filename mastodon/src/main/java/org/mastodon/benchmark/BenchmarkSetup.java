@@ -8,6 +8,7 @@ import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
 import org.jdom2.input.SAXBuilder;
+import org.mastodon.benchmark.windows.MultipleStepsCommand;
 import org.mastodon.benchmark.windows.WindowsManager;
 import org.mastodon.mamut.MainWindow;
 import org.mastodon.mamut.ProjectModel;
@@ -185,7 +186,9 @@ public class BenchmarkSetup implements Runnable {
 
 	protected void executeInstructions(final String commands, final long millisBetweenCommands, final boolean doMeasureCommands) {
 		final BenchmarkLanguage tokenizer = new BenchmarkLanguage(commands);
+		List<MultipleStepsCommand> loopingCommands = new ArrayList<>(allWindows.size());
 		while (tokenizer.isTokenAvailable()) {
+			do {
 			System.out.println("executing command: "+tokenizer.getCurrentToken());
 
 			final int winIdx = tokenizer.getCurrentWindowNumber();
@@ -224,8 +227,9 @@ public class BenchmarkSetup implements Runnable {
 				}
 			}
 
+				if (millisBetweenCommands > 0) waitThisLong(millisBetweenCommands, "a bit until the command finishes.");
+			} while (loopingCommands.size() > 0);
 			tokenizer.moveToNextToken();
-			if (millisBetweenCommands > 0) waitThisLong(millisBetweenCommands, "a bit until the command finishes.");
 		}
 	}
 
