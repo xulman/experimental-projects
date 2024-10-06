@@ -30,13 +30,20 @@ package org.mastodon.mamut.experimental;
 import static org.mastodon.app.ui.ViewMenuBuilder.item;
 import static org.mastodon.app.ui.ViewMenuBuilder.menu;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
+import java.util.function.Consumer;
 
+import ai.nets.samj.bdv.promptresponders.ReportImageOnConsoleResponder;
+import ai.nets.samj.bdv.promptresponders.SamjResponder;
+import ai.nets.samj.communication.model.EfficientSAM;
+import bdv.interactive.prompts.BdvPrompts;
+import bdv.interactive.prompts.planarshapes.PlanarPolygonIn3D;
+import bdv.viewer.SourceAndConverter;
+import net.imglib2.type.numeric.real.FloatType;
 import org.mastodon.app.ui.ViewMenuBuilder;
 import org.mastodon.benchmark.BenchmarkScijavaGui;
 import org.mastodon.mamut.KeyConfigScopes;
@@ -47,7 +54,7 @@ import org.mastodon.mamut.experimental.spots.DuplicateSpots;
 import org.mastodon.mamut.experimental.trees.LineageRandomColorizer;
 import org.mastodon.mamut.plugin.MamutPlugin;
 import org.mastodon.mamut.ProjectModel;
-import org.scijava.command.CommandModule;
+import org.mastodon.mamut.views.bdv.MamutViewBdv;
 import org.scijava.ui.behaviour.io.gui.CommandDescriptionProvider;
 import org.scijava.ui.behaviour.io.gui.CommandDescriptions;
 import org.mastodon.ui.keymap.KeyConfigContexts;
@@ -61,7 +68,6 @@ import org.scijava.ui.behaviour.util.RunnableAction;
 import org.ulman.simulator.ui.SimulatorMainDlg;
 import org.mastodon.mamut.experimental.spots.PlaceSpotsOnSpotSurface;
 import org.mastodon.mamut.experimental.spots.PlaceSpotsInSpotVolume;
-import org.mastodon.benchmark.BenchmarkSetup;
 
 @Plugin( type = MamutPlugin.class )
 public class ExperimentalPluginsFacade extends AbstractContextual implements MamutPlugin
@@ -76,6 +82,7 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 	private static final String EXP_VOLUMESPOTS = "[vexp] place volume spots";
 	private static final String EXP_SIMULATOR = "[vexp] CLsimulator";
 	private static final String EXP_BENCHMARK = "[vexp] benchmark";
+	private static final String EXP_SAMJBDV = "[vexp] samj bdv";
 
 	private static final String[] EXP_SHIFTSPOTS_KEYS = { "not mapped" };
 	private static final String[] EXP_DUPLICATESPOTS_KEYS = { "not mapped" };
@@ -86,6 +93,7 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 	private static final String[] EXP_VOLUMESPOTS_KEYS = { "not mapped" };
 	private static final String[] EXP_SIMULATOR_KEYS = { "not mapped" };
 	private static final String[] EXP_BENCHMARK_KEYS = { "not mapped" };
+	private static final String[] EXP_SAMJBDV_KEYS = { "not mapped" };
 	//------------------------------------------------------------------------
 
 	/** titles of this plug-in's menu items */
@@ -101,6 +109,7 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 		menuTexts.put( EXP_VOLUMESPOTS, "Create Volume Spots" );
 		menuTexts.put( EXP_SIMULATOR, "CLsim" );
 		menuTexts.put( EXP_BENCHMARK, "BENCHMARK" );
+		menuTexts.put( EXP_SAMJBDV, "SAMJ BDV" );
 	}
 	@Override
 	public Map< String, String > getMenuTexts() { return menuTexts; }
@@ -122,7 +131,8 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 					item( EXP_VOLUMESPOTS )
 				),
 				item( EXP_SIMULATOR ),
-				item( EXP_BENCHMARK )
+				item( EXP_BENCHMARK ),
+				item( EXP_SAMJBDV )
 			)
 		);
 	}
@@ -148,6 +158,7 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 			descriptions.add(EXP_VOLUMESPOTS, EXP_VOLUMESPOTS_KEYS, "Places spots into a volume of a larger selected spot.");
 			descriptions.add(EXP_SIMULATOR, EXP_SIMULATOR_KEYS, "Creates a new random cell lineage.");
 			descriptions.add(EXP_BENCHMARK, EXP_BENCHMARK_KEYS, "Runs suite of tests to benchmark the Mastodon data rendering/visualization pipelines.");
+			descriptions.add(EXP_SAMJBDV, EXP_SAMJBDV_KEYS, "Runs SAMJ in BDV.");
 		}
 	}
 	//------------------------------------------------------------------------
@@ -162,6 +173,7 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 	private final AbstractNamedAction actionVolumeSpots;
 	private final AbstractNamedAction actionSimulator;
 	private final AbstractNamedAction actionBenchmark;
+	private final AbstractNamedAction actionSamjBdv;
 
 	/** reference to the currently available project in Mastodon */
 	private ProjectModel pluginAppModel;
@@ -178,6 +190,7 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 		actionVolumeSpots = new RunnableAction(EXP_VOLUMESPOTS, this::spotsInVolume);
 		actionSimulator = new RunnableAction(EXP_SIMULATOR, this::simulator);
 		actionBenchmark = new RunnableAction(EXP_BENCHMARK, this::benchmark);
+		actionSamjBdv = new RunnableAction(EXP_SAMJBDV, this::samjBdv);
 		updateEnabledActions();
 	}
 
@@ -194,6 +207,7 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 		actions.namedAction(actionVolumeSpots, EXP_VOLUMESPOTS_KEYS);
 		actions.namedAction(actionSimulator, EXP_SIMULATOR_KEYS);
 		actions.namedAction(actionBenchmark, EXP_BENCHMARK_KEYS);
+		actions.namedAction(actionSamjBdv, EXP_SAMJBDV_KEYS);
 	}
 
 	/** learn about the current project's params */
@@ -217,6 +231,7 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 		actionVolumeSpots.setEnabled( pluginAppModel != null );
 		actionSimulator.setEnabled( pluginAppModel != null );
 		actionBenchmark.setEnabled( pluginAppModel != null );
+		actionSamjBdv.setEnabled( pluginAppModel != null );
 	}
 	//------------------------------------------------------------------------
 	//------------------------------------------------------------------------
@@ -289,5 +304,56 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 			"mastodonProjectPath", "just don't show this item",
 			"projectModel", pluginAppModel
 		);
+	}
+
+	private void samjBdv() {
+		List<MamutViewBdv> openedBdvs = pluginAppModel.getWindowManager().getViewList(MamutViewBdv.class);
+		if (openedBdvs.size() == 0) {
+			System.out.println("Please, first open _one_ BDV window.");
+			return;
+		}
+
+		final MamutViewBdv mBdv = openedBdvs.get(0);
+		final BdvPrompts<?, FloatType> samj = new BdvPrompts<>(
+				mBdv.getViewerPanelMamut(),
+				(SourceAndConverter)pluginAppModel.getSharedBdvData().getSources().get(0),
+				mBdv.getFrame().getTriggerbindings(),
+				"SAMJ-based detector",
+				new FloatType(), false );
+
+		try {
+			//samj.enableShowingPolygons();
+
+			samj.addPromptsProcessor( new ReportImageOnConsoleResponder<>() );
+			//samj.addPromptsProcessor( new FakeResponder<>() );
+			samj.addPromptsProcessor( new SamjResponder<>( new EfficientSAM() ) );
+
+			//NB: creates Mastodon Spot at polygon's centre
+			samj.addPolygonsConsumer(new Consumer<PlanarPolygonIn3D>() {
+					final double[] pos = new double[3];
+					@Override
+					public void accept(PlanarPolygonIn3D p) {
+						if (p.size() == 0) return;
+						//NB: the polygon is defined in the "embedded" 2D plane, thus:
+						//    1st and 2nd coords zeroed for computing "stats"
+						//    3rd coord equals 0.0 (to be "on the plane")
+						pos[0] = pos[1] = pos[2] = 0.0;
+						for (double[] xy : p.getAllCorners()) {
+							pos[0] += xy[0];
+							pos[1] += xy[1];
+						}
+						pos[0] /= p.size();
+						pos[1] /= p.size();
+						//System.out.println("Polygon view 2D centre position: ["+pos[0]+","+pos[1]+"]");
+						p.getTransformTo3d().apply(pos, pos);
+						//System.out.println("Polygon orig 3D centre position: ["+pos[0]+","+pos[1]+","+pos[2]+"]");
+						//
+						final int currTime = mBdv.getViewerPanelMamut().state().getCurrentTimepoint();
+						pluginAppModel.getModel().getGraph().addVertex().init(currTime, pos, 5.0);
+					}
+				});
+		} catch (IOException | InterruptedException e) {
+			System.out.println("Not using a network, because of the error: "+e.getMessage());
+		}
 	}
 }
