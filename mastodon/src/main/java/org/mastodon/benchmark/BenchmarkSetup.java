@@ -22,6 +22,7 @@ import org.scijava.Context;
 
 import javax.swing.*;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
@@ -115,6 +116,7 @@ public class BenchmarkSetup implements Runnable {
 				//activeSourcesDialog.update();
 				//viewer.requestRepaint();
 				//TODO: figure out how to close the file! (it's locked on Win as long as Fiji/Mastodon is there)
+				System.out.println("Using settings file: "+instructions.bdvSettingsXmlFilename);
 			} catch (IOException | JDOMException e) {
 				System.out.println("Failed opening the settings xml file: "+instructions.bdvSettingsXmlFilename);
 				System.out.println("The error message was: "+e.getMessage());
@@ -123,27 +125,44 @@ public class BenchmarkSetup implements Runnable {
 
 		if (instructions.shouldCloseAllWindowsBeforeBenchmark) windowsManager.closeAllWindows();
 
-		Integer groupLockID = instructions.shouldLockButtonsLinkOpenedWindows ? 1 : null;
-		for (int bdvs = 1; bdvs <= instructions.howManyBDVsToOpen; ++bdvs) {
-			MamutViewBdv win = windowsManager.openBDV("BenchBDV #" + bdvs, instructions.windowSizeOfBDVs, groupLockID);
-			allWindows.add(win);
-			bdvWindows.add(win);
+		try {
+			SwingUtilities.invokeAndWait( () -> {
+				Integer groupLockID = instructions.shouldLockButtonsLinkOpenedWindows ? 1 : null;
+				for (int bdvs = 1; bdvs <= instructions.howManyBDVsToOpen; ++bdvs) {
+					MamutViewBdv win = windowsManager.openBDV("BenchBDV #" + bdvs, instructions.windowSizeOfBDVs, groupLockID);
+					allWindows.add(win);
+					bdvWindows.add(win);
+				}
+				for (int tss = 1; tss <= instructions.howManyTSsToOpen; ++tss) {
+					MamutViewTrackScheme win = windowsManager.openTS("BenchTS #" + tss, instructions.windowSizeOfTSs, groupLockID);
+					allWindows.add(win);
+					tsWindows.add(win);
+				}
+			} );
+		} catch (InterruptedException|InvocationTargetException  e) {
+			throw new RuntimeException("Error opening Mastodon windows for the benchmark: "+e.getMessage(), e);
 		}
-		for (int tss = 1; tss <= instructions.howManyTSsToOpen; ++tss) {
-			MamutViewTrackScheme win = windowsManager.openTS("BenchTS #" + tss, instructions.windowSizeOfTSs, groupLockID);
-			allWindows.add(win);
-			tsWindows.add(win);
-		}
-		System.out.println("All benchmarked "+allWindows.size()+" windows were opened.");
 
+		System.out.println("All benchmarked "+allWindows.size()+" windows were opened.");
 		//explainInstructions( instructions.benchmarkInitializationSequence );
 
-		System.out.println("\nSetting the windows:");
-		executeWarmUpInstructions();
+		try {
+			SwingUtilities.invokeAndWait( () -> {
+
+				System.out.println("\nSetting the windows:");
+				//executeWarmUpInstructions();
+				executeInstructions(instructions.benchmarkInitializationSequence, 0, false);
+			} );
+		} catch (InterruptedException|InvocationTargetException  e) {
+			throw new RuntimeException("Error presetting Mastodon windows for the benchmark: "+e.getMessage(), e);
+		}
+
+		waitThisLong(instructions.millisToWaitAfterInitialization, "until the world calms down.");
 		System.out.println("All benchmarked "+allWindows.size()+" windows are set ready.");
 
 		System.out.println("\nStarting the benchmark:");
-		executeBenchmarkInstructions();
+		//executeBenchmarkInstructions();
+		executeInstructions(instructions.benchmarkExecutionSequence, instructions.millisToWaitAfterEachBenchmarkAction, true);
 		System.out.println("Benchmark is over.");
 	}
 
