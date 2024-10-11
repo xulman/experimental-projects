@@ -148,9 +148,7 @@ public class BenchmarkSetup implements Runnable {
 
 		try {
 			SwingUtilities.invokeAndWait( () -> {
-
 				System.out.println("\nSetting the windows:");
-				//executeWarmUpInstructions();
 				executeInstructions(instructions.benchmarkInitializationSequence, 0, false);
 			} );
 		} catch (InterruptedException|InvocationTargetException  e) {
@@ -161,7 +159,6 @@ public class BenchmarkSetup implements Runnable {
 		System.out.println("All benchmarked "+allWindows.size()+" windows are set ready.");
 
 		System.out.println("\nStarting the benchmark:");
-		//executeBenchmarkInstructions();
 		executeInstructions(instructions.benchmarkExecutionSequence, instructions.millisToWaitAfterEachBenchmarkAction, true);
 		System.out.println("Benchmark is over.");
 	}
@@ -191,15 +188,6 @@ public class BenchmarkSetup implements Runnable {
 
 			tokenizer.moveToNextToken();
 		}
-	}
-
-	protected void executeWarmUpInstructions() {
-		executeInstructions(instructions.benchmarkInitializationSequence, 0, false);
-		waitThisLong(instructions.millisToWaitAfterInitialization, "until the world calms down.");
-	}
-
-	protected void executeBenchmarkInstructions() {
-		executeInstructions(instructions.benchmarkExecutionSequence, instructions.millisToWaitAfterEachBenchmarkAction, true);
 	}
 
 	protected void executeInstructions(final String commands, final long millisBetweenCommands, final boolean doMeasureCommands) {
