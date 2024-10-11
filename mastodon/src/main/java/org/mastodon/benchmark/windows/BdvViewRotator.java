@@ -5,7 +5,7 @@ import bdv.viewer.ViewerPanel;
 import net.imglib2.realtransform.AffineTransform3D;
 import java.awt.*;
 
-public class BdvViewRotator implements Runnable {
+public class BdvViewRotator implements Runnable, MultipleStepsCommand {
 	public BdvViewRotator(final BdvHandle bdv) {
 		viewerPanel = bdv.getViewerPanel();
 	}
@@ -59,5 +59,24 @@ public class BdvViewRotator implements Runnable {
 	public void run() {
 		prepareForRotations();
 		rotateOneStep();
+	}
+
+
+	//stuff for the MultipleStepsCommand iface
+	public void doRotationSteps(final int stepsToRotate) {
+		numberOfRemainingSteps = stepsToRotate;
+	}
+
+	private int numberOfRemainingSteps = 0;
+
+	@Override
+	public boolean hasNext() {
+		return numberOfRemainingSteps > 0;
+	}
+
+	@Override
+	public void doNext() {
+		rotateOneStep();
+		numberOfRemainingSteps--;
 	}
 }
