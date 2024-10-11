@@ -1,7 +1,6 @@
 package org.mastodon.benchmark;
 
 import bdv.tools.benchmarks.TimeReporter;
-import ij.IJ;
 import net.imagej.ImageJ;
 import mpicbg.spim.data.SpimDataException;
 import org.jdom2.Document;
@@ -19,6 +18,7 @@ import org.mastodon.mamut.views.bdv.MamutViewBdv;
 import org.mastodon.mamut.views.trackscheme.MamutViewTrackScheme;
 import org.mastodon.views.bdv.SharedBigDataViewerData;
 import org.scijava.Context;
+import org.scijava.ui.UIService;
 
 import javax.swing.*;
 import java.io.IOException;
@@ -102,7 +102,8 @@ public class BenchmarkSetup implements Runnable {
 	// ============================ THE BENCHMARK MAIN THREAD ============================
 	@Override
 	public void run() {
-		IJ.run("Console");
+		UIService ui = this.projectModel.getContext().getService(UIService.class);
+		if (ui != null && ui.getDefaultUI() != null) ui.getDefaultUI().getConsolePane().show();
 
 		if (instructions.bdvSettingsXmlFilename != null && !instructions.bdvSettingsXmlFilename.isEmpty()) {
 			try {
