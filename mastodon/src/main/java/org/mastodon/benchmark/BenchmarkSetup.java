@@ -189,43 +189,51 @@ public class BenchmarkSetup implements Runnable {
 		List<MultipleStepsCommand> loopingCommands = new ArrayList<>(allWindows.size());
 		while (tokenizer.isTokenAvailable()) {
 			do {
-			System.out.println("executing command: "+tokenizer.getCurrentToken());
+				System.out.println("executing command: "+tokenizer.getCurrentToken());
 
-			final int winIdx = tokenizer.getCurrentWindowNumber();
-			if (tokenizer.getCurrentWindowType() == BenchmarkLanguage.WindowType.TS) {
-				if (winIdx > tsWindows.size()) {
-					System.out.println("Skipping a command that requests window TS #"+winIdx+", only "+tsWindows.size()+" TS windows is available.");
-					tokenizer.moveToNextToken();
-					continue;
-				}
-				List<MamutViewTrackScheme> wins = winIdx == -1 ? tsWindows : Collections.singletonList( tsWindows.get( winIdx-1 ) );
-				System.out.println("NOT SUPPORTED YET");
-				//TODO...
-			} else {
-				if (winIdx > bdvWindows.size()) {
-					System.out.println("Skipping a command that requests window BDV #"+winIdx+", only "+bdvWindows.size()+" BDV windows is available.");
-					tokenizer.moveToNextToken();
-					continue;
-				}
-				List<MamutViewBdv> wins = winIdx == -1 ? bdvWindows : Collections.singletonList( bdvWindows.get( winIdx-1 ) );
-				BenchmarkLanguage.ActionType act = tokenizer.getCurrentAction();
-				if (act == BenchmarkLanguage.ActionType.B) {
-					if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(wins.size());
-					final String key = String.valueOf(tokenizer.getBookmarkKey());
-					wins.forEach(w -> windowsManager.visitBookmarkBDV(w,key));
-				} else if (act == BenchmarkLanguage.ActionType.T) {
-					if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(wins.size());
-					final int time = tokenizer.getTimepoint();
-					wins.forEach(w -> windowsManager.changeTimepoint(w,time));
-				} else if (act == BenchmarkLanguage.ActionType.R) {
-					final int steps = tokenizer.getFullRotationSteps();
-					if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(steps * wins.size());
-					wins.forEach(w -> windowsManager.rotateBDV(w, 360.0/(double)steps, steps));
-				} else {
-					System.out.println("NOT SUPPORTED TOKEN");
+				final int winIdx = tokenizer.getCurrentWindowNumber();
+				if (tokenizer.getCurrentWindowType() == BenchmarkLanguage.WindowType.TS) {
+					if (winIdx > tsWindows.size()) {
+						System.out.println("Skipping a command that requests window TS #"+winIdx+", only "+tsWindows.size()+" TS windows is available.");
+						tokenizer.moveToNextToken();
+						continue;
+					}
+					List<MamutViewTrackScheme> wins = winIdx == -1 ? tsWindows : Collections.singletonList( tsWindows.get( winIdx-1 ) );
+					System.out.println("NOT SUPPORTED YET");
 					//TODO...
+				} else {
+					if (winIdx > bdvWindows.size()) {
+						System.out.println("Skipping a command that requests window BDV #"+winIdx+", only "+bdvWindows.size()+" BDV windows is available.");
+						tokenizer.moveToNextToken();
+						continue;
+					}
+					List<MamutViewBdv> wins = winIdx == -1 ? bdvWindows : Collections.singletonList( bdvWindows.get( winIdx-1 ) );
+					BenchmarkLanguage.ActionType act = tokenizer.getCurrentAction();
+					if (act == BenchmarkLanguage.ActionType.B) {
+						if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(wins.size());
+						final String key = String.valueOf(tokenizer.getBookmarkKey());
+						wins.forEach(w -> windowsManager.visitBookmarkBDV(w,key));
+					} else if (act == BenchmarkLanguage.ActionType.T) {
+						if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(wins.size());
+						final int time = tokenizer.getTimepoint();
+						wins.forEach(w -> windowsManager.changeTimepoint(w,time));
+					} else if (act == BenchmarkLanguage.ActionType.R) {
+						if (loopingCommands.size() == 0) {
+							//the first handling of this particular command, let's prepare and populate the "inner loop" list
+							final int steps = tokenizer.getFullRotationSteps();
+							wins.forEach( w -> loopingCommands.add( windowsManager.rotateBDV(w, 360.0/(double)steps, steps) ) );
+						}
+						if (loopingCommands.size() > 0 && loopingCommands.get(0).hasNext()) {
+							//here, do the action, and perhaps clean the "inner loop" list if no further actions are available
+							if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(wins.size());
+							loopingCommands.forEach( MultipleStepsCommand::doNext );
+							if (!loopingCommands.get(0).hasNext()) loopingCommands.clear();
+						}
+					} else {
+						System.out.println("NOT SUPPORTED TOKEN");
+						//TODO...
+					}
 				}
-			}
 
 				if (millisBetweenCommands > 0) waitThisLong(millisBetweenCommands, "a bit until the command finishes.");
 			} while (loopingCommands.size() > 0);
