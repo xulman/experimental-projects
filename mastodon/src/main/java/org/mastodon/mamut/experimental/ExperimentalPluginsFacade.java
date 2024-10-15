@@ -314,9 +314,11 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 		}
 
 		final MamutViewBdv mBdv = openedBdvs.get(0);
+		SourceAndConverter<?> sac = pluginAppModel.getSharedBdvData().getSources().get(0);
 		final BdvPrompts<?, FloatType> samj = new BdvPrompts<>(
 				mBdv.getViewerPanelMamut(),
-				(SourceAndConverter)pluginAppModel.getSharedBdvData().getSources().get(0),
+				(SourceAndConverter)sac,
+				pluginAppModel.getSharedBdvData().getConverterSetups().getConverterSetup(sac),
 				mBdv.getFrame().getTriggerbindings(),
 				"SAMJ-based detector",
 				new FloatType(), false );
@@ -326,7 +328,9 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 
 			samj.addPromptsProcessor( new ReportImageOnConsoleResponder<>() );
 			//samj.addPromptsProcessor( new FakeResponder<>() );
-			samj.addPromptsProcessor( new SamjResponder<>( new EfficientSAM() ) );
+			SamjResponder<?> nn = new SamjResponder<>( new EfficientSAM() );
+			nn.returnLargestRoi = false;
+			samj.addPromptsProcessor( (SamjResponder)nn );
 
 			//NB: creates Mastodon Spot at polygon's centre
 			samj.addPolygonsConsumer(new Consumer<PlanarPolygonIn3D>() {
