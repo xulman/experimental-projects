@@ -83,7 +83,7 @@ public class WindowsManager {
 		BdvViewRotator rotator = new BdvViewRotator(bdv.getViewerPanelMamut());
 		rotator.setOneStepAngle_deg(rotationStepDeg);
 		rotator.prepareForRotations();
-		rotator.doRotationSteps(rotationStepsCnt);
+		rotator.planForRotationSteps(rotationStepsCnt);
 		return rotator;
 	}
 

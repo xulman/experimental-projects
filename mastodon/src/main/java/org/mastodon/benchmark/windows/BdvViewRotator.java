@@ -63,7 +63,7 @@ public class BdvViewRotator implements Runnable, MultipleStepsCommand {
 
 
 	//stuff for the MultipleStepsCommand iface
-	public void doRotationSteps(final int stepsToRotate) {
+	public void planForRotationSteps(final int stepsToRotate) {
 		numberOfRemainingSteps = stepsToRotate;
 	}
 
