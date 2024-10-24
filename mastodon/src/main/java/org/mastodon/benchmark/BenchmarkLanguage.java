@@ -14,7 +14,7 @@ package org.mastodon.benchmark;
  * T = switch to a timepoint, specificParameter = positive integer;
  * B = (applies only to BDV) switch to a bookmark (that needs to be set ahead in the project), specificParam = bookmark key;
  * F = focus (a Mastodon specific action) on a spot whose label is the specificParam;
- * R = (applies only to BDV) rotate... TODO
+ * R = (applies only to BDV) rotate, specificParam is positive integer saying in how many steps should a full rotation be done;
  */
 public class BenchmarkLanguage {
 	public BenchmarkLanguage(final String theQuery) {
@@ -100,6 +100,6 @@ public class BenchmarkLanguage {
 	public int getFullRotationSteps() {
 		return Integer.parseInt(curAction.substring(1));
 		//TODO: throw on parsing error
-		//TODO: throw if not long enough
+		//TODO: throw on negative or zero
 	}
 }
