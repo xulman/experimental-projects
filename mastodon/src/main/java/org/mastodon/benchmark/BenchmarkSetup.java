@@ -190,6 +190,8 @@ public class BenchmarkSetup implements Runnable {
 				System.out.println("  Focus on spot "+tokenizer.getSpotLabel());
 			} else if (act == BenchmarkLanguage.ActionType.R) {
 				System.out.println("  Rotate using "+tokenizer.getFullRotationSteps()+" steps");
+			} else if (act == BenchmarkLanguage.ActionType.W) {
+				System.out.println("  Wait for extra "+tokenizer.getMillisToWait()+" milliseconds");
 			}
 
 			tokenizer.moveToNextToken();
@@ -207,6 +209,7 @@ public class BenchmarkSetup implements Runnable {
 		while (tokenizer.isTokenAvailable()) {
 			do {
 				System.out.println("executing command: "+tokenizer.getCurrentToken());
+				boolean waitNormally = true;
 
 				final int winIdx = tokenizer.getCurrentWindowNumber();
 				if (tokenizer.getCurrentWindowType() == BenchmarkLanguage.WindowType.TS) {
@@ -266,13 +269,17 @@ public class BenchmarkSetup implements Runnable {
 								System.out.println("Couldn't find the spot with the label >>" + spotLabel + "<<, skipping.");
 							}
 						}
+					} else if (act == BenchmarkLanguage.ActionType.W) {
+						long millis = tokenizer.getMillisToWait();
+						waitThisLong(millis, "extra until the previous command finishes.");
+						waitNormally = false;
 					} else {
 						System.out.println("NOT SUPPORTED TOKEN");
 						//TODO...
 					}
 				}
 
-				if (millisBetweenCommands > 0) waitThisLong(millisBetweenCommands, "a bit until the command finishes.");
+				if (millisBetweenCommands > 0 && waitNormally) waitThisLong(millisBetweenCommands, "a bit until the command finishes.");
 			} while (loopingCommands.size() > 0);
 			tokenizer.moveToNextToken();
 		}

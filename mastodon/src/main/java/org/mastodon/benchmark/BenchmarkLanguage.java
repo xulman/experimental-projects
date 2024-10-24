@@ -15,6 +15,7 @@ package org.mastodon.benchmark;
  * B = (applies only to BDV) switch to a bookmark (that needs to be set ahead in the project), specificParam = bookmark key;
  * F = focus (a Mastodon specific action) on a spot whose label is the specificParam;
  * R = (applies only to BDV) rotate, specificParam is positive integer saying in how many steps should a full rotation be done;
+ * W = just holds the benchmark (giving windows more time to finish their drawings) and waits there specificParameter no of millis
  */
 public class BenchmarkLanguage {
 	public BenchmarkLanguage(final String theQuery) {
@@ -57,7 +58,7 @@ public class BenchmarkLanguage {
 		}
 	}
 
-	public enum ActionType { T, B, F, R }
+	public enum ActionType { T, B, F, R, W }
 
 	public WindowType getCurrentWindowType() {
 		if (curWindows.startsWith("BDV") || curWindows.startsWith("bdv")) return WindowType.BDV;
@@ -81,6 +82,7 @@ public class BenchmarkLanguage {
 		if (a == 'B') return ActionType.B;
 		if (a == 'F') return ActionType.F;
 		if (a == 'R') return ActionType.R;
+		if (a == 'W') return ActionType.W;
 		throw new IllegalArgumentException("Don't recognize the action in the current token '"+getCurrentToken()+"'");
 	}
 
@@ -98,6 +100,11 @@ public class BenchmarkLanguage {
 		//TODO: throw if not long enough
 	}
 	public int getFullRotationSteps() {
+		return Integer.parseInt(curAction.substring(1));
+		//TODO: throw on parsing error
+		//TODO: throw on negative or zero
+	}
+	public int getMillisToWait() {
 		return Integer.parseInt(curAction.substring(1));
 		//TODO: throw on parsing error
 		//TODO: throw on negative or zero
