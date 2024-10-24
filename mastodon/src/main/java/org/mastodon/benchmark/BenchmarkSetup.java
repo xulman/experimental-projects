@@ -14,6 +14,7 @@ import org.mastodon.mamut.ProjectModel;
 import org.mastodon.mamut.io.ProjectLoader;
 import org.mastodon.mamut.io.project.MamutProject;
 import org.mastodon.mamut.model.Model;
+import org.mastodon.mamut.model.Spot;
 import org.mastodon.mamut.views.MamutViewI;
 import org.mastodon.mamut.views.bdv.MamutViewBdv;
 import org.mastodon.mamut.views.trackscheme.MamutViewTrackScheme;
@@ -27,6 +28,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Optional;
 
 public class BenchmarkSetup implements Runnable {
 
@@ -244,6 +246,25 @@ public class BenchmarkSetup implements Runnable {
 							if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(wins.size());
 							loopingCommands.forEach( MultipleStepsCommand::doNext );
 							if (!loopingCommands.get(0).hasNext()) loopingCommands.clear();
+						}
+					} else if (act == BenchmarkLanguage.ActionType.F) {
+						if (!instructions.shouldLockButtonsLinkOpenedWindows) {
+							System.out.println("Focusing makes sense only when all windows are linked with the lock icon/button, skipping.");
+						} else {
+							final String spotLabel = tokenizer.getSpotLabel();
+							Optional<Spot> spot = projectModel.getModel().getGraph()
+									  .vertices()
+									  .stream()
+									  .filter(s -> s.getLabel().equals(spotLabel))
+									  .findFirst();
+							if (spot.isPresent()) {
+								final Spot target = spot.get();
+								if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(allWindows.size());
+								allWindows.get(0).getGroupHandle().getModel(projectModel.NAVIGATION).notifyNavigateToVertex(target);
+								//NB: just use any window we have...
+							} else {
+								System.out.println("Couldn't find the spot with the label >>" + spotLabel + "<<, skipping.");
+							}
 						}
 					} else {
 						System.out.println("NOT SUPPORTED TOKEN");
