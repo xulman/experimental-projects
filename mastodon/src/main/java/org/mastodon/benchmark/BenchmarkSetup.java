@@ -225,6 +225,7 @@ public class BenchmarkSetup implements Runnable {
 						}
 						if (loopingCommands.size() > 0 && loopingCommands.get(0).hasNext()) {
 							//here, do the action, and perhaps clean the "inner loop" list if no further actions are available
+							loopingCommands.forEach( cmd -> System.out.println("  -> "+cmd.reportCurrentStep()) );
 							if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(wins.size());
 							loopingCommands.forEach( MultipleStepsCommand::doNext );
 							if (!loopingCommands.get(0).hasNext()) loopingCommands.clear();

@@ -64,9 +64,11 @@ public class BdvViewRotator implements Runnable, MultipleStepsCommand {
 
 	//stuff for the MultipleStepsCommand iface
 	public void planForRotationSteps(final int stepsToRotate) {
+		numberOfExecutedSteps = 0;
 		numberOfRemainingSteps = stepsToRotate;
 	}
 
+	private int numberOfExecutedSteps = 0;
 	private int numberOfRemainingSteps = 0;
 
 	@Override
@@ -77,6 +79,15 @@ public class BdvViewRotator implements Runnable, MultipleStepsCommand {
 	@Override
 	public void doNext() {
 		rotateOneStep();
+		numberOfExecutedSteps++;
 		numberOfRemainingSteps--;
+	}
+
+	@Override
+	public String reportCurrentStep() {
+		int nextStep = numberOfExecutedSteps+1;
+		return viewerPanel.getDisplay().getDisplayName()+" view rotates "
+				+nextStep+"/"+(numberOfExecutedSteps+numberOfRemainingSteps)
+				+" to "+(nextStep*oneRotStepRad*180.0/3.14159)+" deg";
 	}
 }
