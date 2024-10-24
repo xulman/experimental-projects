@@ -126,6 +126,8 @@ public class BenchmarkSetup implements Runnable {
 
 		if (instructions.shouldCloseAllWindowsBeforeBenchmark) windowsManager.closeAllWindows();
 
+		System.out.println("\n==============>\nBenchmark starting, hands-off, no mouse, no keyboard, grab a coffee.\n==============>\n");
+
 		try {
 			SwingUtilities.invokeAndWait( () -> {
 				Integer groupLockID = instructions.shouldLockButtonsLinkOpenedWindows ? 1 : null;
@@ -144,12 +146,12 @@ public class BenchmarkSetup implements Runnable {
 			throw new RuntimeException("Error opening Mastodon windows for the benchmark: "+e.getMessage(), e);
 		}
 
-		System.out.println("All benchmarked "+allWindows.size()+" windows were opened.");
+		System.out.println("All "+allWindows.size()+" benchmarked windows were opened.");
 		//explainInstructions( instructions.benchmarkInitializationSequence );
 
 		try {
 			SwingUtilities.invokeAndWait( () -> {
-				System.out.println("\nSetting the windows:");
+				System.out.println("Setting the windows:");
 				executeInstructions(instructions.benchmarkInitializationSequence, 0, false);
 			} );
 		} catch (InterruptedException|InvocationTargetException  e) {
@@ -157,7 +159,7 @@ public class BenchmarkSetup implements Runnable {
 		}
 
 		waitThisLong(instructions.millisToWaitAfterInitialization, "until the world calms down.");
-		System.out.println("All benchmarked "+allWindows.size()+" windows are set ready.");
+		System.out.println("All "+allWindows.size()+" benchmarked windows are set ready.");
 
 		System.out.println("\nStarting the benchmark:");
 		executeInstructions(instructions.benchmarkExecutionSequence, instructions.millisToWaitAfterEachBenchmarkAction, true);
@@ -192,6 +194,11 @@ public class BenchmarkSetup implements Runnable {
 	}
 
 	protected void executeInstructions(final String commands, final long millisBetweenCommands, final boolean doMeasureCommands) {
+		if (commands == null || commands.isEmpty()) {
+			System.out.println("No instructions, finished trivially.");
+			return;
+		}
+
 		final BenchmarkLanguage tokenizer = new BenchmarkLanguage(commands);
 		while (tokenizer.isTokenAvailable()) {
 			System.out.println("executing command: "+tokenizer.getCurrentToken());
