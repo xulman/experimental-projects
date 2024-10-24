@@ -214,16 +214,25 @@ public class BenchmarkSetup implements Runnable {
 				final int winIdx = tokenizer.getCurrentWindowNumber();
 				if (tokenizer.getCurrentWindowType() == BenchmarkLanguage.WindowType.TS) {
 					if (winIdx > tsWindows.size()) {
-						System.out.println("Skipping a command that requests window TS #"+winIdx+", only "+tsWindows.size()+" TS windows is available.");
+						System.out.println("Skipping a command that requests window TS #"+winIdx+", only "+tsWindows.size()+" TS windows are available.");
 						tokenizer.moveToNextToken();
 						continue;
 					}
 					List<MamutViewTrackScheme> wins = winIdx == -1 ? tsWindows : Collections.singletonList( tsWindows.get( winIdx-1 ) );
-					System.out.println("NOT SUPPORTED YET");
-					//TODO...
+					BenchmarkLanguage.ActionType act = tokenizer.getCurrentAction();
+					if (act == BenchmarkLanguage.ActionType.B) {
+					} else if (act == BenchmarkLanguage.ActionType.F) {
+						doCommandF(tokenizer, doMeasureCommands);
+					} else if (act == BenchmarkLanguage.ActionType.W) {
+						doCommandW(tokenizer);
+						waitNormally = false;
+					} else {
+						System.out.println("NOT SUPPORTED YET");
+						//TODO...
+					}
 				} else {
 					if (winIdx > bdvWindows.size()) {
-						System.out.println("Skipping a command that requests window BDV #"+winIdx+", only "+bdvWindows.size()+" BDV windows is available.");
+						System.out.println("Skipping a command that requests window BDV #"+winIdx+", only "+bdvWindows.size()+" BDV windows are available.");
 						tokenizer.moveToNextToken();
 						continue;
 					}
@@ -251,27 +260,9 @@ public class BenchmarkSetup implements Runnable {
 							if (!loopingCommands.get(0).hasNext()) loopingCommands.clear();
 						}
 					} else if (act == BenchmarkLanguage.ActionType.F) {
-						if (!instructions.shouldLockButtonsLinkOpenedWindows) {
-							System.out.println("Focusing makes sense only when all windows are linked with the lock icon/button, skipping.");
-						} else {
-							final String spotLabel = tokenizer.getSpotLabel();
-							Optional<Spot> spot = projectModel.getModel().getGraph()
-									  .vertices()
-									  .stream()
-									  .filter(s -> s.getLabel().equals(spotLabel))
-									  .findFirst();
-							if (spot.isPresent()) {
-								final Spot target = spot.get();
-								if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(allWindows.size());
-								allWindows.get(0).getGroupHandle().getModel(projectModel.NAVIGATION).notifyNavigateToVertex(target);
-								//NB: just use any window we have...
-							} else {
-								System.out.println("Couldn't find the spot with the label >>" + spotLabel + "<<, skipping.");
-							}
-						}
+						doCommandF(tokenizer, doMeasureCommands);
 					} else if (act == BenchmarkLanguage.ActionType.W) {
-						long millis = tokenizer.getMillisToWait();
-						waitThisLong(millis, "extra until the previous command finishes.");
+						doCommandW(tokenizer);
 						waitNormally = false;
 					} else {
 						System.out.println("NOT SUPPORTED TOKEN");
@@ -283,6 +274,34 @@ public class BenchmarkSetup implements Runnable {
 			} while (loopingCommands.size() > 0);
 			tokenizer.moveToNextToken();
 		}
+	}
+
+	private void doCommandF(final BenchmarkLanguage tokenizer, final boolean doMeasureCommands) {
+		if (!instructions.shouldLockButtonsLinkOpenedWindows) {
+			System.out.println("Focusing makes sense only when all windows are linked with the lock icon/button, skipping.");
+		} else {
+			final String spotLabel = tokenizer.getSpotLabel();
+			Optional<Spot> spot = projectModel.getModel().getGraph()
+					.vertices()
+					.stream()
+					.filter(s -> s.getLabel().equals(spotLabel))
+					.findFirst();
+			if (spot.isPresent()) {
+				final Spot target = spot.get();
+				//NB: fetching the spot outside the measured zone... just in case
+
+				if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(allWindows.size());
+				allWindows.get(0).getGroupHandle().getModel(projectModel.NAVIGATION).notifyNavigateToVertex(target);
+				//NB: just use any window we have...
+			} else {
+				System.out.println("Couldn't find the spot with the label >>" + spotLabel + "<<, skipping.");
+			}
+		}
+	}
+
+	private void doCommandW(final BenchmarkLanguage tokenizer) {
+		long millis = tokenizer.getMillisToWait();
+		waitThisLong(millis, "extra until the previous command finishes.");
 	}
 
 
