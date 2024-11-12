@@ -76,6 +76,7 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 	private static final String EXP_VOLUMESPOTS = "[vexp] place volume spots";
 	private static final String EXP_SIMULATOR = "[vexp] CLsimulator";
 	private static final String EXP_BENCHMARK = "[vexp] benchmark";
+	private static final String EXP_TSBOOKMARK = "[vexp] TS bookmarks";
 
 	private static final String[] EXP_SHIFTSPOTS_KEYS = { "not mapped" };
 	private static final String[] EXP_DUPLICATESPOTS_KEYS = { "not mapped" };
@@ -86,6 +87,7 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 	private static final String[] EXP_VOLUMESPOTS_KEYS = { "not mapped" };
 	private static final String[] EXP_SIMULATOR_KEYS = { "not mapped" };
 	private static final String[] EXP_BENCHMARK_KEYS = { "not mapped" };
+	private static final String[] EXP_TSBOOKMARK_KEYS = { "not mapped" };
 	//------------------------------------------------------------------------
 
 	/** titles of this plug-in's menu items */
@@ -101,6 +103,7 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 		menuTexts.put( EXP_VOLUMESPOTS, "Create Volume Spots" );
 		menuTexts.put( EXP_SIMULATOR, "CLsim" );
 		menuTexts.put( EXP_BENCHMARK, "BENCHMARK" );
+		menuTexts.put( EXP_TSBOOKMARK, "TS bookmarks" );
 	}
 	@Override
 	public Map< String, String > getMenuTexts() { return menuTexts; }
@@ -122,7 +125,8 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 					item( EXP_VOLUMESPOTS )
 				),
 				item( EXP_SIMULATOR ),
-				item( EXP_BENCHMARK )
+				item( EXP_BENCHMARK ),
+				item( EXP_TSBOOKMARK )
 			)
 		);
 	}
@@ -148,6 +152,7 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 			descriptions.add(EXP_VOLUMESPOTS, EXP_VOLUMESPOTS_KEYS, "Places spots into a volume of a larger selected spot.");
 			descriptions.add(EXP_SIMULATOR, EXP_SIMULATOR_KEYS, "Creates a new random cell lineage.");
 			descriptions.add(EXP_BENCHMARK, EXP_BENCHMARK_KEYS, "Runs suite of tests to benchmark the Mastodon data rendering/visualization pipelines.");
+			descriptions.add(EXP_TSBOOKMARK, EXP_TSBOOKMARK_KEYS, "TS bookmarks.");
 		}
 	}
 	//------------------------------------------------------------------------
@@ -162,6 +167,7 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 	private final AbstractNamedAction actionVolumeSpots;
 	private final AbstractNamedAction actionSimulator;
 	private final AbstractNamedAction actionBenchmark;
+	private final AbstractNamedAction actionTsBookmarks;
 
 	/** reference to the currently available project in Mastodon */
 	private ProjectModel pluginAppModel;
@@ -178,6 +184,7 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 		actionVolumeSpots = new RunnableAction(EXP_VOLUMESPOTS, this::spotsInVolume);
 		actionSimulator = new RunnableAction(EXP_SIMULATOR, this::simulator);
 		actionBenchmark = new RunnableAction(EXP_BENCHMARK, this::benchmark);
+		actionTsBookmarks = new RunnableAction(EXP_TSBOOKMARK, this::tsBookmarks);
 		updateEnabledActions();
 	}
 
@@ -194,6 +201,7 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 		actions.namedAction(actionVolumeSpots, EXP_VOLUMESPOTS_KEYS);
 		actions.namedAction(actionSimulator, EXP_SIMULATOR_KEYS);
 		actions.namedAction(actionBenchmark, EXP_BENCHMARK_KEYS);
+		actions.namedAction(actionTsBookmarks, EXP_TSBOOKMARK_KEYS);
 	}
 
 	/** learn about the current project's params */
@@ -217,6 +225,7 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 		actionVolumeSpots.setEnabled( pluginAppModel != null );
 		actionSimulator.setEnabled( pluginAppModel != null );
 		actionBenchmark.setEnabled( pluginAppModel != null );
+		actionTsBookmarks.setEnabled( pluginAppModel != null );
 	}
 	//------------------------------------------------------------------------
 	//------------------------------------------------------------------------
@@ -289,5 +298,8 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 			"mastodonProjectPath", "just don't show this item",
 			"projectModel", pluginAppModel
 		);
+	}
+
+	private void tsBookmarks() {
 	}
 }
