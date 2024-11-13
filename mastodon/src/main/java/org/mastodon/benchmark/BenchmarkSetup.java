@@ -182,6 +182,7 @@ public class BenchmarkSetup implements Runnable {
 		System.out.println("\nStarting the benchmark:");
 		executeInstructions(instructions.benchmarkExecutionSequence, instructions.millisToWaitAfterEachBenchmarkAction, true);
 		System.out.println("Benchmark is over.");
+		TimeReporter.getInstance().stopReportingNow();
 	}
 
 	protected void explainInstructions(final String query) {
@@ -244,7 +245,7 @@ public class BenchmarkSetup implements Runnable {
 					if (act == BenchmarkLanguage.ActionType.B) {
 						final int key = (int)tokenizer.getBookmarkKey() - 49;
 						if (key >= 0 && key < TrackSchemeBookmarks.MAX_BOOKMARKS) {
-							if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(wins.size());
+							if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(wins.size()+1);
 							bms.forEach(b -> b.applyBookmark(key));
 						} else {
 							System.out.println("Skipping command, failed parsing bookmark or bookmark outside interval 1 to "+TrackSchemeBookmarks.MAX_BOOKMARKS+".");
@@ -268,11 +269,11 @@ public class BenchmarkSetup implements Runnable {
 					wins.forEach(w -> currentlyMeasuringTheseWindowNames.put( w.getViewerPanelMamut().getDisplay().getDisplayName(),1 ));
 					BenchmarkLanguage.ActionType act = tokenizer.getCurrentAction();
 					if (act == BenchmarkLanguage.ActionType.B) {
-						if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(wins.size());
+						if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(wins.size()+1);
 						final String key = String.valueOf(tokenizer.getBookmarkKey());
 						wins.forEach(w -> windowsManager.visitBookmarkBDV(w,key));
 					} else if (act == BenchmarkLanguage.ActionType.T) {
-						if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(wins.size());
+						if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(wins.size()+1);
 						final int time = tokenizer.getTimepoint();
 						wins.forEach(w -> windowsManager.changeTimepoint(w,time));
 					} else if (act == BenchmarkLanguage.ActionType.R) {
@@ -284,7 +285,7 @@ public class BenchmarkSetup implements Runnable {
 						if (loopingCommands.size() > 0 && loopingCommands.get(0).hasNext()) {
 							//here, do the action, and perhaps clean the "inner loop" list if no further actions are available
 							loopingCommands.forEach( cmd -> System.out.println("  -> "+cmd.reportCurrentStep()) );
-							if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(wins.size());
+							if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(wins.size()+1);
 							loopingCommands.forEach( MultipleStepsCommand::doNext );
 							if (!loopingCommands.get(0).hasNext()) loopingCommands.clear();
 						}
@@ -321,7 +322,7 @@ public class BenchmarkSetup implements Runnable {
 				final Spot target = spot.get();
 				//NB: fetching the spot outside the measured zone... just in case
 
-				if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(allWindows.size());
+				if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(allWindows.size()+1);
 				allWindows.get(0).getGroupHandle().getModel(projectModel.NAVIGATION).notifyNavigateToVertex(target);
 				//NB: just use any window we have...
 			} else {
