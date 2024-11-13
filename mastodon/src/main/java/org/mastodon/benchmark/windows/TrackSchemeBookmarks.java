@@ -15,7 +15,7 @@ import java.util.Scanner;
 public class TrackSchemeBookmarks {
 	public TrackSchemeBookmarks(final MamutViewTrackScheme registerForThisTS) {
 		associatedTS = registerForThisTS;
-		bookmarks = new ScreenTransform[9];
+		bookmarks = new ScreenTransform[MAX_BOOKMARKS];
 		for (int i = 0; i < bookmarks.length; ++i) bookmarks[i] = new ScreenTransform();
 		installKeys();
 	}
@@ -29,14 +29,15 @@ public class TrackSchemeBookmarks {
 	private final MamutViewTrackScheme associatedTS;
 
 	// ================== Bookmarks ==================
-	final ScreenTransform[] bookmarks;
+	public final int MAX_BOOKMARKS = 9;
+	private final ScreenTransform[] bookmarks;
 	public File bookmarksFile = new File("tsb.txt");
 
 	public void loadBookmarksFromFile(final File bookmarksFile) {
 		try (Scanner scanner = new Scanner(bookmarksFile))
 		{
-			for (int i = 0; i < bookmarks.length; ++i) {
-				bookmarks[i].set( scanner.nextDouble(),
+			for (ScreenTransform st : bookmarks) {
+				st.set( scanner.nextDouble(),
 						scanner.nextDouble(),
 						scanner.nextDouble(),
 						scanner.nextDouble(),
@@ -51,8 +52,7 @@ public class TrackSchemeBookmarks {
 	public void saveBookmarksToFile(final File bookmarksFile) {
 		try (PrintWriter writer = new PrintWriter(bookmarksFile))
 		{
-			for (int i = 0; i < bookmarks.length; ++i) {
-				ScreenTransform st = bookmarks[i];
+			for (ScreenTransform st : bookmarks) {
 				writer.println( st.getMinX() + " "
 						+ st.getMaxX() + " "
 						+ st.getMinY() + " "
@@ -74,7 +74,7 @@ public class TrackSchemeBookmarks {
 	}
 
 	// ================== Behaviours ==================
-	final Behaviours behaviours = new Behaviours( new InputTriggerConfig() );
+	private final Behaviours behaviours = new Behaviours( new InputTriggerConfig() );
 
 	void installKeys() {
 		behaviours.install(associatedTS.getFrame().getTriggerbindings(), "TS bookmarks" );
