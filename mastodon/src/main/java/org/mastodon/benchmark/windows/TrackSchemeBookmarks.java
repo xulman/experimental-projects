@@ -29,7 +29,7 @@ public class TrackSchemeBookmarks {
 	private final MamutViewTrackScheme associatedTS;
 
 	// ================== Bookmarks ==================
-	public final int MAX_BOOKMARKS = 9;
+	public static final int MAX_BOOKMARKS = 9;
 	private final ScreenTransform[] bookmarks;
 	public File bookmarksFile = new File("tsb.txt");
 
