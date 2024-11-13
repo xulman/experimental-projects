@@ -39,6 +39,7 @@ import java.util.concurrent.Future;
 
 import org.mastodon.app.ui.ViewMenuBuilder;
 import org.mastodon.benchmark.BenchmarkScijavaGui;
+import org.mastodon.benchmark.windows.TrackSchemeBookmarks;
 import org.mastodon.mamut.KeyConfigScopes;
 import org.mastodon.mamut.experimental.spots.RotateSpotsGeneral;
 import org.mastodon.mamut.experimental.spots.RotateSpotsInPlane;
@@ -47,6 +48,7 @@ import org.mastodon.mamut.experimental.spots.DuplicateSpots;
 import org.mastodon.mamut.experimental.trees.LineageRandomColorizer;
 import org.mastodon.mamut.plugin.MamutPlugin;
 import org.mastodon.mamut.ProjectModel;
+import org.mastodon.mamut.views.trackscheme.MamutViewTrackScheme;
 import org.scijava.command.CommandModule;
 import org.scijava.ui.behaviour.io.gui.CommandDescriptionProvider;
 import org.scijava.ui.behaviour.io.gui.CommandDescriptions;
@@ -301,5 +303,7 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 	}
 
 	private void tsBookmarks() {
+		MamutViewTrackScheme tsWin = pluginAppModel.getWindowManager().createView(MamutViewTrackScheme.class);
+		TrackSchemeBookmarks tsB = new TrackSchemeBookmarks(tsWin);
 	}
 }
