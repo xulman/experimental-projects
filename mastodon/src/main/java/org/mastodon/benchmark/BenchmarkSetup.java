@@ -28,9 +28,11 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Optional;
+import java.util.Map;
 
 public class BenchmarkSetup implements Runnable {
 
@@ -217,12 +219,16 @@ public class BenchmarkSetup implements Runnable {
 			return;
 		}
 
+		final Map<String, Integer> currentlyMeasuringTheseWindowNames
+				  = new HashMap<>(instructions.howManyBDVsToOpen + instructions.howManyTSsToOpen);
+
 		final BenchmarkLanguage tokenizer = new BenchmarkLanguage(commands);
 		List<MultipleStepsCommand> loopingCommands = new ArrayList<>(allWindows.size());
 		while (tokenizer.isTokenAvailable()) {
 			do {
 				System.out.println("executing command: "+tokenizer.getCurrentToken());
 				boolean waitNormally = true;
+				currentlyMeasuringTheseWindowNames.clear();
 
 				final int winIdx = tokenizer.getCurrentWindowNumber();
 				if (tokenizer.getCurrentWindowType() == BenchmarkLanguage.WindowType.TS) {
@@ -233,6 +239,7 @@ public class BenchmarkSetup implements Runnable {
 					}
 					List<MamutViewTrackScheme> wins = winIdx == -1 ? tsWindows : Collections.singletonList( tsWindows.get( winIdx-1 ) );
 					List<TrackSchemeBookmarks> bms = winIdx == -1 ? tsBookmarks : Collections.singletonList( tsBookmarks.get( winIdx-1 ) );
+					wins.forEach(w -> currentlyMeasuringTheseWindowNames.put( w.getFrame().getTrackschemePanel().getDisplay().getDisplayName(),1 ));
 					BenchmarkLanguage.ActionType act = tokenizer.getCurrentAction();
 					if (act == BenchmarkLanguage.ActionType.B) {
 						final int key = (int)tokenizer.getBookmarkKey() - 49;
@@ -258,6 +265,7 @@ public class BenchmarkSetup implements Runnable {
 						continue;
 					}
 					List<MamutViewBdv> wins = winIdx == -1 ? bdvWindows : Collections.singletonList( bdvWindows.get( winIdx-1 ) );
+					wins.forEach(w -> currentlyMeasuringTheseWindowNames.put( w.getViewerPanelMamut().getDisplay().getDisplayName(),1 ));
 					BenchmarkLanguage.ActionType act = tokenizer.getCurrentAction();
 					if (act == BenchmarkLanguage.ActionType.B) {
 						if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(wins.size());
@@ -292,6 +300,8 @@ public class BenchmarkSetup implements Runnable {
 				}
 
 				if (millisBetweenCommands > 0 && waitNormally) waitThisLong(millisBetweenCommands, "a bit until the command finishes.");
+				//reporting... (now that we have hopefully waited long enough (for the windows to finish their command))
+				if (doMeasureCommands) processReportedTimes(currentlyMeasuringTheseWindowNames, tokenizer);
 			} while (loopingCommands.size() > 0);
 			tokenizer.moveToNextToken();
 		}
@@ -323,6 +333,59 @@ public class BenchmarkSetup implements Runnable {
 	private void doCommandW(final BenchmarkLanguage tokenizer) {
 		long millis = tokenizer.getMillisToWait();
 		waitThisLong(millis, "extra until the previous command finishes.");
+	}
+
+
+	// ============================ MEASUREMENT STATS ============================
+	protected  void processReportedTimes(final Map<String,Integer> expectingNowTheseWindowNames,
+	                                     final BenchmarkLanguage tokenizer) {
+		//reporting...
+		final TimeReporter times = TimeReporter.getInstance();
+		for (String windowName : times.observedTimes.keySet()) {
+			if (!expectingNowTheseWindowNames.containsKey(windowName)) {
+				//recorded an unexpected window!
+				throw new RuntimeException("Mastodon Benchmark: During the command "
+						  +tokenizer.getCurrentToken()+", a window '"+windowName+"' executed "
+						  +times.observedTimes.get(windowName).size()+" repaint events, expected was 0."
+						  +" Don't work with Mastodon during the benchmark.");
+			} else if (times.observedTimes.get(windowName).size() != 1) {
+				//recorded correctly an expected window, but more than once!
+				throw new RuntimeException("Mastodon Benchmark: During the command "
+						  +tokenizer.getCurrentToken()+", a window '"+windowName+"' executed "
+						  +times.observedTimes.get(windowName).size()+" repaint events, expected was 1."
+						  +" Don't press keys, don't move mouse during the benchmark.");
+			}
+			//recorded correctly an expected window exactly once, mark it as "enlisted in the stats" ;)
+			expectingNowTheseWindowNames.put(windowName, 0);
+
+			//"enlist in the stats"
+			for (double time : times.observedTimes.get(windowName)) {
+				//per window, per type of window (BDV vs TS), totals per command
+				System.out.println(windowName+" needed "+time+" ms");
+			}
+		}
+
+		//check if there are some unmarked windows?
+		for (String windowName : expectingNowTheseWindowNames.keySet()) {
+			if (expectingNowTheseWindowNames.get(windowName) != 0) {
+				throw new RuntimeException("Mastodon Benchmark: During the command "
+						  +tokenizer.getCurrentToken()+", a measurement for window '"+windowName
+						  +"' hasn't been recorded! Increase waiting times, perhaps.");
+			}
+		}
+	}
+
+	protected void recordMeasurements(final List<MamutViewTrackScheme> activeWindows) {
+		//expectedWindows.get(0).getViewerPanelMamut().getDisplay().getDisplayName();
+	}
+
+	protected void recordMeasurements(final String windowName, final List<Double> statistics) {
+		final List<Double> measuredTimes = TimeReporter.getInstance().observedTimes.get(windowName);
+		if (measuredTimes.size() != 1) {
+
+		} else {
+			statistics.add(measuredTimes.get(0));
+		}
 	}
 
 
