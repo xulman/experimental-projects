@@ -19,8 +19,15 @@ public class TrackSchemeBookmarks {
 		installKeys(registerForThisTS);
 	}
 
+	public TrackSchemeBookmarks(final MamutViewTrackScheme registerForThisTS,
+	                            final File useThisDefaultStorage) {
+		this(registerForThisTS);
+		this.bookmarksFile = useThisDefaultStorage;
+	}
+
 	// ================== Bookmarks ==================
 	final ScreenTransform[] bookmarks;
+	public File bookmarksFile = new File("tsb.txt");
 
 	public void loadBookmarksFromFile(final File bookmarksFile) {
 		try (Scanner scanner = new Scanner(bookmarksFile))
@@ -77,5 +84,14 @@ public class TrackSchemeBookmarks {
 			behaviours.behaviour((ClickBehaviour) (x, y) -> setBookmark(registerForThisTS, index), "ts_store_bookmark"+j, "shift|"+j);
 			behaviours.behaviour((ClickBehaviour) (x, y) -> applyBookmark(registerForThisTS, index), "ts_recall_bookmark"+j, String.valueOf(j));
 		}
+
+		behaviours.behaviour((ClickBehaviour) (x, y) -> {
+			System.out.println("Saving bookmarks to file "+bookmarksFile.getAbsolutePath());
+			saveBookmarksToFile(bookmarksFile);
+		}, "ts_save_bookmarks", "shift|Q");
+		behaviours.behaviour((ClickBehaviour) (x, y) -> {
+			System.out.println("Loading bookmarks from file "+bookmarksFile.getAbsolutePath());
+			loadBookmarksFromFile(bookmarksFile);
+		}, "ts_load_bookmarks", "Q");
 	}
 }
