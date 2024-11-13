@@ -8,6 +8,7 @@ import org.jdom2.Element;
 import org.jdom2.JDOMException;
 import org.jdom2.input.SAXBuilder;
 import org.mastodon.benchmark.windows.MultipleStepsCommand;
+import org.mastodon.benchmark.windows.TrackSchemeBookmarks;
 import org.mastodon.benchmark.windows.WindowsManager;
 import org.mastodon.mamut.MainWindow;
 import org.mastodon.mamut.ProjectModel;
@@ -23,6 +24,7 @@ import org.scijava.Context;
 import org.scijava.ui.UIService;
 
 import javax.swing.*;
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
@@ -100,6 +102,7 @@ public class BenchmarkSetup implements Runnable {
 	private final List<MamutViewI> allWindows = new ArrayList<>(20);
 	private final List<MamutViewBdv> bdvWindows = new ArrayList<>(20);
 	private final List<MamutViewTrackScheme> tsWindows = new ArrayList<>(20);
+	private final List<TrackSchemeBookmarks> tsBookmarks = new ArrayList<>(20);
 
 
 	// ============================ THE BENCHMARK MAIN THREAD ============================
@@ -144,6 +147,15 @@ public class BenchmarkSetup implements Runnable {
 					MamutViewTrackScheme win = windowsManager.openTS("BenchTS #" + tss, instructions.windowSizeOfTSs, groupLockID);
 					allWindows.add(win);
 					tsWindows.add(win);
+					//
+					final File tsbFile = new File(instructions.tsBookmarksFilename);
+					TrackSchemeBookmarks tsb = new TrackSchemeBookmarks(win, tsbFile);
+					if (tsbFile.canRead()) {
+						tsb.loadBookmarksFromFile(tsbFile);
+					} else {
+						System.out.println("Failed opening the bookmark file: "+instructions.tsBookmarksFilename);
+					}
+					tsBookmarks.add(tsb);
 				}
 			} );
 		} catch (InterruptedException|InvocationTargetException  e) {
@@ -220,8 +232,16 @@ public class BenchmarkSetup implements Runnable {
 						continue;
 					}
 					List<MamutViewTrackScheme> wins = winIdx == -1 ? tsWindows : Collections.singletonList( tsWindows.get( winIdx-1 ) );
+					List<TrackSchemeBookmarks> bms = winIdx == -1 ? tsBookmarks : Collections.singletonList( tsBookmarks.get( winIdx-1 ) );
 					BenchmarkLanguage.ActionType act = tokenizer.getCurrentAction();
 					if (act == BenchmarkLanguage.ActionType.B) {
+						final int key = (int)tokenizer.getBookmarkKey() - 49;
+						if (key >= 0 && key < TrackSchemeBookmarks.MAX_BOOKMARKS) {
+							if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(wins.size());
+							bms.forEach(b -> b.applyBookmark(key));
+						} else {
+							System.out.println("Skipping command, failed parsing bookmark or bookmark outside interval 1 to "+TrackSchemeBookmarks.MAX_BOOKMARKS+".");
+						}
 					} else if (act == BenchmarkLanguage.ActionType.F) {
 						doCommandF(tokenizer, doMeasureCommands);
 					} else if (act == BenchmarkLanguage.ActionType.W) {
