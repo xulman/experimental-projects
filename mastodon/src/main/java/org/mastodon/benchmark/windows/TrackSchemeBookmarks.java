@@ -14,9 +14,10 @@ import java.util.Scanner;
 
 public class TrackSchemeBookmarks {
 	public TrackSchemeBookmarks(final MamutViewTrackScheme registerForThisTS) {
+		associatedTS = registerForThisTS;
 		bookmarks = new ScreenTransform[9];
 		for (int i = 0; i < bookmarks.length; ++i) bookmarks[i] = new ScreenTransform();
-		installKeys(registerForThisTS);
+		installKeys();
 	}
 
 	public TrackSchemeBookmarks(final MamutViewTrackScheme registerForThisTS,
@@ -24,6 +25,8 @@ public class TrackSchemeBookmarks {
 		this(registerForThisTS);
 		this.bookmarksFile = useThisDefaultStorage;
 	}
+
+	private final MamutViewTrackScheme associatedTS;
 
 	// ================== Bookmarks ==================
 	final ScreenTransform[] bookmarks;
@@ -62,27 +65,30 @@ public class TrackSchemeBookmarks {
 		}
 	}
 
-	void setBookmark(final MamutViewTrackScheme associatedTS, final int bookmarkIndex) {
-		System.out.println("Saving a TS view #"+(bookmarkIndex+1));
+	public void setBookmark(final int bookmarkIndex) {
 		associatedTS.getFrame().getTrackschemePanel().getScreenTransform().get(bookmarks[bookmarkIndex]);
 	}
 
-	void applyBookmark(final MamutViewTrackScheme associatedTS, final int bookmarkIndex) {
-		System.out.println("Switching TS to view #"+(bookmarkIndex+1));
+	public void applyBookmark(final int bookmarkIndex) {
 		associatedTS.getFrame().getTrackschemePanel().getScreenTransform().set(bookmarks[bookmarkIndex]);
 	}
 
 	// ================== Behaviours ==================
 	final Behaviours behaviours = new Behaviours( new InputTriggerConfig() );
 
-	void installKeys(final MamutViewTrackScheme registerForThisTS) {
-		behaviours.install(registerForThisTS.getFrame().getTriggerbindings(), "TS bookmarks" );
+	void installKeys() {
+		behaviours.install(associatedTS.getFrame().getTriggerbindings(), "TS bookmarks" );
 
 		for (int i = 0; i < bookmarks.length; ++i) {
 			final int j = i+1;
-			Integer index = new Integer(i);
-			behaviours.behaviour((ClickBehaviour) (x, y) -> setBookmark(registerForThisTS, index), "ts_store_bookmark"+j, "shift|"+j);
-			behaviours.behaviour((ClickBehaviour) (x, y) -> applyBookmark(registerForThisTS, index), "ts_recall_bookmark"+j, String.valueOf(j));
+			behaviours.behaviour( (ClickBehaviour) (x, y) -> {
+					System.out.println("Saving a TS view #"+j);
+					setBookmark(j-1);
+				}, "ts_store_bookmark"+j, "shift|"+j );
+			behaviours.behaviour( (ClickBehaviour) (x, y) -> {
+					System.out.println("Switching TS to view #"+j);
+					applyBookmark(j-1);
+				}, "ts_recall_bookmark"+j, String.valueOf(j) );
 		}
 
 		behaviours.behaviour((ClickBehaviour) (x, y) -> {
