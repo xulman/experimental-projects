@@ -345,13 +345,13 @@ public class BenchmarkSetup implements Runnable {
 		for (String windowName : times.observedTimes.keySet()) {
 			if (!expectingNowTheseWindowNames.containsKey(windowName)) {
 				//recorded an unexpected window!
-				throw new RuntimeException("Mastodon Benchmark: During the command "
+				throw new RuntimeException("Mastodon Benchmark:\nDuring the command "
 						  +tokenizer.getCurrentToken()+", a window '"+windowName+"' executed "
 						  +times.observedTimes.get(windowName).size()+" repaint events, expected was 0."
 						  +" Don't work with Mastodon during the benchmark.");
 			} else if (times.observedTimes.get(windowName).size() != 1) {
 				//recorded correctly an expected window, but more than once!
-				throw new RuntimeException("Mastodon Benchmark: During the command "
+				throw new RuntimeException("Mastodon Benchmark:\nDuring the command "
 						  +tokenizer.getCurrentToken()+", a window '"+windowName+"' executed "
 						  +times.observedTimes.get(windowName).size()+" repaint events, expected was 1."
 						  +" Don't press keys, don't move mouse during the benchmark.");
@@ -369,7 +369,7 @@ public class BenchmarkSetup implements Runnable {
 		//check if there are some unmarked windows?
 		for (String windowName : expectingNowTheseWindowNames.keySet()) {
 			if (expectingNowTheseWindowNames.get(windowName) != 0) {
-				throw new RuntimeException("Mastodon Benchmark: During the command "
+				throw new RuntimeException("Mastodon Benchmark:\nDuring the command "
 						  +tokenizer.getCurrentToken()+", a measurement for window '"+windowName
 						  +"' hasn't been recorded! Increase waiting times, perhaps.");
 			}
