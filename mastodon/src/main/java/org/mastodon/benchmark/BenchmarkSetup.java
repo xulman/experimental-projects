@@ -120,12 +120,13 @@ public class BenchmarkSetup implements Runnable {
 				//activeSourcesDialog.update();
 				//viewer.requestRepaint();
 				//TODO: figure out how to close the file! (it's locked on Win as long as Fiji/Mastodon is there)
-				System.out.println("Using settings file: "+instructions.bdvSettingsXmlFilename);
+				System.out.println("Using settings file    : "+instructions.bdvSettingsXmlFilename);
 			} catch (IOException | JDOMException e) {
 				System.out.println("Failed opening the settings xml file: "+instructions.bdvSettingsXmlFilename);
 				System.out.println("The error message was: "+e.getMessage());
 			}
 		}
+		System.out.println("Using TS bookmarks file: "+instructions.tsBookmarksFilename);
 
 		if (instructions.shouldCloseAllWindowsBeforeBenchmark) windowsManager.closeAllWindows();
 

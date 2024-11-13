@@ -1,9 +1,17 @@
 package org.mastodon.benchmark;
 
-import java.awt.*;
+import java.awt.Dimension;
+import java.nio.file.Paths;
 
 public class BenchmarkInstructions {
 	public String bdvSettingsXmlFilename = "benchmark_settings.xml";
+	public String tsBookmarksFilename = "bookmarks_trackscheme.txt";
+	public void suggestTsBookmarksFilename() {
+		tsBookmarksFilename = Paths.get(bdvSettingsXmlFilename)
+				  .getParent()
+				  .resolve("bookmarks_trackscheme.txt")
+				  .toString();
+	}
 	public boolean shouldCloseAllWindowsBeforeBenchmark = true;
 
 	public int howManyTSsToOpen = 0;

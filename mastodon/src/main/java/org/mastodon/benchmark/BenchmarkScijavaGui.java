@@ -68,6 +68,7 @@ public class BenchmarkScijavaGui implements Command {
 	@Override
 	public void run() {
 		instructions.bdvSettingsXmlFilename = bdvSettingsXmlFilePath.getAbsolutePath().toString();
+		instructions.suggestTsBookmarksFilename();
 		instructions.shouldCloseAllWindowsBeforeBenchmark = shouldCloseAllWindowsBeforeBenchmark;
 		instructions.howManyTSsToOpen = howManyTSsToOpen;
 		instructions.windowSizeOfBDVs = new Dimension(windowWidthOfBDVs, windowHeightOfBDVs);
