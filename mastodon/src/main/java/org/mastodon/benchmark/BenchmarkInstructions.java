@@ -24,7 +24,18 @@ public class BenchmarkInstructions {
 
 	public String benchmarkInitializationSequence = "";
 	public String benchmarkExecutionSequence = "";
+	public int benchmarkRounds = 1;
 
 	public long millisToWaitAfterInitialization = 5000;
 	public long millisToWaitAfterEachBenchmarkAction = 3000;
+
+	public String measurementsCsvFilename = "benchmark_measurements.csv";
+	public void suggestCsvResultsFilename(String nameExtraInfix) {
+		measurementsCsvFilename = Paths.get(bdvSettingsXmlFilename)
+				  .getParent()
+				  .resolve("benchmark_measurements"
+						    +( nameExtraInfix != null && !nameExtraInfix.isEmpty() ? ("_"+nameExtraInfix) : "" )
+						    +".csv")
+				  .toString();
+	}
 }

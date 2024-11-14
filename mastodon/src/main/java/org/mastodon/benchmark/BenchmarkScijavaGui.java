@@ -51,7 +51,8 @@ public class BenchmarkScijavaGui implements Command {
 	@Parameter(label = "Bind all windows in a Lock group:")
 	public boolean shouldLockButtonsLinkOpenedWindows = false;
 
-	@Parameter(label = "Benchmark commands to setup the stage:", description = "This can be left empty.")
+	@Parameter(label = "Benchmark commands to setup the stage:",
+	           description = "This can be left empty if only one round is conducted, otherwise make sure all opened windows will be commanded/reset.")
 	public String benchmarkInitializationSequence = "";
 	@Parameter(label = "Pause after each command (milliseconds):")
 	public long millisToWaitAfterInitialization = 5000;
@@ -60,6 +61,12 @@ public class BenchmarkScijavaGui implements Command {
 	public String benchmarkExecutionSequence = "";
 	@Parameter(label = "Pause after each command (milliseconds):")
 	public long millisToWaitAfterEachBenchmarkAction = 3000;
+
+	@Parameter(label = "Benchmark runs:")
+	public int repetitions = 1;
+
+	@Parameter(label = "CSV results filename extra infix:", description = "Any title to distinguish this particular experiment.")
+	public String csvInfix = "";
 
 	@Parameter
 	private CommandService contextProviderService;
@@ -80,6 +87,8 @@ public class BenchmarkScijavaGui implements Command {
 		instructions.benchmarkExecutionSequence = benchmarkExecutionSequence;
 		instructions.millisToWaitAfterInitialization = millisToWaitAfterInitialization;
 		instructions.millisToWaitAfterEachBenchmarkAction = millisToWaitAfterEachBenchmarkAction;
+		instructions.suggestCsvResultsFilename(csvInfix);
+		instructions.benchmarkRounds = repetitions;
 
 		if (projectModel != null) {
 			//this is an indication that this GUI is called from inside the Mastodon, which
