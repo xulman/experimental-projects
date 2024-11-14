@@ -15,7 +15,7 @@ public class BenchmarkMeasuring {
 	                          final List<MamutViewBdv> bdvWindows) {
 		//just allocate all necessary pieces of memory....
 		measurements = new HashMap<>(maxRounds);
-		for (int round = 0; round < maxRounds; ++round) {
+		for (int round = 1; round <= maxRounds; ++round) {
 			Map<String,BenchmarkMeasurement> sourcesMap = new HashMap<>(3+tsWindows.size()+ bdvWindows.size());
 			measurements.put(round, sourcesMap);
 
@@ -41,7 +41,7 @@ public class BenchmarkMeasuring {
 	//Map< round, Map<source,Measurement> >
 	//where Measurement is source(as String) and List<times(as doubles)>
 	private final Map<Integer, Map<String,BenchmarkMeasurement>> measurements;
-	int currentRound = 0;
+	int currentRound = 1; //NB 1-based counter (besides, it's an _index_ to a map, _not an offset_ to a buffer...)
 
 	public void setRound(int r) {
 		currentRound = r;
