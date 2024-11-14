@@ -202,7 +202,11 @@ public class BenchmarkSetup implements Runnable {
 
 		if (instructions.measurementsCsvFilename != null && !instructions.measurementsCsvFilename.isEmpty()) {
 			System.out.println("Writing measurements file: " + instructions.measurementsCsvFilename);
-			measurings.exportMeasurements(instructions.measurementsCsvFilename);
+			String optionalInfo = " [for "
+					  +instructions.howManyBDVsToOpen+" BDV and "
+					  +instructions.howManyTSsToOpen+" TS windows doing "
+					  +instructions.benchmarkExecutionSequence+"]";
+			measurings.exportMeasurements(instructions.measurementsCsvFilename, optionalInfo);
 		}
 	}
 
