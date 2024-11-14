@@ -110,6 +110,10 @@ public class BenchmarkMeasuring {
 
 
 	public void exportMeasurements(final String pathToCSV) {
+		exportMeasurements(pathToCSV,null);
+	}
+
+	public void exportMeasurements(final String pathToCSV, final String optionalExtraInfo) {
 		//collect all available sources
 		final Set<String> sources = measurements //NB: to have sources sorted
 				  .values()
@@ -120,7 +124,12 @@ public class BenchmarkMeasuring {
 		try (PrintWriter writer = new PrintWriter(pathToCSV))
 		{
 			writer.print("# Benchmarked: "); writer.println(LocalDateTime.now());
-			writer.println("# Columns: source\tround\tmin\tmax\tavg\tmedian\tindividual times in milliseconds");
+			writer.print("# Columns: source\tround\tmin\tmax\tavg\tmedian\tindividual times in milliseconds");
+			if (optionalExtraInfo != null) {
+				writer.println(optionalExtraInfo);
+			} else {
+				writer.println();
+			}
 
 			for (String source : sources) {
 				for (int round : measurements.keySet()) {
