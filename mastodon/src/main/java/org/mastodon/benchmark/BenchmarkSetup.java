@@ -181,15 +181,16 @@ public class BenchmarkSetup implements Runnable {
 		waitThisLong(instructions.millisToWaitAfterInitialization, "until the world calms down.");
 		System.out.println("All "+allWindows.size()+" benchmarked windows are ready.");
 
+		int prepareNumRounds = instructions.measurementsReportsAlsoPerRound ? instructions.benchmarkRounds : 1;
 		final BenchmarkMeasuring measurings
-				  = new BenchmarkMeasuring(instructions.benchmarkRounds, this.tsWindows, this.bdvWindows);
+				  = new BenchmarkMeasuring(prepareNumRounds, this.tsWindows, this.bdvWindows);
 
 		for (int round = 1; round <= instructions.benchmarkRounds; ++round) {
 			System.out.println("\nStarting the benchmark, round #"+round+":");
 			executeInstructions(instructions.benchmarkExecutionSequence, instructions.millisToWaitAfterEachBenchmarkAction, measurings);
 			System.out.println("Benchmark is over.");
 			TimeReporter.getInstance().stopReportingNow();
-			measurings.nextRound();
+			if (instructions.measurementsReportsAlsoPerRound) measurings.nextRound();
 
 			if (round < instructions.benchmarkRounds) {
 				//round(s) remaining.... we have to reset the env

@@ -38,4 +38,5 @@ public class BenchmarkInstructions {
 						    +".csv")
 				  .toString();
 	}
+	public boolean measurementsReportsAlsoPerRound = false;
 }

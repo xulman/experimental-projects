@@ -67,6 +67,9 @@ public class BenchmarkScijavaGui implements Command {
 
 	@Parameter(label = "CSV results filename extra infix:", description = "Any title to distinguish this particular experiment.")
 	public String csvInfix = "";
+	@Parameter(label = "CSV results report mode:",
+	           choices = {"Rows grouped per measured source", "Rows grouped per measured source and per benchmark run"})
+	public String csvMode = "Rows grouped per measured source";
 
 	@Parameter
 	private CommandService contextProviderService;
@@ -87,8 +90,9 @@ public class BenchmarkScijavaGui implements Command {
 		instructions.benchmarkExecutionSequence = benchmarkExecutionSequence;
 		instructions.millisToWaitAfterInitialization = millisToWaitAfterInitialization;
 		instructions.millisToWaitAfterEachBenchmarkAction = millisToWaitAfterEachBenchmarkAction;
-		instructions.suggestCsvResultsFilename(csvInfix);
 		instructions.benchmarkRounds = repetitions;
+		instructions.suggestCsvResultsFilename(csvInfix);
+		instructions.measurementsReportsAlsoPerRound = csvMode.contains("run");
 
 		if (projectModel != null) {
 			//this is an indication that this GUI is called from inside the Mastodon, which
