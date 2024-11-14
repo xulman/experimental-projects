@@ -29,6 +29,7 @@ package org.mastodon;
 
 import ai.nets.samj.bdv.promptresponders.ReportImageOnConsoleResponder;
 import ai.nets.samj.bdv.promptresponders.SamjResponder;
+import ai.nets.samj.communication.model.SAM2Large;
 import ai.nets.samj.communication.model.SAM2Tiny;
 import bdv.interactive.prompts.BdvPrompts;
 import bdv.interactive.prompts.planarshapes.PlanarPolygonIn3D;
@@ -64,7 +65,7 @@ public class Samj {
 
 			samj.addPromptsProcessor( new ReportImageOnConsoleResponder<>() );
 			//samj.addPromptsProcessor( new FakeResponder<>() );
-			SamjResponder<?> nn = new SamjResponder<>( new SAM2Tiny() );
+			SamjResponder<?> nn = new SamjResponder<>( new SAM2Large() );
 			nn.returnLargestRoi = true;
 			samj.addPromptsProcessor( (SamjResponder)nn );
 
