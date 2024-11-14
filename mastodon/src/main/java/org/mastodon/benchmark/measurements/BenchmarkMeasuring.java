@@ -34,7 +34,7 @@ public class BenchmarkMeasuring {
 	}
 
 
-	private final static String MEASURING_STATS_CATEGORY_COMMANDS = "Per command";
+	private final static String MEASURING_STATS_CATEGORY_COMMANDS = "Avg per command";
 	private final static String MEASURING_STATS_CATEGORY_TS_WINDOWS = "All TrackSchemes";
 	private final static String MEASURING_STATS_CATEGORY_BDV_WINDOWS = "All BigDataViewers";
 

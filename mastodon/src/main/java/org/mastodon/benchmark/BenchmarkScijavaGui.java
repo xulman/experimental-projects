@@ -51,7 +51,8 @@ public class BenchmarkScijavaGui implements Command {
 	@Parameter(label = "Bind all windows in a Lock group:")
 	public boolean shouldLockButtonsLinkOpenedWindows = false;
 
-	@Parameter(label = "Benchmark commands to setup the stage:", description = "This can be left empty.")
+	@Parameter(label = "Benchmark commands to setup the stage:",
+	           description = "This can be left empty if only one round is conducted, otherwise make sure all opened windows will be commanded/reset.")
 	public String benchmarkInitializationSequence = "";
 	@Parameter(label = "Pause after each command (milliseconds):")
 	public long millisToWaitAfterInitialization = 5000;

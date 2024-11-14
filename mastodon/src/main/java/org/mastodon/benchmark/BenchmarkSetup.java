@@ -178,7 +178,7 @@ public class BenchmarkSetup implements Runnable {
 		}
 
 		waitThisLong(instructions.millisToWaitAfterInitialization, "until the world calms down.");
-		System.out.println("All "+allWindows.size()+" benchmarked windows are set ready.");
+		System.out.println("All "+allWindows.size()+" benchmarked windows are ready.");
 
 		final BenchmarkMeasuring measurings
 				  = new BenchmarkMeasuring(instructions.benchmarkRounds, this.tsWindows, this.bdvWindows);
@@ -192,10 +192,10 @@ public class BenchmarkSetup implements Runnable {
 
 			if (round < instructions.benchmarkRounds) {
 				//round(s) remaining.... we have to reset the env
-				System.out.println("Re-Setting the windows:");
+				System.out.println("\nRe-Setting the windows:");
 				executeInstructions(instructions.benchmarkInitializationSequence, 0, null);
 				waitThisLong(instructions.millisToWaitAfterInitialization, "until the world calms down.");
-				System.out.println("All "+allWindows.size()+" benchmarked windows are set ready.");
+				System.out.println("All "+allWindows.size()+" benchmarked windows are ready.");
 			}
 		}
 	}
