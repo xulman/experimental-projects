@@ -1,30 +1,39 @@
 package org.mastodon.benchmark;
 
 import bdv.tools.benchmarks.TimeReporter;
-import ij.IJ;
 import net.imagej.ImageJ;
 import mpicbg.spim.data.SpimDataException;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
 import org.jdom2.input.SAXBuilder;
+import org.mastodon.benchmark.measurements.BenchmarkMeasuring;
+import org.mastodon.benchmark.windows.MultipleStepsCommand;
+import org.mastodon.benchmark.windows.TrackSchemeBookmarks;
 import org.mastodon.benchmark.windows.WindowsManager;
 import org.mastodon.mamut.MainWindow;
 import org.mastodon.mamut.ProjectModel;
 import org.mastodon.mamut.io.ProjectLoader;
 import org.mastodon.mamut.io.project.MamutProject;
 import org.mastodon.mamut.model.Model;
+import org.mastodon.mamut.model.Spot;
 import org.mastodon.mamut.views.MamutViewI;
 import org.mastodon.mamut.views.bdv.MamutViewBdv;
 import org.mastodon.mamut.views.trackscheme.MamutViewTrackScheme;
 import org.mastodon.views.bdv.SharedBigDataViewerData;
 import org.scijava.Context;
+import org.scijava.ui.UIService;
 
 import javax.swing.*;
+import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Optional;
+import java.util.Map;
 
 public class BenchmarkSetup implements Runnable {
 
@@ -96,12 +105,14 @@ public class BenchmarkSetup implements Runnable {
 	private final List<MamutViewI> allWindows = new ArrayList<>(20);
 	private final List<MamutViewBdv> bdvWindows = new ArrayList<>(20);
 	private final List<MamutViewTrackScheme> tsWindows = new ArrayList<>(20);
+	private final List<TrackSchemeBookmarks> tsBookmarks = new ArrayList<>(20);
 
 
 	// ============================ THE BENCHMARK MAIN THREAD ============================
 	@Override
 	public void run() {
-		IJ.run("Console");
+		UIService ui = this.projectModel.getContext().getService(UIService.class);
+		if (ui != null && ui.getDefaultUI() != null) ui.getDefaultUI().getConsolePane().show();
 
 		if (instructions.bdvSettingsXmlFilename != null && !instructions.bdvSettingsXmlFilename.isEmpty()) {
 			try {
@@ -115,36 +126,88 @@ public class BenchmarkSetup implements Runnable {
 				//activeSourcesDialog.update();
 				//viewer.requestRepaint();
 				//TODO: figure out how to close the file! (it's locked on Win as long as Fiji/Mastodon is there)
+				System.out.println("Using settings file    : "+instructions.bdvSettingsXmlFilename);
 			} catch (IOException | JDOMException e) {
 				System.out.println("Failed opening the settings xml file: "+instructions.bdvSettingsXmlFilename);
 				System.out.println("The error message was: "+e.getMessage());
 			}
 		}
+		System.out.println("Using TS bookmarks file: "+instructions.tsBookmarksFilename);
+		System.out.println("Using  CSV results file: "+instructions.measurementsCsvFilename);
 
 		if (instructions.shouldCloseAllWindowsBeforeBenchmark) windowsManager.closeAllWindows();
 
-		Integer groupLockID = instructions.shouldLockButtonsLinkOpenedWindows ? 1 : null;
-		for (int bdvs = 1; bdvs <= instructions.howManyBDVsToOpen; ++bdvs) {
-			MamutViewBdv win = windowsManager.openBDV("BenchBDV #" + bdvs, instructions.windowSizeOfBDVs, groupLockID);
-			allWindows.add(win);
-			bdvWindows.add(win);
-		}
-		for (int tss = 1; tss <= instructions.howManyTSsToOpen; ++tss) {
-			MamutViewTrackScheme win = windowsManager.openTS("BenchTS #" + tss, instructions.windowSizeOfTSs, groupLockID);
-			allWindows.add(win);
-			tsWindows.add(win);
-		}
-		System.out.println("All benchmarked "+allWindows.size()+" windows were opened.");
+		System.out.println("\n==============>\nBenchmark starting, hands-off, no mouse, no keyboard, grab a coffee.\n==============>\n");
 
+		try {
+			SwingUtilities.invokeAndWait( () -> {
+				Integer groupLockID = instructions.shouldLockButtonsLinkOpenedWindows ? 1 : null;
+				for (int bdvs = 1; bdvs <= instructions.howManyBDVsToOpen; ++bdvs) {
+					MamutViewBdv win = windowsManager.openBDV("BenchBDV #" + bdvs, instructions.windowSizeOfBDVs, groupLockID);
+					allWindows.add(win);
+					bdvWindows.add(win);
+				}
+				for (int tss = 1; tss <= instructions.howManyTSsToOpen; ++tss) {
+					MamutViewTrackScheme win = windowsManager.openTS("BenchTS #" + tss, instructions.windowSizeOfTSs, groupLockID);
+					allWindows.add(win);
+					tsWindows.add(win);
+					//
+					final File tsbFile = new File(instructions.tsBookmarksFilename);
+					TrackSchemeBookmarks tsb = new TrackSchemeBookmarks(win, tsbFile);
+					if (tsbFile.canRead()) {
+						tsb.loadBookmarksFromFile(tsbFile);
+					} else {
+						System.out.println("Failed opening the bookmark file: "+instructions.tsBookmarksFilename);
+					}
+					tsBookmarks.add(tsb);
+				}
+			} );
+		} catch (InterruptedException|InvocationTargetException  e) {
+			throw new RuntimeException("Error opening Mastodon windows for the benchmark: "+e.getMessage(), e);
+		}
+
+		System.out.println("All "+allWindows.size()+" benchmarked windows were opened.");
 		//explainInstructions( instructions.benchmarkInitializationSequence );
 
-		System.out.println("\nSetting the windows:");
-		executeWarmUpInstructions();
-		System.out.println("All benchmarked "+allWindows.size()+" windows are set ready.");
+		try {
+			SwingUtilities.invokeAndWait( () -> {
+				System.out.println("Setting the windows:");
+				executeInstructions(instructions.benchmarkInitializationSequence, 0, null);
+			} );
+		} catch (InterruptedException|InvocationTargetException  e) {
+			throw new RuntimeException("Error presetting Mastodon windows for the benchmark: "+e.getMessage(), e);
+		}
 
-		System.out.println("\nStarting the benchmark:");
-		executeBenchmarkInstructions();
-		System.out.println("Benchmark is over.");
+		waitThisLong(instructions.millisToWaitAfterInitialization, "until the world calms down.");
+		System.out.println("All "+allWindows.size()+" benchmarked windows are ready.");
+
+		final BenchmarkMeasuring measurings
+				  = new BenchmarkMeasuring(instructions.benchmarkRounds, this.tsWindows, this.bdvWindows);
+
+		for (int round = 1; round <= instructions.benchmarkRounds; ++round) {
+			System.out.println("\nStarting the benchmark, round #"+round+":");
+			executeInstructions(instructions.benchmarkExecutionSequence, instructions.millisToWaitAfterEachBenchmarkAction, measurings);
+			System.out.println("Benchmark is over.");
+			TimeReporter.getInstance().stopReportingNow();
+			measurings.nextRound();
+
+			if (round < instructions.benchmarkRounds) {
+				//round(s) remaining.... we have to reset the env
+				System.out.println("\nRe-Setting the windows:");
+				executeInstructions(instructions.benchmarkInitializationSequence, 0, null);
+				waitThisLong(instructions.millisToWaitAfterInitialization, "until the world calms down.");
+				System.out.println("All "+allWindows.size()+" benchmarked windows are ready.");
+			}
+		}
+
+		if (instructions.measurementsCsvFilename != null && !instructions.measurementsCsvFilename.isEmpty()) {
+			System.out.println("Writing measurements file: " + instructions.measurementsCsvFilename);
+			String optionalInfo = " [for "
+					  +instructions.howManyBDVsToOpen+" BDV and "
+					  +instructions.howManyTSsToOpen+" TS windows doing "
+					  +instructions.benchmarkExecutionSequence+"]";
+			measurings.exportMeasurements(instructions.measurementsCsvFilename, optionalInfo);
+		}
 	}
 
 	protected void explainInstructions(final String query) {
@@ -168,65 +231,135 @@ public class BenchmarkSetup implements Runnable {
 				System.out.println("  Focus on spot "+tokenizer.getSpotLabel());
 			} else if (act == BenchmarkLanguage.ActionType.R) {
 				System.out.println("  Rotate using "+tokenizer.getFullRotationSteps()+" steps");
+			} else if (act == BenchmarkLanguage.ActionType.W) {
+				System.out.println("  Wait for extra "+tokenizer.getMillisToWait()+" milliseconds");
 			}
 
 			tokenizer.moveToNextToken();
 		}
 	}
 
-	protected void executeWarmUpInstructions() {
-		executeInstructions(instructions.benchmarkInitializationSequence, 0, false);
-		waitThisLong(instructions.millisToWaitAfterInitialization, "until the world calms down.");
-	}
+	protected void executeInstructions(final String commands, final long millisBetweenCommands, final BenchmarkMeasuring measurings) {
+		if (commands == null || commands.isEmpty()) {
+			System.out.println("No instructions, finished trivially.");
+			return;
+		}
 
-	protected void executeBenchmarkInstructions() {
-		executeInstructions(instructions.benchmarkExecutionSequence, instructions.millisToWaitAfterEachBenchmarkAction, true);
-	}
+		final Map<String, Integer> currentlyMeasuringTheseWindowNames
+				  = new HashMap<>(instructions.howManyBDVsToOpen + instructions.howManyTSsToOpen);
+		final boolean doMeasureCommands = measurings != null;
 
-	protected void executeInstructions(final String commands, final long millisBetweenCommands, final boolean doMeasureCommands) {
 		final BenchmarkLanguage tokenizer = new BenchmarkLanguage(commands);
+		List<MultipleStepsCommand> loopingCommands = new ArrayList<>(allWindows.size());
 		while (tokenizer.isTokenAvailable()) {
-			System.out.println("executing command: "+tokenizer.getCurrentToken());
+			do {
+				System.out.println("executing command: "+tokenizer.getCurrentToken());
+				boolean waitNormally = true;
+				currentlyMeasuringTheseWindowNames.clear();
 
-			final int winIdx = tokenizer.getCurrentWindowNumber();
-			if (tokenizer.getCurrentWindowType() == BenchmarkLanguage.WindowType.TS) {
-				if (winIdx > tsWindows.size()) {
-					System.out.println("Skipping a command that requests window TS #"+winIdx+", only "+tsWindows.size()+" TS windows is available.");
-					tokenizer.moveToNextToken();
-					continue;
-				}
-				List<MamutViewTrackScheme> wins = winIdx == -1 ? tsWindows : Collections.singletonList( tsWindows.get( winIdx-1 ) );
-				System.out.println("NOT SUPPORTED YET");
-				//TODO...
-			} else {
-				if (winIdx > bdvWindows.size()) {
-					System.out.println("Skipping a command that requests window BDV #"+winIdx+", only "+bdvWindows.size()+" BDV windows is available.");
-					tokenizer.moveToNextToken();
-					continue;
-				}
-				List<MamutViewBdv> wins = winIdx == -1 ? bdvWindows : Collections.singletonList( bdvWindows.get( winIdx-1 ) );
-				BenchmarkLanguage.ActionType act = tokenizer.getCurrentAction();
-				if (act == BenchmarkLanguage.ActionType.B) {
-					if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(wins.size());
-					final String key = String.valueOf(tokenizer.getBookmarkKey());
-					wins.forEach(w -> windowsManager.visitBookmarkBDV(w,key));
-				} else if (act == BenchmarkLanguage.ActionType.T) {
-					if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(wins.size());
-					final int time = tokenizer.getTimepoint();
-					wins.forEach(w -> windowsManager.changeTimepoint(w,time));
-				} else if (act == BenchmarkLanguage.ActionType.R) {
-					final int steps = tokenizer.getFullRotationSteps();
-					if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(steps * wins.size());
-					wins.forEach(w -> windowsManager.rotateBDV(w, 360.0/(double)steps, steps));
+				final int winIdx = tokenizer.getCurrentWindowNumber();
+				if (tokenizer.getCurrentWindowType() == BenchmarkLanguage.WindowType.TS) {
+					if (winIdx > tsWindows.size()) {
+						System.out.println("Skipping a command that requests window TS #"+winIdx+", only "+tsWindows.size()+" TS windows are available.");
+						tokenizer.moveToNextToken();
+						continue;
+					}
+					List<MamutViewTrackScheme> wins = winIdx == -1 ? tsWindows : Collections.singletonList( tsWindows.get( winIdx-1 ) );
+					List<TrackSchemeBookmarks> bms = winIdx == -1 ? tsBookmarks : Collections.singletonList( tsBookmarks.get( winIdx-1 ) );
+					wins.forEach(w -> currentlyMeasuringTheseWindowNames.put( w.getFrame().getTrackschemePanel().getDisplay().getDisplayName(),1 ));
+					BenchmarkLanguage.ActionType act = tokenizer.getCurrentAction();
+					if (act == BenchmarkLanguage.ActionType.B) {
+						final int key = (int)tokenizer.getBookmarkKey() - 49;
+						if (key >= 0 && key < TrackSchemeBookmarks.MAX_BOOKMARKS) {
+							if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(wins.size()+1);
+							bms.forEach(b -> b.applyBookmark(key));
+						} else {
+							System.out.println("Skipping command, failed parsing bookmark or bookmark outside interval 1 to "+TrackSchemeBookmarks.MAX_BOOKMARKS+".");
+						}
+					} else if (act == BenchmarkLanguage.ActionType.F) {
+						doCommandF(tokenizer, doMeasureCommands);
+					} else if (act == BenchmarkLanguage.ActionType.W) {
+						doCommandW(tokenizer);
+						waitNormally = false;
+					} else {
+						System.out.println("NOT SUPPORTED YET");
+						//TODO...
+					}
 				} else {
-					System.out.println("NOT SUPPORTED TOKEN");
-					//TODO...
+					if (winIdx > bdvWindows.size()) {
+						System.out.println("Skipping a command that requests window BDV #"+winIdx+", only "+bdvWindows.size()+" BDV windows are available.");
+						tokenizer.moveToNextToken();
+						continue;
+					}
+					List<MamutViewBdv> wins = winIdx == -1 ? bdvWindows : Collections.singletonList( bdvWindows.get( winIdx-1 ) );
+					wins.forEach(w -> currentlyMeasuringTheseWindowNames.put( w.getViewerPanelMamut().getDisplay().getDisplayName(),1 ));
+					BenchmarkLanguage.ActionType act = tokenizer.getCurrentAction();
+					if (act == BenchmarkLanguage.ActionType.B) {
+						if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(wins.size()+1);
+						final String key = String.valueOf(tokenizer.getBookmarkKey());
+						wins.forEach(w -> windowsManager.visitBookmarkBDV(w,key));
+					} else if (act == BenchmarkLanguage.ActionType.T) {
+						if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(wins.size()+1);
+						final int time = tokenizer.getTimepoint();
+						wins.forEach(w -> windowsManager.changeTimepoint(w,time));
+					} else if (act == BenchmarkLanguage.ActionType.R) {
+						if (loopingCommands.size() == 0) {
+							//the first handling of this particular command, let's prepare and populate the "inner loop" list
+							final int steps = tokenizer.getFullRotationSteps();
+							wins.forEach( w -> loopingCommands.add( windowsManager.rotateBDV(w, 360.0/(double)steps, steps) ) );
+						}
+						if (loopingCommands.size() > 0 && loopingCommands.get(0).hasNext()) {
+							//here, do the action, and perhaps clean the "inner loop" list if no further actions are available
+							loopingCommands.forEach( cmd -> System.out.println("  -> "+cmd.reportCurrentStep()) );
+							if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(wins.size()+1);
+							loopingCommands.forEach( MultipleStepsCommand::doNext );
+							if (!loopingCommands.get(0).hasNext()) loopingCommands.clear();
+						}
+					} else if (act == BenchmarkLanguage.ActionType.F) {
+						doCommandF(tokenizer, doMeasureCommands);
+					} else if (act == BenchmarkLanguage.ActionType.W) {
+						doCommandW(tokenizer);
+						waitNormally = false;
+					} else {
+						System.out.println("NOT SUPPORTED TOKEN");
+						//TODO...
+					}
 				}
-			}
 
+				if (millisBetweenCommands > 0 && waitNormally) waitThisLong(millisBetweenCommands, "a bit until the command finishes.");
+				//reporting... (now that we have hopefully waited long enough (for the windows to finish their command))
+				if (doMeasureCommands) measurings.recordMeasurements(currentlyMeasuringTheseWindowNames, tokenizer);
+			} while (loopingCommands.size() > 0);
 			tokenizer.moveToNextToken();
-			if (millisBetweenCommands > 0) waitThisLong(millisBetweenCommands, "a bit until the command finishes.");
 		}
+	}
+
+	private void doCommandF(final BenchmarkLanguage tokenizer, final boolean doMeasureCommands) {
+		if (!instructions.shouldLockButtonsLinkOpenedWindows) {
+			System.out.println("Focusing makes sense only when all windows are linked with the lock icon/button, skipping.");
+		} else {
+			final String spotLabel = tokenizer.getSpotLabel();
+			Optional<Spot> spot = projectModel.getModel().getGraph()
+					.vertices()
+					.stream()
+					.filter(s -> s.getLabel().equals(spotLabel))
+					.findFirst();
+			if (spot.isPresent()) {
+				final Spot target = spot.get();
+				//NB: fetching the spot outside the measured zone... just in case
+
+				if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(allWindows.size()+1);
+				allWindows.get(0).getGroupHandle().getModel(projectModel.NAVIGATION).notifyNavigateToVertex(target);
+				//NB: just use any window we have...
+			} else {
+				System.out.println("Couldn't find the spot with the label >>" + spotLabel + "<<, skipping.");
+			}
+		}
+	}
+
+	private void doCommandW(final BenchmarkLanguage tokenizer) {
+		long millis = tokenizer.getMillisToWait();
+		waitThisLong(millis, "extra until the previous command finishes.");
 	}
 
 

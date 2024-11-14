@@ -34,8 +34,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 import org.mastodon.app.ui.ViewMenuBuilder;
 import org.mastodon.benchmark.BenchmarkScijavaGui;
@@ -47,7 +45,6 @@ import org.mastodon.mamut.experimental.spots.DuplicateSpots;
 import org.mastodon.mamut.experimental.trees.LineageRandomColorizer;
 import org.mastodon.mamut.plugin.MamutPlugin;
 import org.mastodon.mamut.ProjectModel;
-import org.scijava.command.CommandModule;
 import org.scijava.ui.behaviour.io.gui.CommandDescriptionProvider;
 import org.scijava.ui.behaviour.io.gui.CommandDescriptions;
 import org.mastodon.ui.keymap.KeyConfigContexts;
@@ -61,7 +58,6 @@ import org.scijava.ui.behaviour.util.RunnableAction;
 import org.ulman.simulator.ui.SimulatorMainDlg;
 import org.mastodon.mamut.experimental.spots.PlaceSpotsOnSpotSurface;
 import org.mastodon.mamut.experimental.spots.PlaceSpotsInSpotVolume;
-import org.mastodon.benchmark.BenchmarkSetup;
 
 @Plugin( type = MamutPlugin.class )
 public class ExperimentalPluginsFacade extends AbstractContextual implements MamutPlugin

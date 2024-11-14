@@ -79,17 +79,12 @@ public class WindowsManager {
 	}
 
 
-	public void rotateBDV(final MamutViewBdv bdv, final double rotationStepDeg, final int rotationStepsCnt) {
+	public MultipleStepsCommand rotateBDV(final MamutViewBdv bdv, final double rotationStepDeg, final int rotationStepsCnt) {
 		BdvViewRotator rotator = new BdvViewRotator(bdv.getViewerPanelMamut());
 		rotator.setOneStepAngle_deg(rotationStepDeg);
 		rotator.prepareForRotations();
-		for (int i = 0; i < rotationStepsCnt; ++i) {
-			System.out.println("  view rotates to "+(i+1)*rotationStepDeg+" deg");
-			rotator.rotateOneStep();
-			//TODO: waitThisLong(delaysInMillis, "after one step of rotations");
-			try { Thread.sleep(2000); }
-			catch (InterruptedException e) { /* empty */ }
-		}
+		rotator.planForRotationSteps(rotationStepsCnt);
+		return rotator;
 	}
 
 	public void visitBookmarkBDV(final MamutViewBdv bdv, final String bookmarkKey) {

@@ -15,10 +15,11 @@ import java.io.File;
 
 @Plugin(type = Command.class, name = "Benchmark GUI", menuPath = "Plugins>Mastodon Benchmark")
 public class BenchmarkScijavaGui implements Command {
-	@Parameter(style = FileWidget.OPEN_STYLE)
+	@Parameter(label = "Mastodon project .mastodon file:", style = FileWidget.OPEN_STYLE,
+	           description = "The benchmark commands are executed over this project whose content thus influences the command execution times.")
 	public File mastodonProjectPath;
 
-	@Parameter(style = FileWidget.OPEN_STYLE)
+	@Parameter(label = "BigDataViewer display settings .xml file:", style = FileWidget.OPEN_STYLE)
 	public File bdvSettingsXmlFilePath;
 
 	/**
@@ -30,35 +31,42 @@ public class BenchmarkScijavaGui implements Command {
 	@Parameter(persist = false, required = false)
 	ProjectModel projectModel = null;
 
-	@Parameter
+	@Parameter(label = "Close Mastodon windows before this benchmark:")
 	public boolean shouldCloseAllWindowsBeforeBenchmark = true;
 
-	@Parameter
+	@Parameter(label = "Number of BigDataViewer windows in the benchmark:")
 	public int howManyBDVsToOpen = 0;
-	@Parameter
+	@Parameter(label = "Width of the windows (pixels):")
 	public int windowWidthOfBDVs = 512;
-	@Parameter
+	@Parameter(label = "Height of the windows (pixels):")
 	public int windowHeightOfBDVs = 512;
 
-	@Parameter
+	@Parameter(label = "Number of TrackScheme windows in the benchmark:")
 	public int howManyTSsToOpen = 0;
-	@Parameter
+	@Parameter(label = "Width of the windows (pixels):")
 	public int windowWidthOfTSs = 512;
-	@Parameter
+	@Parameter(label = "Height of the windows (pixels):")
 	public int windowHeighthOfTSs = 512;
 
-	@Parameter
+	@Parameter(label = "Bind all windows in a Lock group:")
 	public boolean shouldLockButtonsLinkOpenedWindows = false;
 
-	@Parameter
+	@Parameter(label = "Benchmark commands to setup the stage:",
+	           description = "This can be left empty if only one round is conducted, otherwise make sure all opened windows will be commanded/reset.")
 	public String benchmarkInitializationSequence = "";
-	@Parameter
+	@Parameter(label = "Pause after each command (milliseconds):")
 	public long millisToWaitAfterInitialization = 5000;
 
-	@Parameter
+	@Parameter(label = "Benchmark commands to be measured:", description = "This is the actual benchmarked sequence.")
 	public String benchmarkExecutionSequence = "";
-	@Parameter
+	@Parameter(label = "Pause after each command (milliseconds):")
 	public long millisToWaitAfterEachBenchmarkAction = 3000;
+
+	@Parameter(label = "Benchmark runs:")
+	public int repetitions = 1;
+
+	@Parameter(label = "CSV results filename extra infix:", description = "Any title to distinguish this particular experiment.")
+	public String csvInfix = "";
 
 	@Parameter
 	private CommandService contextProviderService;
@@ -68,6 +76,7 @@ public class BenchmarkScijavaGui implements Command {
 	@Override
 	public void run() {
 		instructions.bdvSettingsXmlFilename = bdvSettingsXmlFilePath.getAbsolutePath().toString();
+		instructions.suggestTsBookmarksFilename();
 		instructions.shouldCloseAllWindowsBeforeBenchmark = shouldCloseAllWindowsBeforeBenchmark;
 		instructions.howManyTSsToOpen = howManyTSsToOpen;
 		instructions.windowSizeOfBDVs = new Dimension(windowWidthOfBDVs, windowHeightOfBDVs);
@@ -78,6 +87,8 @@ public class BenchmarkScijavaGui implements Command {
 		instructions.benchmarkExecutionSequence = benchmarkExecutionSequence;
 		instructions.millisToWaitAfterInitialization = millisToWaitAfterInitialization;
 		instructions.millisToWaitAfterEachBenchmarkAction = millisToWaitAfterEachBenchmarkAction;
+		instructions.suggestCsvResultsFilename(csvInfix);
+		instructions.benchmarkRounds = repetitions;
 
 		if (projectModel != null) {
 			//this is an indication that this GUI is called from inside the Mastodon, which
