@@ -60,6 +60,15 @@ public class Samj {
 				  "SAMJ-based detector",
 				  new FloatType(), false );
 
+		//enable this to see the obtained segments from which the Spots are computed
+//		samj.enableShowingPolygons();
+
+		//enable this for the 'J'-key mode in which the selected ROIs is thresholded >0, closed,
+		//individual connected components are found, and their bounding boxes are used as prompts
+//		samj.installDefaultMultiPromptBehaviour();
+		//enable this to see all intermediate images (of the ROI) of the above process
+//		samj.setMultiPromptsFullDebug();
+
 		try {
 			//samj.enableShowingPolygons();
 
