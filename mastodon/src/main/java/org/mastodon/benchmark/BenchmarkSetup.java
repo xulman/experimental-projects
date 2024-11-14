@@ -7,6 +7,7 @@ import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
 import org.jdom2.input.SAXBuilder;
+import org.mastodon.benchmark.measurements.BenchmarkMeasuring;
 import org.mastodon.benchmark.windows.MultipleStepsCommand;
 import org.mastodon.benchmark.windows.TrackSchemeBookmarks;
 import org.mastodon.benchmark.windows.WindowsManager;
@@ -170,7 +171,7 @@ public class BenchmarkSetup implements Runnable {
 		try {
 			SwingUtilities.invokeAndWait( () -> {
 				System.out.println("Setting the windows:");
-				executeInstructions(instructions.benchmarkInitializationSequence, 0, false);
+				executeInstructions(instructions.benchmarkInitializationSequence, 0, null);
 			} );
 		} catch (InterruptedException|InvocationTargetException  e) {
 			throw new RuntimeException("Error presetting Mastodon windows for the benchmark: "+e.getMessage(), e);
@@ -179,10 +180,16 @@ public class BenchmarkSetup implements Runnable {
 		waitThisLong(instructions.millisToWaitAfterInitialization, "until the world calms down.");
 		System.out.println("All "+allWindows.size()+" benchmarked windows are set ready.");
 
-		System.out.println("\nStarting the benchmark:");
-		executeInstructions(instructions.benchmarkExecutionSequence, instructions.millisToWaitAfterEachBenchmarkAction, true);
-		System.out.println("Benchmark is over.");
-		TimeReporter.getInstance().stopReportingNow();
+		final BenchmarkMeasuring measurings
+				  = new BenchmarkMeasuring(instructions.benchmarkRounds, this.tsWindows, this.bdvWindows);
+
+		for (int round = 1; round <= instructions.benchmarkRounds; ++round) {
+			System.out.println("\nStarting the benchmark, round #"+round+":");
+			executeInstructions(instructions.benchmarkExecutionSequence, instructions.millisToWaitAfterEachBenchmarkAction, measurings);
+			System.out.println("Benchmark is over.");
+			TimeReporter.getInstance().stopReportingNow();
+			measurings.nextRound();
+		}
 	}
 
 	protected void explainInstructions(final String query) {
@@ -214,7 +221,7 @@ public class BenchmarkSetup implements Runnable {
 		}
 	}
 
-	protected void executeInstructions(final String commands, final long millisBetweenCommands, final boolean doMeasureCommands) {
+	protected void executeInstructions(final String commands, final long millisBetweenCommands, final BenchmarkMeasuring measurings) {
 		if (commands == null || commands.isEmpty()) {
 			System.out.println("No instructions, finished trivially.");
 			return;
@@ -222,6 +229,7 @@ public class BenchmarkSetup implements Runnable {
 
 		final Map<String, Integer> currentlyMeasuringTheseWindowNames
 				  = new HashMap<>(instructions.howManyBDVsToOpen + instructions.howManyTSsToOpen);
+		final boolean doMeasureCommands = measurings != null;
 
 		final BenchmarkLanguage tokenizer = new BenchmarkLanguage(commands);
 		List<MultipleStepsCommand> loopingCommands = new ArrayList<>(allWindows.size());
@@ -302,7 +310,7 @@ public class BenchmarkSetup implements Runnable {
 
 				if (millisBetweenCommands > 0 && waitNormally) waitThisLong(millisBetweenCommands, "a bit until the command finishes.");
 				//reporting... (now that we have hopefully waited long enough (for the windows to finish their command))
-				if (doMeasureCommands) processReportedTimes(currentlyMeasuringTheseWindowNames, tokenizer);
+				if (doMeasureCommands) measurings.recordMeasurements(currentlyMeasuringTheseWindowNames, tokenizer);
 			} while (loopingCommands.size() > 0);
 			tokenizer.moveToNextToken();
 		}
@@ -334,59 +342,6 @@ public class BenchmarkSetup implements Runnable {
 	private void doCommandW(final BenchmarkLanguage tokenizer) {
 		long millis = tokenizer.getMillisToWait();
 		waitThisLong(millis, "extra until the previous command finishes.");
-	}
-
-
-	// ============================ MEASUREMENT STATS ============================
-	protected  void processReportedTimes(final Map<String,Integer> expectingNowTheseWindowNames,
-	                                     final BenchmarkLanguage tokenizer) {
-		//reporting...
-		final TimeReporter times = TimeReporter.getInstance();
-		for (String windowName : times.observedTimes.keySet()) {
-			if (!expectingNowTheseWindowNames.containsKey(windowName)) {
-				//recorded an unexpected window!
-				throw new RuntimeException("Mastodon Benchmark:\nDuring the command "
-						  +tokenizer.getCurrentToken()+", a window '"+windowName+"' executed "
-						  +times.observedTimes.get(windowName).size()+" repaint events, expected was 0."
-						  +" Don't work with Mastodon during the benchmark.");
-			} else if (times.observedTimes.get(windowName).size() != 1) {
-				//recorded correctly an expected window, but more than once!
-				throw new RuntimeException("Mastodon Benchmark:\nDuring the command "
-						  +tokenizer.getCurrentToken()+", a window '"+windowName+"' executed "
-						  +times.observedTimes.get(windowName).size()+" repaint events, expected was 1."
-						  +" Don't press keys, don't move mouse during the benchmark.");
-			}
-			//recorded correctly an expected window exactly once, mark it as "enlisted in the stats" ;)
-			expectingNowTheseWindowNames.put(windowName, 0);
-
-			//"enlist in the stats"
-			for (double time : times.observedTimes.get(windowName)) {
-				//per window, per type of window (BDV vs TS), totals per command
-				System.out.println(windowName+" needed "+time+" ms");
-			}
-		}
-
-		//check if there are some unmarked windows?
-		for (String windowName : expectingNowTheseWindowNames.keySet()) {
-			if (expectingNowTheseWindowNames.get(windowName) != 0) {
-				throw new RuntimeException("Mastodon Benchmark:\nDuring the command "
-						  +tokenizer.getCurrentToken()+", a measurement for window '"+windowName
-						  +"' hasn't been recorded! Increase waiting times, perhaps.");
-			}
-		}
-	}
-
-	protected void recordMeasurements(final List<MamutViewTrackScheme> activeWindows) {
-		//expectedWindows.get(0).getViewerPanelMamut().getDisplay().getDisplayName();
-	}
-
-	protected void recordMeasurements(final String windowName, final List<Double> statistics) {
-		final List<Double> measuredTimes = TimeReporter.getInstance().observedTimes.get(windowName);
-		if (measuredTimes.size() != 1) {
-
-		} else {
-			statistics.add(measuredTimes.get(0));
-		}
 	}
 
 

@@ -24,6 +24,7 @@ public class BenchmarkInstructions {
 
 	public String benchmarkInitializationSequence = "";
 	public String benchmarkExecutionSequence = "";
+	public int benchmarkRounds = 1;
 
 	public long millisToWaitAfterInitialization = 5000;
 	public long millisToWaitAfterEachBenchmarkAction = 3000;
