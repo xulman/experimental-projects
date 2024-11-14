@@ -5,9 +5,13 @@ import org.mastodon.benchmark.BenchmarkLanguage;
 import org.mastodon.mamut.views.bdv.MamutViewBdv;
 import org.mastodon.mamut.views.trackscheme.MamutViewTrackScheme;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 public class BenchmarkMeasuring {
 	public BenchmarkMeasuring(final int maxRounds,
@@ -104,5 +108,31 @@ public class BenchmarkMeasuring {
 
 
 	public void exportMeasurements(final String pathToCSV) {
+		//collect all available sources
+		final Set<String> sources = measurements //NB: to have sources sorted
+				  .values()
+				  .stream()
+				  .flatMap(s -> s.keySet().stream())
+				  .collect(Collectors.toCollection(TreeSet::new));
+
+		StringBuilder sb = new StringBuilder();
+		sb.append("# Benchmarked: ").append(LocalDateTime.now()).append("\n");
+		sb.append("# Columns are: source, round, min, max, avg, median, individual times\n");
+
+		for (String source : sources) {
+			for (int round : measurements.keySet()) {
+				if (!measurements.get(round).containsKey(source)) continue;
+				final BenchmarkMeasurement stats = measurements.get(round).get(source);
+				sb.append(stats.sourceName).append("\t").append(round);
+				sb.append("\t").append(stats.getMin());
+				sb.append("\t").append(stats.getMax());
+				sb.append("\t").append(stats.getAvg());
+				sb.append("\t").append(stats.getMedian());
+				stats.measuredTimes.forEach(t -> sb.append("\t").append(t));
+				sb.append("\n");
+			}
+		}
+
+		System.out.println(sb.toString());
 	}
 }

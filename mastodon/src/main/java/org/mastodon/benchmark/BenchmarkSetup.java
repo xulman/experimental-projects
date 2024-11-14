@@ -133,6 +133,7 @@ public class BenchmarkSetup implements Runnable {
 			}
 		}
 		System.out.println("Using TS bookmarks file: "+instructions.tsBookmarksFilename);
+		System.out.println("Using  CSV results file: "+instructions.measurementsCsvFilename);
 
 		if (instructions.shouldCloseAllWindowsBeforeBenchmark) windowsManager.closeAllWindows();
 
@@ -197,6 +198,11 @@ public class BenchmarkSetup implements Runnable {
 				waitThisLong(instructions.millisToWaitAfterInitialization, "until the world calms down.");
 				System.out.println("All "+allWindows.size()+" benchmarked windows are ready.");
 			}
+		}
+
+		if (instructions.measurementsCsvFilename != null && !instructions.measurementsCsvFilename.isEmpty()) {
+			System.out.println("Writing measurements file: " + instructions.measurementsCsvFilename);
+			measurings.exportMeasurements(instructions.measurementsCsvFilename);
 		}
 	}
 
