@@ -189,6 +189,14 @@ public class BenchmarkSetup implements Runnable {
 			System.out.println("Benchmark is over.");
 			TimeReporter.getInstance().stopReportingNow();
 			measurings.nextRound();
+
+			if (round < instructions.benchmarkRounds) {
+				//round(s) remaining.... we have to reset the env
+				System.out.println("Re-Setting the windows:");
+				executeInstructions(instructions.benchmarkInitializationSequence, 0, null);
+				waitThisLong(instructions.millisToWaitAfterInitialization, "until the world calms down.");
+				System.out.println("All "+allWindows.size()+" benchmarked windows are set ready.");
+			}
 		}
 	}
 
