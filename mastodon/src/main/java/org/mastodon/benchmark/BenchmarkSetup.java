@@ -28,9 +28,11 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Optional;
+import java.util.Map;
 
 public class BenchmarkSetup implements Runnable {
 
@@ -180,6 +182,7 @@ public class BenchmarkSetup implements Runnable {
 		System.out.println("\nStarting the benchmark:");
 		executeInstructions(instructions.benchmarkExecutionSequence, instructions.millisToWaitAfterEachBenchmarkAction, true);
 		System.out.println("Benchmark is over.");
+		TimeReporter.getInstance().stopReportingNow();
 	}
 
 	protected void explainInstructions(final String query) {
@@ -217,12 +220,16 @@ public class BenchmarkSetup implements Runnable {
 			return;
 		}
 
+		final Map<String, Integer> currentlyMeasuringTheseWindowNames
+				  = new HashMap<>(instructions.howManyBDVsToOpen + instructions.howManyTSsToOpen);
+
 		final BenchmarkLanguage tokenizer = new BenchmarkLanguage(commands);
 		List<MultipleStepsCommand> loopingCommands = new ArrayList<>(allWindows.size());
 		while (tokenizer.isTokenAvailable()) {
 			do {
 				System.out.println("executing command: "+tokenizer.getCurrentToken());
 				boolean waitNormally = true;
+				currentlyMeasuringTheseWindowNames.clear();
 
 				final int winIdx = tokenizer.getCurrentWindowNumber();
 				if (tokenizer.getCurrentWindowType() == BenchmarkLanguage.WindowType.TS) {
@@ -233,11 +240,12 @@ public class BenchmarkSetup implements Runnable {
 					}
 					List<MamutViewTrackScheme> wins = winIdx == -1 ? tsWindows : Collections.singletonList( tsWindows.get( winIdx-1 ) );
 					List<TrackSchemeBookmarks> bms = winIdx == -1 ? tsBookmarks : Collections.singletonList( tsBookmarks.get( winIdx-1 ) );
+					wins.forEach(w -> currentlyMeasuringTheseWindowNames.put( w.getFrame().getTrackschemePanel().getDisplay().getDisplayName(),1 ));
 					BenchmarkLanguage.ActionType act = tokenizer.getCurrentAction();
 					if (act == BenchmarkLanguage.ActionType.B) {
 						final int key = (int)tokenizer.getBookmarkKey() - 49;
 						if (key >= 0 && key < TrackSchemeBookmarks.MAX_BOOKMARKS) {
-							if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(wins.size());
+							if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(wins.size()+1);
 							bms.forEach(b -> b.applyBookmark(key));
 						} else {
 							System.out.println("Skipping command, failed parsing bookmark or bookmark outside interval 1 to "+TrackSchemeBookmarks.MAX_BOOKMARKS+".");
@@ -258,13 +266,14 @@ public class BenchmarkSetup implements Runnable {
 						continue;
 					}
 					List<MamutViewBdv> wins = winIdx == -1 ? bdvWindows : Collections.singletonList( bdvWindows.get( winIdx-1 ) );
+					wins.forEach(w -> currentlyMeasuringTheseWindowNames.put( w.getViewerPanelMamut().getDisplay().getDisplayName(),1 ));
 					BenchmarkLanguage.ActionType act = tokenizer.getCurrentAction();
 					if (act == BenchmarkLanguage.ActionType.B) {
-						if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(wins.size());
+						if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(wins.size()+1);
 						final String key = String.valueOf(tokenizer.getBookmarkKey());
 						wins.forEach(w -> windowsManager.visitBookmarkBDV(w,key));
 					} else if (act == BenchmarkLanguage.ActionType.T) {
-						if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(wins.size());
+						if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(wins.size()+1);
 						final int time = tokenizer.getTimepoint();
 						wins.forEach(w -> windowsManager.changeTimepoint(w,time));
 					} else if (act == BenchmarkLanguage.ActionType.R) {
@@ -276,7 +285,7 @@ public class BenchmarkSetup implements Runnable {
 						if (loopingCommands.size() > 0 && loopingCommands.get(0).hasNext()) {
 							//here, do the action, and perhaps clean the "inner loop" list if no further actions are available
 							loopingCommands.forEach( cmd -> System.out.println("  -> "+cmd.reportCurrentStep()) );
-							if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(wins.size());
+							if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(wins.size()+1);
 							loopingCommands.forEach( MultipleStepsCommand::doNext );
 							if (!loopingCommands.get(0).hasNext()) loopingCommands.clear();
 						}
@@ -292,6 +301,8 @@ public class BenchmarkSetup implements Runnable {
 				}
 
 				if (millisBetweenCommands > 0 && waitNormally) waitThisLong(millisBetweenCommands, "a bit until the command finishes.");
+				//reporting... (now that we have hopefully waited long enough (for the windows to finish their command))
+				if (doMeasureCommands) processReportedTimes(currentlyMeasuringTheseWindowNames, tokenizer);
 			} while (loopingCommands.size() > 0);
 			tokenizer.moveToNextToken();
 		}
@@ -311,7 +322,7 @@ public class BenchmarkSetup implements Runnable {
 				final Spot target = spot.get();
 				//NB: fetching the spot outside the measured zone... just in case
 
-				if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(allWindows.size());
+				if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(allWindows.size()+1);
 				allWindows.get(0).getGroupHandle().getModel(projectModel.NAVIGATION).notifyNavigateToVertex(target);
 				//NB: just use any window we have...
 			} else {
@@ -323,6 +334,59 @@ public class BenchmarkSetup implements Runnable {
 	private void doCommandW(final BenchmarkLanguage tokenizer) {
 		long millis = tokenizer.getMillisToWait();
 		waitThisLong(millis, "extra until the previous command finishes.");
+	}
+
+
+	// ============================ MEASUREMENT STATS ============================
+	protected  void processReportedTimes(final Map<String,Integer> expectingNowTheseWindowNames,
+	                                     final BenchmarkLanguage tokenizer) {
+		//reporting...
+		final TimeReporter times = TimeReporter.getInstance();
+		for (String windowName : times.observedTimes.keySet()) {
+			if (!expectingNowTheseWindowNames.containsKey(windowName)) {
+				//recorded an unexpected window!
+				throw new RuntimeException("Mastodon Benchmark:\nDuring the command "
+						  +tokenizer.getCurrentToken()+", a window '"+windowName+"' executed "
+						  +times.observedTimes.get(windowName).size()+" repaint events, expected was 0."
+						  +" Don't work with Mastodon during the benchmark.");
+			} else if (times.observedTimes.get(windowName).size() != 1) {
+				//recorded correctly an expected window, but more than once!
+				throw new RuntimeException("Mastodon Benchmark:\nDuring the command "
+						  +tokenizer.getCurrentToken()+", a window '"+windowName+"' executed "
+						  +times.observedTimes.get(windowName).size()+" repaint events, expected was 1."
+						  +" Don't press keys, don't move mouse during the benchmark.");
+			}
+			//recorded correctly an expected window exactly once, mark it as "enlisted in the stats" ;)
+			expectingNowTheseWindowNames.put(windowName, 0);
+
+			//"enlist in the stats"
+			for (double time : times.observedTimes.get(windowName)) {
+				//per window, per type of window (BDV vs TS), totals per command
+				System.out.println(windowName+" needed "+time+" ms");
+			}
+		}
+
+		//check if there are some unmarked windows?
+		for (String windowName : expectingNowTheseWindowNames.keySet()) {
+			if (expectingNowTheseWindowNames.get(windowName) != 0) {
+				throw new RuntimeException("Mastodon Benchmark:\nDuring the command "
+						  +tokenizer.getCurrentToken()+", a measurement for window '"+windowName
+						  +"' hasn't been recorded! Increase waiting times, perhaps.");
+			}
+		}
+	}
+
+	protected void recordMeasurements(final List<MamutViewTrackScheme> activeWindows) {
+		//expectedWindows.get(0).getViewerPanelMamut().getDisplay().getDisplayName();
+	}
+
+	protected void recordMeasurements(final String windowName, final List<Double> statistics) {
+		final List<Double> measuredTimes = TimeReporter.getInstance().observedTimes.get(windowName);
+		if (measuredTimes.size() != 1) {
+
+		} else {
+			statistics.add(measuredTimes.get(0));
+		}
 	}
 
 
