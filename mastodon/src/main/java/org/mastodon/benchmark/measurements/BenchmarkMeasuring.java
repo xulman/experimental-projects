@@ -5,6 +5,8 @@ import org.mastodon.benchmark.BenchmarkLanguage;
 import org.mastodon.mamut.views.bdv.MamutViewBdv;
 import org.mastodon.mamut.views.trackscheme.MamutViewTrackScheme;
 
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -115,24 +117,26 @@ public class BenchmarkMeasuring {
 				  .flatMap(s -> s.keySet().stream())
 				  .collect(Collectors.toCollection(TreeSet::new));
 
-		StringBuilder sb = new StringBuilder();
-		sb.append("# Benchmarked: ").append(LocalDateTime.now()).append("\n");
-		sb.append("# Columns are: source, round, min, max, avg, median, individual times\n");
+		try (PrintWriter writer = new PrintWriter(pathToCSV))
+		{
+			writer.print("# Benchmarked: "); writer.println(LocalDateTime.now());
+			writer.println("# Columns: source\tround\tmin\tmax\tavg\tmedian\tindividual times in milliseconds");
 
-		for (String source : sources) {
-			for (int round : measurements.keySet()) {
-				if (!measurements.get(round).containsKey(source)) continue;
-				final BenchmarkMeasurement stats = measurements.get(round).get(source);
-				sb.append(stats.sourceName).append("\t").append(round);
-				sb.append("\t").append(stats.getMin());
-				sb.append("\t").append(stats.getMax());
-				sb.append("\t").append(stats.getAvg());
-				sb.append("\t").append(stats.getMedian());
-				stats.measuredTimes.forEach(t -> sb.append("\t").append(t));
-				sb.append("\n");
+			for (String source : sources) {
+				for (int round : measurements.keySet()) {
+					if (!measurements.get(round).containsKey(source)) continue;
+					final BenchmarkMeasurement stats = measurements.get(round).get(source);
+					writer.print(stats.sourceName+"\t"+round);
+					writer.print("\t"+stats.getMin());
+					writer.print("\t"+stats.getMax());
+					writer.print("\t"+stats.getAvg());
+					writer.print("\t"+stats.getMedian());
+					stats.measuredTimes.forEach( t -> writer.print("\t"+t) );
+					writer.println();
+				}
 			}
+		} catch (FileNotFoundException e) {
+			System.out.println("Reading file error: "+e.getMessage());
 		}
-
-		System.out.println(sb.toString());
 	}
 }
