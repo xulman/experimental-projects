@@ -208,7 +208,7 @@ public class BenchmarkSetup implements Runnable {
 					  +instructions.howManyBDVsToOpen+" BDV and "
 					  +instructions.howManyTSsToOpen+" TS windows doing "
 					  +instructions.benchmarkExecutionSequence+"]";
-			measurings.exportMeasurements(instructions.measurementsCsvFilename, optionalInfo);
+			measurings.exportMeasurementsToHorizontalCsv(instructions.measurementsCsvFilename, optionalInfo);
 		}
 	}
 

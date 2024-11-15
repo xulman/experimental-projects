@@ -109,11 +109,11 @@ public class BenchmarkMeasuring {
 	}
 
 
-	public void exportMeasurements(final String pathToCSV) {
-		exportMeasurements(pathToCSV,null);
+	public void exportMeasurementsToHorizontalCsv(final String pathToCSV) {
+		exportMeasurementsToHorizontalCsv(pathToCSV,null);
 	}
 
-	public void exportMeasurements(final String pathToCSV, final String optionalExtraInfo) {
+	public void exportMeasurementsToHorizontalCsv(final String pathToCSV, final String optionalExtraInfo) {
 		//collect all available sources
 		final Set<String> sources = measurements //NB: to have sources sorted
 				  .values()
