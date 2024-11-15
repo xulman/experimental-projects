@@ -125,7 +125,7 @@ public class BenchmarkMeasuring {
 		{
 			//writer.print("# Benchmarked: "); writer.println(LocalDateTime.now());
 			//writer.print("# Columns: source\tround\tmin\tmax\tavg\tmedian\tindividual times in seconds");
-			writer.print("source\tround\ttotal time\tmin\tmax\tavg\tmedian\tindividual times in seconds");
+			writer.print("source\tround\ttotal time\tmin\tmax\tavg\tavg FPS\tmedian\tindividual times in seconds");
 			if (optionalExtraInfo != null) writer.print(optionalExtraInfo);
 			for (int i = 0; i < 200; ++i) writer.print("\tT"); //TODO fake 200 values to have 200 columns introduced in the CSV file header....
 			writer.println();
@@ -135,17 +135,29 @@ public class BenchmarkMeasuring {
 					if (!measurements.get(round).containsKey(source)) continue;
 					final BenchmarkMeasurement stats = measurements.get(round).get(source);
 					writer.print(stats.sourceName+"\t"+round);
-					writer.print("\t"+stats.getSum());
-					writer.print("\t"+stats.getMin());
-					writer.print("\t"+stats.getMax());
-					writer.print("\t"+stats.getAvg());
-					writer.print("\t"+stats.getMedian());
-					stats.measuredTimes.forEach( t -> writer.print("\t"+t) );
+					writer.print("\t"+f(stats.getSum()));
+					writer.print("\t"+f(stats.getMin()));
+					writer.print("\t"+f(stats.getMax()));
+					double avgTime = stats.getAvg();
+					writer.print("\t"+f(avgTime));
+					writer.print("\t"+f1(avgTime > 0.0 ? 1.0/avgTime : 0.0));
+					writer.print("\t"+f(stats.getMedian()));
+					stats.measuredTimes.forEach( t -> writer.print("\t"+f(t)) );
 					writer.println();
 				}
 			}
 		} catch (FileNotFoundException e) {
 			System.out.println("Reading file error: "+e.getMessage());
 		}
+	}
+
+
+	/** f = format the number */
+	public static String f(double val) {
+		return String.format("%.3f", val);
+	}
+
+	public static String f1(double val) {
+		return String.format("%.1f", val);
 	}
 }
