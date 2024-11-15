@@ -42,8 +42,8 @@ public class BenchmarkMeasuring {
 
 
 	private final static String MEASURING_STATS_CATEGORY_COMMANDS = "Avg per command";
-	private final static String MEASURING_STATS_CATEGORY_TS_WINDOWS = "All TrackSchemes";
-	private final static String MEASURING_STATS_CATEGORY_BDV_WINDOWS = "All BigDataViewers";
+	private final static String MEASURING_STATS_CATEGORY_TS_WINDOWS = "Avg per TrackSchemes";
+	private final static String MEASURING_STATS_CATEGORY_BDV_WINDOWS = "Avg per BigDataViewers";
 
 	//Map< round, Map<source,Measurement> >
 	//where Measurement is source(as String) and List<times(as doubles)>
@@ -62,10 +62,12 @@ public class BenchmarkMeasuring {
 	public void recordMeasurements(final Map<String,Integer> expectingNowTheseWindowNames,
 	                               final BenchmarkLanguage tokenizer) {
 		final Map<String, BenchmarkMeasurement> stats = measurements.get(currentRound);
-		final String windowType = tokenizer.getCurrentWindowType() == BenchmarkLanguage.WindowType.TS
-				  ? MEASURING_STATS_CATEGORY_TS_WINDOWS : MEASURING_STATS_CATEGORY_BDV_WINDOWS;
 		double perCommand_windowsTimesSum = 0.0;
 		int perCommand_windowsCount = 0;
+		double perTS_windowsTimesSum = 0.0;
+		int perTS_windowsCount = 0;
+		double perBDV_windowsTimesSum = 0.0;
+		int perBDV_windowsCount = 0;
 
 		final int tableColumn = tableHeader.size();
 		tableHeader.add(tokenizer.getCurrentToken());
@@ -93,15 +95,24 @@ public class BenchmarkMeasuring {
 				//per window, per type of window (BDV vs TS), totals per command
 				//System.out.println(windowName+" needed "+time+" ms");
 				stats.get(windowName).add(time, tableColumn);
-				stats.get(windowType).add(time, tableColumn);
+				if (windowName.startsWith("BenchBDV")) {
+					perBDV_windowsTimesSum += time;
+					perBDV_windowsCount++;
+				} else if (windowName.startsWith("BenchTS")) {
+					perTS_windowsTimesSum += time;
+					perTS_windowsCount++;
+				}
 				perCommand_windowsTimesSum += time;
 				perCommand_windowsCount++;
 			}
 		}
 
+		if (perTS_windowsCount == 0) perTS_windowsCount = 1; //NB: keeps the avg time to 0.0 anyway
+		stats.get(MEASURING_STATS_CATEGORY_TS_WINDOWS).add( perTS_windowsTimesSum / (double)perTS_windowsCount, tableColumn );
+		if (perBDV_windowsCount == 0) perBDV_windowsCount = 1; //NB: keeps the avg time to 0.0 anyway
+		stats.get(MEASURING_STATS_CATEGORY_BDV_WINDOWS).add( perBDV_windowsTimesSum / (double)perBDV_windowsCount, tableColumn );
 		if (perCommand_windowsCount == 0) perCommand_windowsCount = 1; //NB: keeps the avg time to 0.0 anyway
-		stats.get(MEASURING_STATS_CATEGORY_COMMANDS)
-				  .add( perCommand_windowsTimesSum / (double)perCommand_windowsCount, tableColumn );
+		stats.get(MEASURING_STATS_CATEGORY_COMMANDS).add( perCommand_windowsTimesSum / (double)perCommand_windowsCount, tableColumn );
 
 		//check if there are some unmarked windows?
 		for (String windowName : expectingNowTheseWindowNames.keySet()) {
@@ -133,7 +144,6 @@ public class BenchmarkMeasuring {
 			writer.print("source\tround\ttotal time\tmin\tmax\tavg\tavg FPS\tmedian");
 			for (String cmd : tableHeader) writer.print("\t"+cmd);
 			//if (optionalExtraInfo != null) writer.print(optionalExtraInfo);
-			for (int i = 0; i < 200; ++i) writer.print("\tT"); //TODO fake 200 values to have 200 columns introduced in the CSV file header....
 			writer.println();
 
 			for (String source : sources) {
