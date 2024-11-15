@@ -124,8 +124,8 @@ public class BenchmarkMeasuring {
 		try (PrintWriter writer = new PrintWriter(pathToCSV))
 		{
 			//writer.print("# Benchmarked: "); writer.println(LocalDateTime.now());
-			//writer.print("# Columns: source\tround\tmin\tmax\tavg\tmedian\tindividual times in milliseconds");
-			writer.print("source\tround\ttotal time\tmin\tmax\tavg\tmedian\tindividual times in milliseconds");
+			//writer.print("# Columns: source\tround\tmin\tmax\tavg\tmedian\tindividual times in seconds");
+			writer.print("source\tround\ttotal time\tmin\tmax\tavg\tmedian\tindividual times in seconds");
 			if (optionalExtraInfo != null) writer.print(optionalExtraInfo);
 			for (int i = 0; i < 200; ++i) writer.print("\tT"); //TODO fake 200 values to have 200 columns introduced in the CSV file header....
 			writer.println();
