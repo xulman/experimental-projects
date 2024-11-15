@@ -8,6 +8,7 @@ import org.mastodon.mamut.views.trackscheme.MamutViewTrackScheme;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,13 +50,14 @@ public class BenchmarkMeasuring {
 	private final Map<Integer, Map<String,BenchmarkMeasurement>> measurements;
 	int currentRound = 1; //NB 1-based counter (besides, it's an _index_ to a map, _not an offset_ to a buffer...)
 
-	public void setRound(int r) {
-		currentRound = r;
-	}
 	public void nextRound() {
 		currentRound++;
+		//let the header build again, it will build the same one as before (because we're repeating the same benchmark rounds),
+		//and we need it grow (not stay on its final size) to know where to currently position incoming time measurements/values
+		tableHeader.clear();
 	}
 
+	private final List<String> tableHeader = new ArrayList<>(300);
 
 	public void recordMeasurements(final Map<String,Integer> expectingNowTheseWindowNames,
 	                               final BenchmarkLanguage tokenizer) {
@@ -64,6 +66,9 @@ public class BenchmarkMeasuring {
 				  ? MEASURING_STATS_CATEGORY_TS_WINDOWS : MEASURING_STATS_CATEGORY_BDV_WINDOWS;
 		double perCommand_windowsTimesSum = 0.0;
 		int perCommand_windowsCount = 0;
+
+		final int tableColumn = tableHeader.size();
+		tableHeader.add(tokenizer.getCurrentToken());
 
 		final TimeReporter times = TimeReporter.getInstance();
 		for (String windowName : times.observedTimes.keySet()) {
@@ -87,16 +92,16 @@ public class BenchmarkMeasuring {
 			for (double time : times.observedTimes.get(windowName)) {
 				//per window, per type of window (BDV vs TS), totals per command
 				//System.out.println(windowName+" needed "+time+" ms");
-				stats.get(windowName).measuredTimes.add(time);
-				stats.get(windowType).measuredTimes.add(time);
+				stats.get(windowName).add(time, tableColumn);
+				stats.get(windowType).add(time, tableColumn);
 				perCommand_windowsTimesSum += time;
 				perCommand_windowsCount++;
 			}
 		}
 
 		if (perCommand_windowsCount == 0) perCommand_windowsCount = 1; //NB: keeps the avg time to 0.0 anyway
-		stats.get(MEASURING_STATS_CATEGORY_COMMANDS).measuredTimes
-				  .add( perCommand_windowsTimesSum / (double)perCommand_windowsCount );
+		stats.get(MEASURING_STATS_CATEGORY_COMMANDS)
+				  .add( perCommand_windowsTimesSum / (double)perCommand_windowsCount, tableColumn );
 
 		//check if there are some unmarked windows?
 		for (String windowName : expectingNowTheseWindowNames.keySet()) {
@@ -125,8 +130,9 @@ public class BenchmarkMeasuring {
 		{
 			//writer.print("# Benchmarked: "); writer.println(LocalDateTime.now());
 			//writer.print("# Columns: source\tround\tmin\tmax\tavg\tmedian\tindividual times in seconds");
-			writer.print("source\tround\ttotal time\tmin\tmax\tavg\tavg FPS\tmedian\tindividual times in seconds");
-			if (optionalExtraInfo != null) writer.print(optionalExtraInfo);
+			writer.print("source\tround\ttotal time\tmin\tmax\tavg\tavg FPS\tmedian");
+			for (String cmd : tableHeader) writer.print("\t"+cmd);
+			//if (optionalExtraInfo != null) writer.print(optionalExtraInfo);
 			for (int i = 0; i < 200; ++i) writer.print("\tT"); //TODO fake 200 values to have 200 columns introduced in the CSV file header....
 			writer.println();
 
@@ -153,8 +159,8 @@ public class BenchmarkMeasuring {
 
 
 	/** f = format the number */
-	public static String f(double val) {
-		return String.format("%.3f", val);
+	public static String f(Double val) {
+		return val == null ? "" : String.format("%.3f", val);
 	}
 
 	public static String f1(double val) {
