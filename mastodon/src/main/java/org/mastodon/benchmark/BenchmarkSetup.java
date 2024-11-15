@@ -329,7 +329,10 @@ public class BenchmarkSetup implements Runnable {
 
 				if (millisBetweenCommands > 0 && waitNormally) waitThisLong(millisBetweenCommands, "a bit until the command finishes.");
 				//reporting... (now that we have hopefully waited long enough (for the windows to finish their command))
-				if (doMeasureCommands) measurings.recordMeasurements(currentlyMeasuringTheseWindowNames, tokenizer);
+				if (doMeasureCommands && tokenizer.getCurrentAction() != BenchmarkLanguage.ActionType.W) {
+					//NB: does make sense to report only for non-W commands (as during W no events should actually come up!)
+					measurings.recordMeasurements(currentlyMeasuringTheseWindowNames, tokenizer);
+				}
 			} while (loopingCommands.size() > 0);
 			tokenizer.moveToNextToken();
 		}
