@@ -123,13 +123,12 @@ public class BenchmarkMeasuring {
 
 		try (PrintWriter writer = new PrintWriter(pathToCSV))
 		{
-			writer.print("# Benchmarked: "); writer.println(LocalDateTime.now());
-			writer.print("# Columns: source\tround\tmin\tmax\tavg\tmedian\tindividual times in milliseconds");
-			if (optionalExtraInfo != null) {
-				writer.println(optionalExtraInfo);
-			} else {
-				writer.println();
-			}
+			//writer.print("# Benchmarked: "); writer.println(LocalDateTime.now());
+			//writer.print("# Columns: source\tround\tmin\tmax\tavg\tmedian\tindividual times in milliseconds");
+			writer.print("source\tround\tmin\tmax\tavg\tmedian\tindividual times in milliseconds");
+			if (optionalExtraInfo != null) writer.print(optionalExtraInfo);
+			for (int i = 0; i < 200; ++i) writer.print("\tT"); //TODO fake 200 values to have 200 columns introduced in the CSV file header....
+			writer.println();
 
 			for (String source : sources) {
 				for (int round : measurements.keySet()) {
