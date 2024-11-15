@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.Map;
+import java.util.Set;
 
 public class BenchmarkSetup implements Runnable {
 
@@ -255,7 +256,6 @@ public class BenchmarkSetup implements Runnable {
 		while (tokenizer.isTokenAvailable()) {
 			do {
 				System.out.println("executing command: "+tokenizer.getCurrentToken());
-				boolean waitNormally = true;
 				currentlyMeasuringTheseWindowNames.clear();
 
 				final int winIdx = tokenizer.getCurrentWindowNumber();
@@ -279,9 +279,6 @@ public class BenchmarkSetup implements Runnable {
 						}
 					} else if (act == BenchmarkLanguage.ActionType.F) {
 						doCommandF(tokenizer, doMeasureCommands);
-					} else if (act == BenchmarkLanguage.ActionType.W) {
-						doCommandW(tokenizer);
-						waitNormally = false;
 					} else {
 						System.out.println("NOT SUPPORTED YET");
 						//TODO...
@@ -318,16 +315,13 @@ public class BenchmarkSetup implements Runnable {
 						}
 					} else if (act == BenchmarkLanguage.ActionType.F) {
 						doCommandF(tokenizer, doMeasureCommands);
-					} else if (act == BenchmarkLanguage.ActionType.W) {
-						doCommandW(tokenizer);
-						waitNormally = false;
 					} else {
 						System.out.println("NOT SUPPORTED TOKEN");
 						//TODO...
 					}
 				}
 
-				if (millisBetweenCommands > 0 && waitNormally) waitThisLong(millisBetweenCommands, "a bit until the command finishes.");
+				if (millisBetweenCommands > 0) waitForWinsAtMostThisLong(currentlyMeasuringTheseWindowNames.keySet(), millisBetweenCommands);
 				//reporting... (now that we have hopefully waited long enough (for the windows to finish their command))
 				if (doMeasureCommands) measurings.recordMeasurements(currentlyMeasuringTheseWindowNames, tokenizer);
 			} while (loopingCommands.size() > 0);
@@ -388,5 +382,31 @@ public class BenchmarkSetup implements Runnable {
 	public void waitThisLong(final long periodInMillis, final String reasonForWaiting) {
 		System.out.println("  -> Benchmark thread: Will wait "+reasonForWaiting);
 		waitThisLong(periodInMillis);
+	}
+
+	public void waitForWinsAtMostThisLong(final Set<String> windowNames, final long periodInMillis) {
+		System.out.println("  -> Benchmark thread: Going to wait not more than "+periodInMillis+" ms");
+
+		final long waitingGranularity = 500; //millis
+		long waitingSoFar = 0;
+		Map<String, List<Double>> observedWins = TimeReporter.getInstance().observedTimes;
+
+		boolean keepWaiting = true;
+		try {
+			while (keepWaiting && waitingSoFar < periodInMillis) {
+				Thread.sleep(waitingGranularity);
+				waitingSoFar += waitingGranularity;
+
+				//check and possible flip the 'keepWaiting'
+				keepWaiting = false;
+				for (String w : windowNames) { if (!observedWins.containsKey(w)) keepWaiting = true; }
+			}
+		} catch (InterruptedException e) {
+			System.out.println("Interrupted while waiting during benchmark: "+e.getMessage());
+		}
+
+		System.out.println("  -> Benchmark thread: Finished the waiting after "+waitingSoFar+ " ms...");
+		//no checks!
+		//this method really should only wait at most some time, and do nothing more
 	}
 }
