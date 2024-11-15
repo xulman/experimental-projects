@@ -255,7 +255,6 @@ public class BenchmarkSetup implements Runnable {
 		while (tokenizer.isTokenAvailable()) {
 			do {
 				System.out.println("executing command: "+tokenizer.getCurrentToken());
-				boolean waitNormally = true;
 				currentlyMeasuringTheseWindowNames.clear();
 
 				final int winIdx = tokenizer.getCurrentWindowNumber();
@@ -279,9 +278,6 @@ public class BenchmarkSetup implements Runnable {
 						}
 					} else if (act == BenchmarkLanguage.ActionType.F) {
 						doCommandF(tokenizer, doMeasureCommands);
-					} else if (act == BenchmarkLanguage.ActionType.W) {
-						doCommandW(tokenizer);
-						waitNormally = false;
 					} else {
 						System.out.println("NOT SUPPORTED YET");
 						//TODO...
@@ -318,21 +314,15 @@ public class BenchmarkSetup implements Runnable {
 						}
 					} else if (act == BenchmarkLanguage.ActionType.F) {
 						doCommandF(tokenizer, doMeasureCommands);
-					} else if (act == BenchmarkLanguage.ActionType.W) {
-						doCommandW(tokenizer);
-						waitNormally = false;
 					} else {
 						System.out.println("NOT SUPPORTED TOKEN");
 						//TODO...
 					}
 				}
 
-				if (millisBetweenCommands > 0 && waitNormally) waitThisLong(millisBetweenCommands, "a bit until the command finishes.");
+				if (millisBetweenCommands > 0) waitThisLong(millisBetweenCommands, "a bit until the command finishes.");
 				//reporting... (now that we have hopefully waited long enough (for the windows to finish their command))
-				if (doMeasureCommands && tokenizer.getCurrentAction() != BenchmarkLanguage.ActionType.W) {
-					//NB: does make sense to report only for non-W commands (as during W no events should actually come up!)
-					measurings.recordMeasurements(currentlyMeasuringTheseWindowNames, tokenizer);
-				}
+				if (doMeasureCommands) measurings.recordMeasurements(currentlyMeasuringTheseWindowNames, tokenizer);
 			} while (loopingCommands.size() > 0);
 			tokenizer.moveToNextToken();
 		}
