@@ -125,7 +125,7 @@ public class BenchmarkMeasuring {
 		{
 			//writer.print("# Benchmarked: "); writer.println(LocalDateTime.now());
 			//writer.print("# Columns: source\tround\tmin\tmax\tavg\tmedian\tindividual times in milliseconds");
-			writer.print("source\tround\tmin\tmax\tavg\tmedian\tindividual times in milliseconds");
+			writer.print("source\tround\ttotal time\tmin\tmax\tavg\tmedian\tindividual times in milliseconds");
 			if (optionalExtraInfo != null) writer.print(optionalExtraInfo);
 			for (int i = 0; i < 200; ++i) writer.print("\tT"); //TODO fake 200 values to have 200 columns introduced in the CSV file header....
 			writer.println();
@@ -135,6 +135,7 @@ public class BenchmarkMeasuring {
 					if (!measurements.get(round).containsKey(source)) continue;
 					final BenchmarkMeasurement stats = measurements.get(round).get(source);
 					writer.print(stats.sourceName+"\t"+round);
+					writer.print("\t"+stats.getSum());
 					writer.print("\t"+stats.getMin());
 					writer.print("\t"+stats.getMax());
 					writer.print("\t"+stats.getAvg());

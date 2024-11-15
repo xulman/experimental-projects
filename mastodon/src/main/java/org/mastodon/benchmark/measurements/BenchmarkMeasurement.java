@@ -14,6 +14,10 @@ public class BenchmarkMeasurement {
 		this.measuredTimes = new ArrayList<>(500);
 	}
 
+	public double getSum() {
+		return measuredTimes.stream().reduce(0.0, Double::sum);
+	}
+
 	public double getMin() {
 		if (measuredTimes.isEmpty()) return 0;
 		return measuredTimes.stream().min(Double::compareTo).get();
