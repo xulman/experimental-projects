@@ -2,7 +2,9 @@ package org.mastodon.benchmark.measurements;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class BenchmarkMeasurement {
 
@@ -12,6 +14,21 @@ public class BenchmarkMeasurement {
 	public BenchmarkMeasurement(final String sourceName) {
 		this.sourceName = sourceName;
 		this.measuredTimes = new ArrayList<>(500);
+	}
+
+	/** Enlists the given 'value' to {@link org.mastodon.benchmark.measurements.BenchmarkMeasurement#measuredTimes}
+	    to end up at index 'toPosition'. */
+	public void add(double value, int toPosition) {
+		while (measuredTimes.size() < toPosition) measuredTimes.add(null);
+		measuredTimes.add(value);
+	}
+
+	public Stream<Double> streamOfValidOnly() {
+		return measuredTimes.stream().filter(Objects::nonNull);
+	}
+
+	public int numOfValidOnly() {
+		return (int)measuredTimes.stream().filter(Objects::nonNull).count();
 	}
 
 	public double getSum() {
