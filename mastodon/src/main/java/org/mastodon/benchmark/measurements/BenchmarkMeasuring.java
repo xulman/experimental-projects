@@ -170,7 +170,7 @@ public class BenchmarkMeasuring {
 
 	/** f = format the number */
 	public static String f(Double val) {
-		return val == null ? "" : String.format("%.3f", val);
+		return val == null ? "" : String.format("%.5f", val);
 	}
 
 	public static String f1(double val) {
