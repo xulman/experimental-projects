@@ -191,7 +191,6 @@ public class BenchmarkSetup implements Runnable {
 			executeInstructions(instructions.benchmarkExecutionSequence, instructions.millisToWaitAfterEachBenchmarkAction, measurings);
 			System.out.println("Benchmark is over.");
 			TimeReporter.getInstance().stopReportingNow();
-			if (instructions.measurementsReportsAlsoPerRound) measurings.nextRound();
 
 			if (round < instructions.benchmarkRounds) {
 				//round(s) remaining.... we have to reset the env
@@ -199,6 +198,7 @@ public class BenchmarkSetup implements Runnable {
 				executeInstructions(instructions.benchmarkInitializationSequence, 0, null);
 				waitThisLong(instructions.millisToWaitAfterInitialization, "until the world calms down.");
 				System.out.println("All "+allWindows.size()+" benchmarked windows are ready.");
+				if (instructions.measurementsReportsAlsoPerRound) measurings.nextRound();
 			}
 		}
 
@@ -208,7 +208,7 @@ public class BenchmarkSetup implements Runnable {
 					  +instructions.howManyBDVsToOpen+" BDV and "
 					  +instructions.howManyTSsToOpen+" TS windows doing "
 					  +instructions.benchmarkExecutionSequence+"]";
-			measurings.exportMeasurements(instructions.measurementsCsvFilename, optionalInfo);
+			measurings.exportMeasurementsToHorizontalCsv(instructions.measurementsCsvFilename, optionalInfo);
 		}
 	}
 
