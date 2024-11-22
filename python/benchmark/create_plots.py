@@ -19,15 +19,24 @@ csv_table = pd.read_csv(csv_file, delimiter='\t')
 x_labels = list_columns_with_data(csv_table)
 
 def plot_as_individual_lines(table, x_labels, source:str):
+    plt.figure(figsize=(8,4))
     x_tics = range(len(x_labels))
     for row_idx in list_rows_with_source(table,source):
         y_values = [ table[col_label][row_idx] for col_label in x_labels ]
         #plt.plot(x_labels,y_values,'-o')
         line_label = source+str(table['round'][row_idx])
         plt.plot(x_tics,y_values,'-o',markersize=3,label=line_label)
+    #
+    axes = plt.gca()
+    axes.set_ylabel("Command time (seconds)")
+    axes.set_xlabel("Individual commands")
+    axes.set_xticks(x_tics, x_labels, rotation=90)
+    plt.tight_layout()
+    plt.show()
 
 
 def plot_as_bar_plot(table, x_labels, source:str):
+    plt.figure(figsize=(8,4))
     rows_idxs = list_rows_with_source(table,source)
     vals = np.zeros([len(x_labels),len(rows_idxs)], dtype=float) # [commands, rounds]
     #
@@ -42,6 +51,13 @@ def plot_as_bar_plot(table, x_labels, source:str):
     #
     x_tics = range(len(x_labels))
     plt.errorbar(x_tics,stats[:,0], yerr=stats[:,1])
+    #
+    axes = plt.gca()
+    axes.set_ylabel("Command time (seconds)")
+    axes.set_xlabel("Individual commands")
+    axes.set_xticks(x_tics, x_labels, rotation=90)
+    plt.tight_layout()
+    plt.show()
 
 
 # ----------------------------------------------------------------------
