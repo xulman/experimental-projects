@@ -11,7 +11,7 @@ public class TsViewsTransition implements MultipleStepsCommand {
 		this.associatedTS = trackSchemeWindow;
 
 		this.fromST = fromView;
-		this.steps_done = 0;
+		this.steps_done = 1;
 		this.steps_total = steps > 0 ? steps : 1;
 
 		dxMinX = (toView.getMinX() - fromST.getMinX()) / (double)steps_total;
@@ -19,9 +19,6 @@ public class TsViewsTransition implements MultipleStepsCommand {
 		dyMinY = (toView.getMinY() - fromST.getMinY()) / (double)steps_total;
 		dyMaxY = (toView.getMaxY() - fromST.getMaxY()) / (double)steps_total;
 		currST = fromST.copy();
-
-		//moves TS to the initial view
-		doNext();
 	}
 
 	private final MamutViewTrackScheme associatedTS;
