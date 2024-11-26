@@ -236,8 +236,6 @@ public class BenchmarkSetup implements Runnable {
 				System.out.println("  Focus on spot "+tokenizer.getSpotLabel());
 			} else if (act == BenchmarkLanguage.ActionType.R) {
 				System.out.println("  Rotate using "+tokenizer.getFullRotationSteps()+" steps");
-			} else if (act == BenchmarkLanguage.ActionType.W) {
-				System.out.println("  Wait for extra "+tokenizer.getMillisToWait()+" milliseconds");
 			}
 
 			tokenizer.moveToNextToken();
@@ -372,11 +370,6 @@ public class BenchmarkSetup implements Runnable {
 				System.out.println("Couldn't find the spot with the label >>" + spotLabel + "<<, skipping.");
 			}
 		}
-	}
-
-	private void doCommandW(final BenchmarkLanguage tokenizer) {
-		long millis = tokenizer.getMillisToWait();
-		waitThisLong(millis, "extra until the previous command finishes.");
 	}
 
 
