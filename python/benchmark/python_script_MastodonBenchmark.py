@@ -13,11 +13,14 @@ csv_files = [
 # Sources to plot
 # sources = ["Avg per BigDataViewers", "Avg per TrackSchemes", "Avg per command"]  # Add more sources as needed
 # sources = ["Avg per BigDataViewers", "Avg per TrackSchemes"]  # Add more sources as needed
-sources = ["Avg per BigDataViewers"]
+sources = ["Avg per command"]
 
 # Commands to consider only
-commands = ["BDV_T"]
+commands = ["BDV_T", "TS_B"] # Add more commands as needed
+#commands = ["BDV_T"]
 
+
+# ==================================================================================================================
 
 # Colors for multiple datasets and sources
 colors = ['#0072B2', '#D55E00', '#009E73', '#CC79A7', '#D73027', '#F0E442', '#56B4E9']
@@ -33,6 +36,14 @@ def clean_column_labels(labels):
 # List rows matching the source
 def list_rows_with_source(table, src: str) -> list[int]:
     return [i for i, row_header in enumerate(table['source']) if row_header.startswith(src)]
+
+# Checks if the query_column is among any of the wanted_columns
+def is_matching_column(query_column, wanted_columns):
+    for w in wanted_columns:
+        if re.match(f"{w}", query_column):
+            return True
+    return False
+
 
 # Plot function with error bars
 def plot_with_error_bars(file_paths, sources, output_dir):
@@ -51,14 +62,10 @@ def plot_with_error_bars(file_paths, sources, output_dir):
         csv_table = pd.read_csv(file_path, delimiter='\t')
         csv_table.columns = csv_table.columns.str.strip()
 
-        # Filter BDV_T columns dynamically
-        # What about TS??
-        bdv_columns = [col for col in csv_table.columns if re.match(r"BDV_T\d+", col)]
-        csv_table[bdv_columns] = csv_table[bdv_columns].apply(pd.to_numeric, errors='coerce')
-
         # selected columns to only work with
-        columns = bdv_columns
+        columns = [col for col in csv_table.columns if is_matching_column(col, commands)]
         columns_clean = clean_column_labels(columns)
+        csv_table[columns] = csv_table[columns].apply(pd.to_numeric, errors='coerce')
 
         x_tics = range(len(columns_clean))
 
@@ -115,6 +122,7 @@ def plot_with_error_bars(file_paths, sources, output_dir):
 
     # Show the plot
     plt.show()
+
 
 # Call the function to plot with error bars
 plot_with_error_bars(csv_files, sources, output_dir)
