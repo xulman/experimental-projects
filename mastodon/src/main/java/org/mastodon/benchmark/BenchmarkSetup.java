@@ -170,6 +170,7 @@ public class BenchmarkSetup implements Runnable {
 		}
 
 		System.out.println("All "+allWindows.size()+" benchmarked windows were opened.");
+		waitThisLong(instructions.millisToWaitAfterInitialization, "until the world calms down.");
 		//explainInstructions( instructions.benchmarkInitializationSequence );
 
 		try {
