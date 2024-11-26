@@ -300,8 +300,7 @@ public class BenchmarkSetup implements Runnable {
 							if (!loopingCommands.get(0).hasNext()) loopingCommands.clear();
 						}
 					} else {
-						System.out.println("NOT SUPPORTED YET");
-						//TODO...
+						throw new IllegalArgumentException("Benchmark ran into unsupported command "+tokenizer.getCurrentToken());
 					}
 				} else {
 					if (winIdx > bdvWindows.size() || (winIdx == -1 && bdvWindows.isEmpty())) {
@@ -316,7 +315,7 @@ public class BenchmarkSetup implements Runnable {
 						if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(wins.size()+1);
 						final String key = String.valueOf(tokenizer.getBookmarkKey());
 						wins.forEach(w -> windowsManager.visitBookmarkBDV(w,key));
-					} else if (act == BenchmarkLanguage.ActionType.T) {
+					} else if (act == BenchmarkLanguage.ActionType.T && winIdx == -1) { //NB: _T works only for all windows, not for just one particular
 						if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(wins.size()+1);
 						final int time = tokenizer.getTimepoint();
 						wins.forEach(w -> windowsManager.changeTimepoint(w,time));
@@ -336,8 +335,7 @@ public class BenchmarkSetup implements Runnable {
 					} else if (act == BenchmarkLanguage.ActionType.F) {
 						doCommandF(tokenizer, doMeasureCommands);
 					} else {
-						System.out.println("NOT SUPPORTED TOKEN");
-						//TODO...
+						throw new IllegalArgumentException("Benchmark ran into unsupported command "+tokenizer.getCurrentToken());
 					}
 				}
 
