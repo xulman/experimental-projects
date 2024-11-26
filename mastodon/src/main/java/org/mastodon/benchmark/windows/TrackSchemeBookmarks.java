@@ -73,6 +73,10 @@ public class TrackSchemeBookmarks {
 		associatedTS.getFrame().getTrackschemePanel().getScreenTransform().set(bookmarks[bookmarkIndex]);
 	}
 
+	public ScreenTransform getBookmark(final int bookmarkIndex) {
+		return bookmarks[bookmarkIndex];
+	}
+
 	// ================== Behaviours ==================
 	private final Behaviours behaviours = new Behaviours( new InputTriggerConfig() );
 

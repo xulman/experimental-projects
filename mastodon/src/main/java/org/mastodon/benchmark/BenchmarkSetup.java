@@ -10,6 +10,7 @@ import org.jdom2.input.SAXBuilder;
 import org.mastodon.benchmark.measurements.BenchmarkMeasuring;
 import org.mastodon.benchmark.windows.MultipleStepsCommand;
 import org.mastodon.benchmark.windows.TrackSchemeBookmarks;
+import org.mastodon.benchmark.windows.TsViewsTransition;
 import org.mastodon.benchmark.windows.WindowsManager;
 import org.mastodon.mamut.MainWindow;
 import org.mastodon.mamut.ProjectModel;
@@ -35,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Optional;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class BenchmarkSetup implements Runnable {
 
@@ -279,6 +281,25 @@ public class BenchmarkSetup implements Runnable {
 						}
 					} else if (act == BenchmarkLanguage.ActionType.F) {
 						doCommandF(tokenizer, doMeasureCommands);
+					} else if (act == BenchmarkLanguage.ActionType.Z) {
+						if (loopingCommands.size() == 0) {
+							//the first handling of this particular command, let's prepare and populate the "inner loop" list
+							AtomicInteger offset = new AtomicInteger(0);
+							wins.forEach( w -> {
+								loopingCommands.add( new TsViewsTransition( w,
+										  bms.get(offset.get()).getBookmark( (int)tokenizer.getFromBookmark() - 49 ),
+										  bms.get(offset.get()).getBookmark( (int)tokenizer.getToBookmark() - 49 ),
+										  tokenizer.getFromToSteps() ) );
+								offset.incrementAndGet();
+							} );
+						}
+						if (loopingCommands.size() > 0 && loopingCommands.get(0).hasNext()) {
+							//here, do the action, and perhaps clean the "inner loop" list if no further actions are available
+							loopingCommands.forEach( cmd -> System.out.println("  -> "+cmd.reportCurrentStep()) );
+							if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(wins.size()+1);
+							loopingCommands.forEach( MultipleStepsCommand::doNext );
+							if (!loopingCommands.get(0).hasNext()) loopingCommands.clear();
+						}
 					} else {
 						System.out.println("NOT SUPPORTED YET");
 						//TODO...
