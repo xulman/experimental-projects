@@ -408,7 +408,7 @@ public class BenchmarkSetup implements Runnable {
 	public void waitForWinsAtMostThisLong(final Set<String> windowNames, final long periodInMillis) {
 		System.out.println("  -> Benchmark thread: Going to wait not more than "+periodInMillis+" ms");
 
-		final long waitingGranularity = 500; //millis
+		final long waitingGranularity = 100; //millis
 		long waitingSoFar = 0;
 		Map<String, List<Double>> observedWins = TimeReporter.getInstance().observedTimes;
 
