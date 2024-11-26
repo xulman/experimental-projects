@@ -262,9 +262,9 @@ public class BenchmarkSetup implements Runnable {
 
 				final int winIdx = tokenizer.getCurrentWindowNumber();
 				if (tokenizer.getCurrentWindowType() == BenchmarkLanguage.WindowType.TS) {
-					if (winIdx > tsWindows.size()) {
-						System.out.println("Skipping a command that requests window TS #"+winIdx+", only "+tsWindows.size()+" TS windows are available.");
-						tokenizer.moveToNextToken();
+					if (winIdx > tsWindows.size() || (winIdx == -1 && tsWindows.isEmpty())) {
+						if (winIdx == -1) System.out.println("Skipping a command that requests TS windows because no TS windows are available.");
+						else System.out.println("Skipping a command that requests window TS #"+winIdx+", only "+tsWindows.size()+" TS windows are available.");
 						continue;
 					}
 					List<MamutViewTrackScheme> wins = winIdx == -1 ? tsWindows : Collections.singletonList( tsWindows.get( winIdx-1 ) );
@@ -305,9 +305,9 @@ public class BenchmarkSetup implements Runnable {
 						//TODO...
 					}
 				} else {
-					if (winIdx > bdvWindows.size()) {
-						System.out.println("Skipping a command that requests window BDV #"+winIdx+", only "+bdvWindows.size()+" BDV windows are available.");
-						tokenizer.moveToNextToken();
+					if (winIdx > bdvWindows.size() || (winIdx == -1 && bdvWindows.isEmpty())) {
+						if (winIdx == -1) System.out.println("Skipping a command that requests BDV windows because no BDV windows are available.");
+						else System.out.println("Skipping a command that requests window BDV #"+winIdx+", only "+bdvWindows.size()+" BDV windows are available.");
 						continue;
 					}
 					List<MamutViewBdv> wins = winIdx == -1 ? bdvWindows : Collections.singletonList( bdvWindows.get( winIdx-1 ) );
