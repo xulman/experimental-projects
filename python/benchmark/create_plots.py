@@ -14,6 +14,12 @@ def list_rows_with_source(table, src:str) -> list[int]:
 def list_columns_with_data(table) -> list[str]:
     return [ c for i,c in enumerate(table.columns) if i > 7 ]
 
+def clean_column_labels(labels):
+    """
+    Function to strip `.dot.numbers` from column labels
+    """
+    return [re.sub(r'\.\d+$', '', label) for label in labels]
+
 
 csv_table = pd.read_csv(csv_file, delimiter='\t')
 x_labels = list_columns_with_data(csv_table)
@@ -30,7 +36,7 @@ def plot_as_individual_lines(table, x_labels, source:str):
     axes = plt.gca()
     axes.set_ylabel("Command time (seconds)")
     axes.set_xlabel("Individual commands")
-    axes.set_xticks(x_tics, x_labels, rotation=90)
+    axes.set_xticks(x_tics, clean_column_labels(x_labels), rotation=45)
     plt.tight_layout()
     plt.show()
 
@@ -55,13 +61,12 @@ def plot_as_bar_plot(table, x_labels, source:str):
     axes = plt.gca()
     axes.set_ylabel("Command time (seconds)")
     axes.set_xlabel("Individual commands")
-    axes.set_xticks(x_tics, x_labels, rotation=90)
+    axes.set_xticks(x_tics, clean_column_labels(x_labels), rotation=45)
     plt.tight_layout()
     plt.show()
 
 
 # ----------------------------------------------------------------------
-# re.search(r'T(\d+)', col)
 
 # Improved colorblind-friendly palette
 colors = [
