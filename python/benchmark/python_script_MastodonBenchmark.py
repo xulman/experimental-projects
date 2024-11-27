@@ -58,6 +58,9 @@ def boldface_column_labels(labels, name_pattern):
 def list_rows_with_source(table, src: str) -> list[int]:
     return [i for i, row_header in enumerate(table['source']) if row_header.startswith(src)]
 
+def list_rows_with_spots_counts(table) -> list[int]:
+    return [i for i, row_header in enumerate(table['source']) if row_header.startswith('Spots in this time point')]
+
 # Checks if the query_column is among any of the wanted_columns
 def is_matching_column(query_column, wanted_columns):
     for w in wanted_columns:
@@ -139,6 +142,13 @@ def plot_with_error_bars(file_paths, sources, output_dir):
     plt.ylabel("Command time (seconds)", fontsize=14)
     plt.xlabel("Individual commands", fontsize=14)
     plt.xticks(x_tics, columns_highlight, rotation=90, fontsize=10)
+
+    # Add second axis
+    spot_row = list_rows_with_spots_counts(csv_table)[0]
+    spot_sizes_labels = [ int(csv_table.at[spot_row, col_label]) for col_label in columns ]
+    secax = plt.gca().secondary_xaxis(location="top")
+    secax.set_xlabel("Number of spots", fontsize=14)
+    secax.set_xticks(x_tics, labels=spot_sizes_labels, rotation=90, fontsize=10)
 
 # Disabled for now, as it is drawing black or black... I guess a leftover before the vertical bar came-in
 #    # Apply colors to individual x-axis tick labels
