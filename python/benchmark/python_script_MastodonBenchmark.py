@@ -50,6 +50,10 @@ os.makedirs(output_dir, exist_ok=True)
 def clean_column_labels(labels):
     return [re.sub(r'\.\d+', '', label) for label in labels]
 
+# Function to put columns (that match the provided pattern) into a bold face font
+def boldface_column_labels(labels, name_pattern):
+    return [f"$\\bf{{{col.replace('_', '\\_')}}}$" if col.startswith(name_pattern) else col for col in labels]
+
 # List rows matching the source
 def list_rows_with_source(table, src: str) -> list[int]:
     return [i for i, row_header in enumerate(table['source']) if row_header.startswith(src)]
@@ -121,12 +125,17 @@ def plot_with_error_bars(file_paths, sources, output_dir):
             file_legend_colors.append(color)  # Store the color for the external legend
 
 
+        # Add vertical lines and boldfaced x-labels for BDV_T columns
+        columns_highlight = boldface_column_labels(columns_clean, "BDV_T")
+        bdv_t_indices = [i for i, col in enumerate(columns_clean) if col.startswith("BDV_T")]
+        for idx in bdv_t_indices:
+            plt.axvline(x=idx, color='darkgrey', linestyle='--', linewidth=5, alpha=0.7)
 
     # Customize the plot
     plt.title("Comparison of Single/MultiArrayMemPool", fontsize=15)
     plt.ylabel("Command time (seconds)", fontsize=14)
     plt.xlabel("Individual commands", fontsize=14)
-    plt.xticks(x_tics, columns_clean, rotation=45)
+    plt.xticks(x_tics, columns_highlight, rotation=90, fontsize=10)
 
     # Add gridlines for better readability
     plt.grid(axis='y', linestyle='--', linewidth=0.5, alpha=0.7)
