@@ -176,6 +176,8 @@ public class BenchmarkSetup implements Runnable {
 		try {
 			SwingUtilities.invokeAndWait( () -> {
 				System.out.println("Setting the windows:");
+				this.currentTimePoint = 0; //initiate, but may get updated during the "setting-up sequence"
+				this.numSpotsInThisTimePoint = projectModel.getModel().getSpatioTemporalIndex().getSpatialIndex(currentTimePoint).size();
 				executeInstructions(instructions.benchmarkInitializationSequence, 0, null);
 			} );
 		} catch (InterruptedException|InvocationTargetException  e) {
@@ -241,6 +243,9 @@ public class BenchmarkSetup implements Runnable {
 			tokenizer.moveToNextToken();
 		}
 	}
+
+	private int currentTimePoint = 0;
+	private int numSpotsInThisTimePoint = -1;
 
 	protected void executeInstructions(final String commands, final long millisBetweenCommands, final BenchmarkMeasuring measurings) {
 		if (commands == null || commands.isEmpty()) {
@@ -312,12 +317,14 @@ public class BenchmarkSetup implements Runnable {
 					wins.forEach(w -> currentlyMeasuringTheseWindowNames.put( w.getViewerPanelMamut().getDisplay().getDisplayName(),1 ));
 					BenchmarkLanguage.ActionType act = tokenizer.getCurrentAction();
 					if (act == BenchmarkLanguage.ActionType.B) {
-						if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(wins.size()+1);
 						final String key = String.valueOf(tokenizer.getBookmarkKey());
+						if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(wins.size()+1);
 						wins.forEach(w -> windowsManager.visitBookmarkBDV(w,key));
 					} else if (act == BenchmarkLanguage.ActionType.T && winIdx == -1) { //NB: _T works only for all windows, not for just one particular
-						if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(wins.size()+1);
 						final int time = tokenizer.getTimepoint();
+						currentTimePoint = time;
+						numSpotsInThisTimePoint = projectModel.getModel().getSpatioTemporalIndex().getSpatialIndex(currentTimePoint).size();
+						if (doMeasureCommands) TimeReporter.getInstance().startNowAndReportNotMoreThan(wins.size()+1);
 						wins.forEach(w -> windowsManager.changeTimepoint(w,time));
 					} else if (act == BenchmarkLanguage.ActionType.R) {
 						if (loopingCommands.size() == 0) {
@@ -341,7 +348,10 @@ public class BenchmarkSetup implements Runnable {
 
 				if (millisBetweenCommands > 0) waitForWinsAtMostThisLong(currentlyMeasuringTheseWindowNames.keySet(), millisBetweenCommands);
 				//reporting... (now that we have hopefully waited long enough (for the windows to finish their command))
-				if (doMeasureCommands) measurings.recordMeasurements(currentlyMeasuringTheseWindowNames, tokenizer);
+				if (doMeasureCommands) {
+					measurings.recordMeasurements(currentlyMeasuringTheseWindowNames, tokenizer);
+					measurings.recordMeasurements(currentTimePoint, numSpotsInThisTimePoint);
+				}
 			} while (loopingCommands.size() > 0);
 			tokenizer.moveToNextToken();
 		}

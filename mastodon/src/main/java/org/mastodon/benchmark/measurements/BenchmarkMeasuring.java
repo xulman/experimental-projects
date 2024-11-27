@@ -29,6 +29,8 @@ public class BenchmarkMeasuring {
 			sourcesMap.put(MEASURING_STATS_CATEGORY_COMMANDS, new BenchmarkMeasurement(MEASURING_STATS_CATEGORY_COMMANDS));
 			sourcesMap.put(MEASURING_STATS_CATEGORY_TS_WINDOWS, new BenchmarkMeasurement(MEASURING_STATS_CATEGORY_TS_WINDOWS));
 			sourcesMap.put(MEASURING_STATS_CATEGORY_BDV_WINDOWS, new BenchmarkMeasurement(MEASURING_STATS_CATEGORY_BDV_WINDOWS));
+			sourcesMap.put(MEASURING_STATS_CATEGORY_CURR_TIMEPOINT, new BenchmarkMeasurement(MEASURING_STATS_CATEGORY_CURR_TIMEPOINT));
+			sourcesMap.put(MEASURING_STATS_CATEGORY_SPOTS_IN_TIMEPOINT, new BenchmarkMeasurement(MEASURING_STATS_CATEGORY_SPOTS_IN_TIMEPOINT));
 			tsWindows.forEach(win -> {
 				String winName = win.getFrame().getTrackschemePanel().getDisplay().getDisplayName();
 				sourcesMap.put(winName, new BenchmarkMeasurement(winName));
@@ -44,6 +46,8 @@ public class BenchmarkMeasuring {
 	private final static String MEASURING_STATS_CATEGORY_COMMANDS = "Avg per command";
 	private final static String MEASURING_STATS_CATEGORY_TS_WINDOWS = "Avg per TrackSchemes";
 	private final static String MEASURING_STATS_CATEGORY_BDV_WINDOWS = "Avg per BigDataViewers";
+	private final static String MEASURING_STATS_CATEGORY_CURR_TIMEPOINT = "Current time point";
+	private final static String MEASURING_STATS_CATEGORY_SPOTS_IN_TIMEPOINT = "Spots in this time point";
 
 	//Map< round, Map<source,Measurement> >
 	//where Measurement is source(as String) and List<times(as doubles)>
@@ -122,6 +126,13 @@ public class BenchmarkMeasuring {
 						  +"' hasn't been recorded! Increase waiting times, perhaps.");
 			}
 		}
+	}
+
+	public void recordMeasurements(int timepoint, int numOfSpots) {
+		final Map<String, BenchmarkMeasurement> stats = measurements.get(currentRound);
+		final int tableColumn = tableHeader.size()-1;
+		stats.get(MEASURING_STATS_CATEGORY_CURR_TIMEPOINT).add(timepoint, tableColumn);
+		stats.get(MEASURING_STATS_CATEGORY_SPOTS_IN_TIMEPOINT).add(numOfSpots, tableColumn);
 	}
 
 
