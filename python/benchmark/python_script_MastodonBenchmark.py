@@ -152,11 +152,10 @@ def plot_with_error_bars(file_paths, sources, output_dir):
     # or, using normal horizontal text
     #secax.set_xticks(x_tics, labels=spot_sizes_labels, fontsize=10)
 
-# Disabled for now, as it is drawing black or black... I guess a leftover before the vertical bar came-in
-#    # Apply colors to individual x-axis tick labels
-#    ax = plt.gca()
-#    for tick, col in zip(ax.get_xticklabels(), columns_clean):
-#        tick.set_color('black' if col.startswith("BDV_T") else 'black')
+    # Apply colors to individual x-axis tick labels
+    ax = plt.gca()
+    for tick, col in zip(ax.get_xticklabels(), columns_clean):
+        tick.set_color('magenta' if col.startswith("TS") else 'black')
 
     # Add gridlines for better readability
     plt.grid(axis='y', linestyle='--', linewidth=0.5, alpha=0.7)
