@@ -11,19 +11,36 @@ csv_files = [
 ]
 
 # Sources to plot
-# sources = ["Avg per BigDataViewers", "Avg per TrackSchemes", "Avg per command"]  # Add more sources as needed
-# sources = ["Avg per BigDataViewers", "Avg per TrackSchemes"]  # Add more sources as needed
 sources = ["Avg per command"]
 
 # Commands to consider only
-commands = ["BDV_T", "TS_B"] # Add more commands as needed
-#commands = ["BDV_T"]
+commands = ["BDV", "TS"]
+# commands = ["BDV_T", "TS_B"] # Add more commands as needed
+# commands = ["BDV_T"]
 
 
 # ==================================================================================================================
 
 # Colors for multiple datasets and sources
-colors = ['#0072B2', '#D55E00', '#009E73', '#CC79A7', '#D73027', '#F0E442', '#56B4E9']
+colors = [
+    '#0072B2',  # Blue
+    '#D55E00',  # Vermilion
+    '#CC79A7',  # Reddish Purple
+    '#D73027',  # Red
+    '#1B9E77',  # Teal
+    '#7570B3',  # Violet
+    '#66A61E',  # Olive
+    '#E6AB02',  # Mustard Yellow
+    '#A6CEE3',  # Light Blue
+    '#FF7F00',  # Bright Orange
+    '#6A3D9A',  # Purple
+    '#FFFF99',  # Pale Yellow
+    '#B15928'   # Dark Brown
+    '#009E73',  # Green
+    '#E69F00',  # Orange
+    '#A6761D',  # Brown
+    '#56B4E9',  # Sky Blue
+]
 
 # Output directory
 output_dir = os.path.join(os.path.dirname(csv_files[0]), "benchmark_results_plots")
@@ -47,9 +64,10 @@ def is_matching_column(query_column, wanted_columns):
 
 # Plot function with error bars
 def plot_with_error_bars(file_paths, sources, output_dir):
-    plt.figure(figsize=(8, 8))
+    plt.figure(figsize=(16, 8))
 
     file_legend_labels = []  # For the external legend
+    file_legend_colors = []  # To store the corresponding colors for the external legend
     color_idx = 0  # Color index to assign different colors to each source-dataset combination
 
     # Iterate over all input CSV files
@@ -62,7 +80,7 @@ def plot_with_error_bars(file_paths, sources, output_dir):
         csv_table = pd.read_csv(file_path, delimiter='\t')
         csv_table.columns = csv_table.columns.str.strip()
 
-        # selected columns to only work with
+        # Selected columns to only work with
         columns = [col for col in csv_table.columns if is_matching_column(col, commands)]
         columns_clean = clean_column_labels(columns)
         csv_table[columns] = csv_table[columns].apply(pd.to_numeric, errors='coerce')
@@ -86,33 +104,40 @@ def plot_with_error_bars(file_paths, sources, output_dir):
             means = np.nanmean(vals, axis=1)
             stds = np.nanstd(vals, axis=1)
 
+            # Select a color for this dataset-source combination
+            color = colors[color_idx % len(colors)]
+
             # Plot mean with error bars
             plt.errorbar(
                 x_tics, means, yerr=stds, fmt='-o', capsize=5,
                 label=f"Dataset {file_idx + 1}: {source} Mean ± Std",
-                color=colors[color_idx % len(colors)]
+                color=color,
+                markersize=5  # Change this value to adjust the size of the dots
             )
             color_idx += 1  # Increment color index
 
             # Add file information to external legend
             file_legend_labels.append(f"Dataset {file_idx + 1}: {source} from {os.path.basename(file_path)}")
+            file_legend_colors.append(color)  # Store the color for the external legend
+
+
 
     # Customize the plot
-    plt.title("Comparison of Multiple Sources", fontsize=14)
-    plt.ylabel("Command time (seconds)", fontsize=12)
-    plt.xlabel("Individual commands", fontsize=12)
+    plt.title("Comparison of Single/MultiArrayMemPool", fontsize=15)
+    plt.ylabel("Command time (seconds)", fontsize=14)
+    plt.xlabel("Individual commands", fontsize=14)
     plt.xticks(x_tics, columns_clean, rotation=45)
 
     # Add gridlines for better readability
     plt.grid(axis='y', linestyle='--', linewidth=0.5, alpha=0.7)
 
     # Add internal legend (for datasets and sources)
-    plt.legend(loc='upper left', title="Plotted Information")
+    plt.legend(loc='upper left', title="Legend")
 
-    # Add external legend (for file information)
+    # Add external legend (for file information) with matching colors
     plt.gcf().text(1.02, 0.95, "File-to-Dataset Mapping:", fontsize=10, fontweight='bold', ha='left')
-    for idx, label in enumerate(file_legend_labels):
-        plt.gcf().text(1.02, 0.9 - idx * 0.05, label, fontsize=10, ha='left')
+    for idx, (label, color) in enumerate(zip(file_legend_labels, file_legend_colors)):
+        plt.gcf().text(1.02, 0.9 - idx * 0.05, label, fontsize=10, ha='left', color=color)
 
     # Save the plot
     output_file = os.path.join(output_dir, "comparison_plot_multiple_sources.png")
@@ -126,3 +151,4 @@ def plot_with_error_bars(file_paths, sources, output_dir):
 
 # Call the function to plot with error bars
 plot_with_error_bars(csv_files, sources, output_dir)
+
