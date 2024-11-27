@@ -124,12 +124,15 @@ def plot_with_error_bars(file_paths, sources, output_dir):
             file_legend_labels.append(f"Dataset {file_idx + 1}: {source} from {os.path.basename(file_path)}")
             file_legend_colors.append(color)  # Store the color for the external legend
 
+    # -----------------------------------------------------------------------
+    # After all data is plotted, add axes and various visual tweaks
+    # (IMPORTANT: assuming all data yielded the same 'columns')
 
-        # Add vertical lines and boldfaced x-labels for BDV_T columns
-        columns_highlight = boldface_column_labels(columns_clean, "BDV_T")
-        bdv_t_indices = [i for i, col in enumerate(columns_clean) if col.startswith("BDV_T")]
-        for idx in bdv_t_indices:
-            plt.axvline(x=idx, color='darkgrey', linestyle='--', linewidth=5, alpha=0.7)
+    # Add vertical lines and boldfaced x-labels for BDV_T columns
+    columns_highlight = boldface_column_labels(columns_clean, "BDV_T")
+    bdv_t_indices = [i for i, col in enumerate(columns_clean) if col.startswith("BDV_T")]
+    for idx in bdv_t_indices:
+        plt.axvline(x=idx, color='darkgrey', linestyle='--', linewidth=5, alpha=0.7)
 
     # Customize the plot
     plt.title("Comparison of Single/MultiArrayMemPool", fontsize=15)
