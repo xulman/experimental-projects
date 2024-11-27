@@ -70,7 +70,7 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 	private static final String EXP_LINEAGECOLORIZER = "[vexp] random color tags";
 	private static final String EXP_SURFACESPOTS = "[vexp] place surface spots";
 	private static final String EXP_VOLUMESPOTS = "[vexp] place volume spots";
-	private static final String EXP_SIMULATOR = "[vexp] CLsimulator";
+	private static final String EXP_SIMULATOR = "[vexp] simulator";
 	private static final String EXP_BENCHMARK = "[vexp] benchmark";
 
 	private static final String[] EXP_SHIFTSPOTS_KEYS = { "not mapped" };
@@ -95,7 +95,7 @@ public class ExperimentalPluginsFacade extends AbstractContextual implements Mam
 		menuTexts.put( EXP_LINEAGECOLORIZER, "Random Color Lineages" );
 		menuTexts.put( EXP_SURFACESPOTS, "Create Surface Spots" );
 		menuTexts.put( EXP_VOLUMESPOTS, "Create Volume Spots" );
-		menuTexts.put( EXP_SIMULATOR, "CLsim" );
+		menuTexts.put( EXP_SIMULATOR, "Simulator" );
 		menuTexts.put( EXP_BENCHMARK, "BENCHMARK" );
 	}
 	@Override
