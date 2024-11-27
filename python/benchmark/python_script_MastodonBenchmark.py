@@ -146,6 +146,13 @@ def plot_with_error_bars(file_paths, sources, output_dir):
     # Add second axis
     spot_row = list_rows_with_spots_counts(csv_table)[0]
     spot_sizes_labels = [ int(csv_table.at[spot_row, col_label]) for col_label in columns ]
+    # Remove repeating sizes
+    last_size = -1
+    for i in range(len(spot_sizes_labels)):
+        if spot_sizes_labels[i] == last_size:
+            spot_sizes_labels[i] = ""
+        else: last_size = spot_sizes_labels[i]
+
     secax = plt.gca().secondary_xaxis(location="top")
     secax.set_xlabel("Number of spots", fontsize=14)
     secax.set_xticks(x_tics, labels=spot_sizes_labels, rotation=45, ha="left", rotation_mode="anchor", fontsize=10)
