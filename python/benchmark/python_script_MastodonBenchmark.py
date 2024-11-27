@@ -137,6 +137,12 @@ def plot_with_error_bars(file_paths, sources, output_dir):
     plt.xlabel("Individual commands", fontsize=14)
     plt.xticks(x_tics, columns_highlight, rotation=90, fontsize=10)
 
+# Disabled for now, as it is drawing black or black... I guess a leftover before the vertical bar came-in
+#    # Apply colors to individual x-axis tick labels
+#    ax = plt.gca()
+#    for tick, col in zip(ax.get_xticklabels(), columns_clean):
+#        tick.set_color('black' if col.startswith("BDV_T") else 'black')
+
     # Add gridlines for better readability
     plt.grid(axis='y', linestyle='--', linewidth=0.5, alpha=0.7)
 
