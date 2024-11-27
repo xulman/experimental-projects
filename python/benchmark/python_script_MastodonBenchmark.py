@@ -138,17 +138,19 @@ def plot_with_error_bars(file_paths, sources, output_dir):
         plt.axvline(x=idx, color='darkgrey', linestyle='--', linewidth=5, alpha=0.7)
 
     # Customize the plot
-    plt.title("Comparison of Single/MultiArrayMemPool", fontsize=15)
+    plt.title("Comparison of Single/MultiArrayMemPool", fontsize=15, loc="left")
     plt.ylabel("Command time (seconds)", fontsize=14)
     plt.xlabel("Individual commands", fontsize=14)
-    plt.xticks(x_tics, columns_highlight, rotation=90, fontsize=10)
+    plt.xticks(x_tics, columns_highlight, rotation=45, ha="right", rotation_mode="anchor", fontsize=10)
 
     # Add second axis
     spot_row = list_rows_with_spots_counts(csv_table)[0]
     spot_sizes_labels = [ int(csv_table.at[spot_row, col_label]) for col_label in columns ]
     secax = plt.gca().secondary_xaxis(location="top")
     secax.set_xlabel("Number of spots", fontsize=14)
-    secax.set_xticks(x_tics, labels=spot_sizes_labels, rotation=90, fontsize=10)
+    secax.set_xticks(x_tics, labels=spot_sizes_labels, rotation=45, ha="left", rotation_mode="anchor", fontsize=10)
+    # or, using normal horizontal text
+    #secax.set_xticks(x_tics, labels=spot_sizes_labels, fontsize=10)
 
 # Disabled for now, as it is drawing black or black... I guess a leftover before the vertical bar came-in
 #    # Apply colors to individual x-axis tick labels
