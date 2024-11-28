@@ -319,11 +319,17 @@ public class Simulator {
 			}
 			agent.setMostRecentMastodonSpotRepre(auxSpot);
 		});
-		spotsInTotal += agentsContainer.size();
+		final int addingCount = agentsContainer.size();
+		spotsInTotal += addingCount;
 
-		sum_x[time] /= agentsContainer.size();
-		sum_y[time] /= agentsContainer.size();
-		sum_z[time] /= agentsContainer.size();
+		if (addingCount > 0) {
+			sum_x[time] /= addingCount;
+			sum_y[time] /= addingCount;
+			sum_z[time] /= addingCount;
+		} else {
+			//NB: indicate there's no data for this time point
+			sum_x[time] = Double.NaN;
+		}
 	}
 
 	public void updateStats() {
@@ -337,11 +343,17 @@ public class Simulator {
 			sum_y[time] += agent.getY();
 			sum_z[time] += agent.getZ();
 		});
-		spotsInTotal += agentsContainer.size();
+		final int addingCount = agentsContainer.size();
+		spotsInTotal += addingCount;
 
-		sum_x[time] /= agentsContainer.size();
-		sum_y[time] /= agentsContainer.size();
-		sum_z[time] /= agentsContainer.size();
+		if (addingCount > 0) {
+			sum_x[time] /= addingCount;
+			sum_y[time] /= addingCount;
+			sum_z[time] /= addingCount;
+		} else {
+			//NB: indicate there's no data for this time point
+			sum_x[time] = Double.NaN;
+		}
 	}
 
 	public void pushCenterSpotsToMastodonGraph(int timeFrom, int timeTill) {
@@ -361,6 +373,8 @@ public class Simulator {
 		}
 
 		for (int time = timeFrom; time <= timeTill; ++time) {
+			if (sum_x[time] == Double.NaN) continue; //skip over empty frame
+
 			coords[0] = sum_x[time];
 			coords[1] = sum_y[time];
 			coords[2] = sum_z[time];

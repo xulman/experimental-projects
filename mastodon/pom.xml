@@ -45,10 +45,9 @@
 		</dependency>
 
 		<!-- for GUI testing... -->
-		<!-- TODO, use sc.fiji and fiji.... -->
 		<dependency>
-			<groupId>net.imagej</groupId>
-			<artifactId>imagej</artifactId>
+			<groupId>sc.fiji</groupId>
+			<artifactId>fiji</artifactId>
 		</dependency>
 	</dependencies>
 
